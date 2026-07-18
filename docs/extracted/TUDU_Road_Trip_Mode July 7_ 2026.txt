@@ -1,0 +1,42 @@
+left-63500
+TUDU Road Trip Mode
+Strategy & Direction Document
+1. Overview
+Road Trip Mode turns a drive into a planned or spontaneous adventure. Tell TUDU where you're headed, and it builds a route with stops along the way — or hand over control entirely with "Surprise Me" and let TUDU plan a spontaneous local adventure. It's designed to feel like its own destination within the app, not just another filter on the map.
+Road Trip Mode was originally built ahead of beta launch but was pulled before release to avoid overwhelming or confusing early users with too many features at once. It's now planned for reintroduction as its own dedicated section of the app, with its own bottom navigation tab — the same way Bucket List Mode is planned to get one.
+2. Core Concept
+Road Trip Mode is entered by pressing its own icon on the bottom navigation bar, which opens a dedicated, fully themed Road Trip display — distinct in look and feel from the rest of the app. From there, users choose one of two paths:
+2.1 Plan a Destination
+The user picks where they're headed, and TUDU crafts stops along the way based on the route. Users can also specify how many stops they want, letting TUDU replan the route to hit that number of extra events or points of interest.
+2.2 Surprise Me
+A spontaneous, local adventure built just for the user — no destination required. This path hands full control to TUDU to build a fun, unplanned route based on what's nearby.
+3. Scan Mode (While Driving)
+Scan Mode is Road Trip Mode's passive, always-on companion for when a route isn't actively planned. While driving, it continuously checks for anything matching the user's filters within a shorter radius, and sends an alert when something relevant is nearby.
+Alerts are based on the user's existing filters, not a new separate filter system.
+The radius is intentionally shorter than normal browsing, since it's meant to surface things worth an in-the-moment detour, not distant options.
+When an alert comes in, the user can open it to check the full details, or simply keep driving and ignore it.
+Direction note: Since this triggers while the user is actively driving, alert design needs careful thought — large tap targets, minimal required reading, and ideally voice/audio alerts as an option, to avoid becoming a distraction risk behind the wheel.
+4. Navigation & Placement
+Road Trip Mode is meant to feel like its own separate entity within the app, not a sub-menu buried inside the map or event feed.
+Its own icon on the bottom navigation bar, consistent with how Bucket List Mode is planned to work.
+Tapping the icon opens a fully themed Road Trip display, rather than a standard list or map view.
+The visual theme is part of the experience itself, not just decoration — see Section 5.
+5. Seasonal & Regional Theming
+The Road Trip Mode landing screen is designed to change its visual theme with the seasons, and eventually by country/region as TUDU expands. Early design directions already show this range — autumn, winter, day, and night variations of the same core layout:
+Autumn / golden hour
+Night sky
+Winter dusk (illustrated)
+Autumn (illustrated, with tagline)
+Winter day (illustrated)
+The core layout — logo, "Road Trip Mode" title, and the two action cards (Plan a Destination / Surprise Me) — stays consistent across every theme, so the feature is always instantly recognizable even as the background art changes.
+Direction note: Define the actual trigger logic for theme changes: calendar-based (fixed seasonal dates), weather-based (real-time conditions), location-based (region/country), or some combination. This affects both design complexity and how "alive" the feature feels.
+6. Relaunch Considerations
+Direction note: Since this feature was pulled from beta specifically to avoid confusing users, define what's different this time — is it a staged rollout, better onboarding/tooltips, or simply better timing now that users are more familiar with the core app?
+Direction note: Decide whether Road Trip Mode and Bucket List Mode launch together or separately, since both are planned as new bottom-nav tabs and adding two new navigation items at once may reintroduce the same 'too much at once' risk that led to Road Trip Mode being pulled originally.
+Direction note: Clarify how 'number of stops' works technically — is there a cap, and how does TUDU balance detour distance/time against the number of stops requested?
+7. Open Considerations Summary
+What triggers seasonal/regional theme changes, and how many themes are needed at launch vs. planned for later?
+How does Scan Mode alert the user safely while driving (visual, audio, or both)?
+What's the relaunch plan to avoid the confusion that led to this feature being pulled before?
+Does Road Trip Mode launch alongside or separately from Bucket List Mode?
+Is there a cap on the number of stops a user can request in "Plan a Destination"?

@@ -1,0 +1,181 @@
+-2540-254000
+TUDU Miles Reward Economy
+Internal Reference Document
+1. Overview
+The TUDU Miles Economy is the rewards and incentive system that powers user engagement, host growth, and long-term loyalty across the TUDU platform. Designed to feel simple for users yet sustainable for the business, TUDU Miles turns every action — attending events, creating experiences, purchasing boosts, building communities — into meaningful progress inside the app.
+At its core, the economy is built on two principles: earn Miles from activity and spending, and redeem Miles for valuable tools and experiences.
+Users earn 100 Miles for every $1 spent on the platform, creating a familiar and predictable rewards structure. Hosts earn additional Miles for reaching event-creation milestones, while attendees collect Miles through participation, engagement, and referrals. This creates a powerful ecosystem where everyone benefits from being active on TUDU.
+To maintain balance and prevent inflation, TUDU uses a controlled redemption model: 800 Miles = $1 in redeemable value. This represents a 12.5% return over time — rewarding enough to motivate users, yet stable enough to protect the TUDU economy as it scales.
+TUDU Miles can be exchanged for high-value items such as travel passes, event boosts, tickets, merchandise, and partner perks, giving users a sense of progression and unlocking deeper levels of participation. Subscriptions, however, remain cash-based to ensure platform sustainability, though they still generate Miles as an added benefit.
+The result is a closed-loop, gamified economic system where users are rewarded for contributing, exploring, and hosting — driving continuous activity on the platform while reinforcing TUDU's mission: get people out, connected, engaged, and doing more.
+2. Redemption Rate Summary
+Metric
+Value
+Earn Rate
+$1 Spent = 100 Miles Earned
+Redemption Rate
+800 Miles = $1 Redeemable
+Effective Return
+12.5% Return System (8:1)
+Mile Value
+1 Mile = $0.00125
+3. Earning Miles
+3.1 Subscription Earnings
+$1 Spent = 100 Miles Earned
+Monthly Subscriptions
+Plan
+Cost
+Miles Earned
+Pathfinder
+$9.99
+1,000 Miles
+Creator
+$24.99
+2,500 Miles
+Trusted Host
+$49.99
+5,000 Miles
+Annual Subscriptions
+Plan
+Cost
+Miles Earned
+Pathfinder
+$89.99 (−25%)
+9,000 Miles
+Creator
+$194.92 (−35%)
+19,500 Miles
+Trusted Host
+$329.94 (−45%)
+45,000 Miles
+3.2 Marketplace Earnings
+Travel Passes
+Item
+Cost
+Miles Earned
+24-Hour Pass
+$1.99
+199–200 Miles
+7-Day Pass
+$4.99
+499–500 Miles
+30-Day Pass
+$9.99
+999–1,000 Miles
+Event Exposure & Host Tools
+Item
+Cost
+Miles Earned
+Single Boost
+$2.99
+299–300 Miles
+Extra Event Post
+$1.99
+199–200 Miles
+Extra Events 3-Pack
+$4.99
+499–500 Miles
+Highlighted Event Slot
+$9.99
+999–1,000 Miles
+Weekly Featured Placement
+$24.99
+2,499–2,500 Miles
+3.3 User Activity Earnings
+Engagement Earning
+Activity
+Equivalent Value
+Miles Earned
+Daily Login
+$0.0125
+10 Miles
+Weekly Streak
+$0.10
+80 Miles
+Attend Free Event
+$0.031
+25 Miles
+Attend Paid Event
+$0.125
+100 Miles
+Leave a Review
+$0.031
+25 Miles
+Refer a Friend
+$0.25
+200 Miles
+Refer a Host (who signs up)
+$1.87
+1,500 Miles
+Milestone Earnings
+Milestone
+Equivalent Value
+Miles Earned
+10 Events
+$1.00
+800 Miles
+50 Events
+$3.25
+5,000 Miles
+250 Events
+$31.25
+25,000 Miles
+1,000 Events
+$156.25
+125,000 Miles
+5,000 Events
+$625.00
+500,000 Miles
+4. Mile Economy Limitations
+Miles expire after 24 months. Soft expiry at 18 months, hard expiry at 24 months, with a reminder issued before expiration.
+Open question: Will need to determine the need for an expiry on Miles.
+Lower earn rate applies to non-paying users.
+Open question: Are users able to accumulate Miles on the Explorer (freemium) tier?
+Subscriptions generate Miles but cannot be purchased with Miles.
+Miles cannot be redeemed for cash withdrawal.
+Host milestone Miles are awarded once per milestone (e.g., hitting 10 pays out; the next reward is at 25, not 10 again).
+Miles will be revoked if fraud is detected.
+5. Marketplace Redemption
+The Marketplace UI displays a user's earned Miles alongside the Miles required for each item, allowing users to select items to redeem directly.
+Redemption Pricing (all based on 800 Miles = $1)
+Travel Passes
+Item
+Cost
+Redeemed Miles
+24-Hour Pass
+$1.99
+1,600 Miles
+7-Day Pass
+$4.99
+4,000 Miles
+30-Day Pass
+$9.99
+8,000 Miles
+Event Boosts & Host Tools
+Item
+Cost
+Redeemed Miles
+Single Boost
+$2.99
+2,400 Miles
+Extra Event Post
+$1.99
+1,600 Miles
+Extra Events 3-Pack
+$4.99
+4,000 Miles
+Highlighted Event Slot
+$9.99
+8,000 Miles
+Weekly Featured Placement
+$24.99
+20,000 Miles
+6. Future Possibilities
+Ticket purchases from TUDU organizers (requires building a ticket-hosting environment).
+Discounts on tickets, with Miles contributing toward promotions at the organizer's discretion.
+Discounts on hotel stays / room purchases.
+Potential partnership with a fuel or retail co-op for additional rewards.
+Tiered hotel-stay perks, for example:
+$24.99/mo → 10% off all stays
+$49.99/mo → 1 free night per year plus additional perks
+$199/mo → 3 nights per month at any TUDU hotel (supporting occupancy on low-demand days)

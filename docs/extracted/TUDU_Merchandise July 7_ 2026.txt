@@ -1,0 +1,50 @@
+0000
+TUDU Merchandise
+Strategy & Direction Document
+1. Overview
+TUDU Merchandise extends the brand beyond the app and into the physical world — plush toys, backpacks, apparel, calendars, keychains, and more, built around both the core TUDU brand and the Tuduans character roster. Merchandise gives users a way to carry TUDU with them, gives the Tuduans a physical presence kids can hold onto, and creates a retail layer that connects naturally to the TUDU Event Marketplace, TUDU Miles, and the TUDU Kids Foundation.
+2. Product Line
+2.1 Plush Toys
+Soft, huggable versions of the five Tuduans — Sol, Lumi, Ember, Nova, and Axis — each true to its character's color palette and motif. Plush toys are the most direct extension of the character universe and a natural anchor product for both retail sales and TUDU Kids Foundation giveaways.
+2186644170021288243810004188350441700
+2.2 Backpacks
+Character-shaped backpacks modeled directly on the Tuduans, designed for kids: plush-soft construction, a spacious main compartment, front zip pocket, side pockets, adjustable straps, and durable, kid-ready materials.
+TUDU character backpacks — "Little Buddies, Big Adventures"
+2.3 Calendars & Stickers
+A large wall calendar featuring the full Tuduans lineup, paired with reusable event stickers so kids (and families) can plan out and mark the adventures they want to have — directly reinforcing TUDU's core "discover and do" mission in a physical, everyday object.
+TUDU wall calendar with reusable event stickers — "Plan It. Stick It. Live It."
+2.4 Adult / Brand Apparel
+Clean, brand-forward apparel for adults — t-shirts and hoodies featuring the TUDU wordmark and pin logo, geared toward everyday wear, live events, and TUDU Crew branding.
+TUDU Entertainment adult apparel — t-shirts and hoodies
+2.5 Youth / Character Apparel
+Apparel aimed at kids and younger fans, featuring individual Tuduans (Nova, Ember, Axis, Sol) as standalone character graphics, alongside standard TUDU branding — giving young fans a way to represent their favorite character specifically, not just the brand as a whole.
+TUDU youth apparel featuring individual Tuduans characters
+2.6 Keychains
+Small, affordable character keychains — an easy impulse-buy or giveaway item, and a natural companion product to the plush toy line using the same character designs at a lower price point.
+3. Brand Tie-In
+Merchandise splits naturally into two brand tracks, and product lines should stay clearly organized around them:
+Track
+Products
+Audience
+TUDU Brand
+Adult apparel, hats, general branded goods
+Broad / adult TUDU users, TUDU Crew
+Tuduans Characters
+Plush toys, character backpacks, youth apparel, calendars
+Kids, families, TUDU Kids Foundation
+Direction note: Keep a consistent visual system so both tracks still feel like one brand — shared color palette, consistent logo placement, and the pin/T mark appearing somewhere on every product, even character-first ones.
+4. Distribution & Sales Channels
+TUDU online store, for direct purchase and shipping.
+TUDU Event Marketplace — merchandise pre-ordered alongside event tickets, as outlined in the Event Marketplace strategy document.
+TUDU Kids Foundation tour stops — plush toys, backpacks, and stickers as giveaways or on-site sales during Foundation bus tours.
+TUDU Miles redemption — select merchandise items redeemable using TUDU Miles instead of cash, tying merchandise directly into the existing rewards economy.
+Direction note: Decide which items (if any) are Miles-exclusive vs. cash-only vs. available through both paths, and at what Miles price point — this should stay consistent with the existing 800 Miles = $1 redemption rate used elsewhere in the Miles Economy.
+5. Manufacturing & Fulfillment
+Direction note: Identify manufacturing partners for soft goods (plush, backpacks) separately from apparel and printed goods (calendars, stickers) — these typically require different vendors and lead times.
+Direction note: Decide on an inventory model: made-to-order/print-on-demand (lower risk, slower fulfillment) versus bulk manufacturing (faster fulfillment, higher upfront cost and storage needs).
+Direction note: For youth apparel and plush toys specifically, confirm compliance with children's product safety standards (e.g., choking hazard testing for small parts, flammability standards for apparel) before manufacturing at scale.
+6. Open Considerations
+What is the initial product launch order — which items go first (plush toys and backpacks appear to be the strongest character-driven starting point)?
+Will merchandise be sold only through TUDU's own channels, or also through third-party retailers/marketplaces?
+How does sizing work for youth vs. adult apparel, and will sizing data collected through the Event Marketplace pre-order flow feed into merchandise demand planning?
+Should each Tuduan have its own dedicated product variant across every category (e.g., a Nova backpack, a Nova tee, a Nova plush) to encourage collecting the full set?

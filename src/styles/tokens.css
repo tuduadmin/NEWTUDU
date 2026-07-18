@@ -1,0 +1,157 @@
+/* TUDU Bucket List Mode — Design Tokens */
+
+:root {
+  /* ── Dusk palette (refined) ── */
+  --color-midnight: #0b0f1a;
+  --color-midnight-elevated: #121828;
+  --color-midnight-surface: #1a2236;
+  --color-plum: #5c2d6e;
+  --color-plum-soft: #7a3d8f;
+  --color-magenta: #c026a0;
+  --color-magenta-bright: #e040b8;
+  --color-sunset-pink: #f4729a;
+  --color-sunset-orange: #f97316;
+  --color-warm-yellow: #fbbf24;
+  --color-electric-blue: #38bdf8;
+  --color-electric-blue-deep: #0ea5e9;
+  --color-success: #34d399;
+  --color-success-deep: #059669;
+  --color-error: #f87171;
+  --color-warning: #fbbf24;
+
+  /* ── Text ── */
+  --color-text-primary: #f8fafc;
+  --color-text-secondary: rgba(248, 250, 252, 0.72);
+  --color-text-muted: rgba(248, 250, 252, 0.48);
+  --color-text-inverse: #0b0f1a;
+
+  /* ── Surfaces & glass ── */
+  --color-glass-bg: rgba(18, 24, 40, 0.72);
+  --color-glass-border: rgba(255, 255, 255, 0.12);
+  --color-glass-highlight: rgba(255, 255, 255, 0.06);
+  --color-overlay-dark: rgba(11, 15, 26, 0.55);
+  --color-overlay-readability: linear-gradient(
+    180deg,
+    rgba(11, 15, 26, 0.35) 0%,
+    rgba(11, 15, 26, 0.08) 35%,
+    rgba(11, 15, 26, 0.55) 70%,
+    rgba(11, 15, 26, 0.92) 100%
+  );
+
+  /* ── Gradients ── */
+  --gradient-dusk: linear-gradient(
+    135deg,
+    #0b0f1a 0%,
+    #5c2d6e 28%,
+    #c026a0 52%,
+    #f4729a 72%,
+    #f97316 88%,
+    #fbbf24 100%
+  );
+  --gradient-dusk-soft: linear-gradient(
+    135deg,
+    rgba(192, 38, 160, 0.85) 0%,
+    rgba(244, 114, 154, 0.85) 45%,
+    rgba(249, 115, 22, 0.85) 100%
+  );
+  --gradient-story-ring: conic-gradient(
+    from 180deg,
+    #f97316,
+    #c026a0,
+    #38bdf8,
+    #fbbf24,
+    #f97316
+  );
+  --gradient-spotify: linear-gradient(135deg, #1db954 0%, #1ed760 100%);
+
+  /* ── Shadows & glows ── */
+  --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.45);
+  --shadow-float: 0 12px 40px rgba(0, 0, 0, 0.55);
+  --shadow-glow-warm: 0 0 24px rgba(249, 115, 22, 0.45);
+  --shadow-glow-magenta: 0 0 32px rgba(192, 38, 160, 0.4);
+  --shadow-glow-success: 0 0 20px rgba(52, 211, 153, 0.35);
+  --shadow-inset-glass: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* ── Spacing (4px base) ── */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-safe-bottom: max(16px, env(safe-area-inset-bottom));
+  --space-safe-top: max(12px, env(safe-area-inset-top));
+
+  /* ── Radii ── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-2xl: 32px;
+  --radius-pill: 9999px;
+  --radius-card: 24px;
+  --radius-cover: 20px;
+
+  /* ── Typography ── */
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --text-display: 800 32px/1.1 var(--font-display);
+  --text-screen-title: 800 24px/1.15 var(--font-display);
+  --text-card-title: 700 22px/1.2 var(--font-display);
+  --text-section-title: 700 18px/1.25 var(--font-display);
+  --text-body: 400 15px/1.5 var(--font-body);
+  --text-body-semibold: 600 15px/1.5 var(--font-body);
+  --text-metadata: 500 12px/1.4 var(--font-body);
+  --text-caption: 500 11px/1.35 var(--font-body);
+  --text-button: 700 14px/1 var(--font-display);
+  --text-badge: 700 10px/1 var(--font-display);
+  --letter-tight: -0.02em;
+  --letter-wide: 0.06em;
+
+  /* ── Icon sizes ── */
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+
+  /* ── Touch targets ── */
+  --touch-min: 44px;
+  --touch-action: 48px;
+  --touch-fab: 56px;
+
+  /* ── Z-index layers ── */
+  --z-base: 0;
+  --z-card-stack: 10;
+  --z-header: 40;
+  --z-floating: 50;
+  --z-modal: 60;
+  --z-toast: 70;
+  --z-save-fly: 80;
+
+  /* ── Motion ── */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-soft: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --duration-instant: 120ms;
+  --duration-fast: 180ms;
+  --duration-normal: 240ms;
+  --duration-slow: 320ms;
+  --duration-celebrate: 450ms;
+  --duration-fly: 700ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-celebrate: 0ms;
+    --duration-fly: 0ms;
+  }
+}

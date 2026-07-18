@@ -1,0 +1,186 @@
+@import 'tailwindcss';
+@import './styles/tokens.css';
+
+@theme {
+  --color-cream: #faf6ef;
+  --color-cream-dark: #f3ede3;
+  --color-brown: #3d2c29;
+  --color-brown-muted: #6b5b58;
+  --color-orange: #f68e5d;
+  --color-purple: #c02e8d;
+  --color-peach: #e8875a;
+  --color-maroon: #8b2942;
+  --color-app-dark: #0b0f1a;
+  --color-app-dark-elevated: #121828;
+  --color-midnight: #0b0f1a;
+  --color-midnight-elevated: #121828;
+  --color-midnight-surface: #1a2236;
+  --color-magenta: #c026a0;
+  --color-sunset-pink: #f4729a;
+  --color-sunset-orange: #f97316;
+  --color-warm-yellow: #fbbf24;
+  --color-electric-blue: #38bdf8;
+  --color-success: #34d399;
+  --color-success-deep: #059669;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --radius-tudu: 1.25rem;
+  --radius-tudu-lg: 1.75rem;
+  --radius-tudu-xl: 2rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply m-0 min-h-svh bg-cream font-sans text-brown antialiased;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    background: linear-gradient(135deg, #f68e5d, #c02e8d);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .bg-gradient-tudu {
+    background: linear-gradient(135deg, #f68e5d 0%, #d94a7a 50%, #c02e8d 100%);
+  }
+
+  .shadow-event-blue {
+    box-shadow:
+      0 0 0 2px rgba(59, 130, 246, 0.35),
+      0 12px 32px rgba(59, 130, 246, 0.2);
+  }
+
+  .bg-gradient-dusk {
+    background: var(--gradient-dusk);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
+  }
+
+  .glass-surface {
+    background: var(--color-glass-bg);
+    border: 1px solid var(--color-glass-border);
+    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-inset-glass);
+  }
+
+  .text-tagline {
+    font: var(--text-badge);
+    letter-spacing: var(--letter-wide);
+    text-transform: uppercase;
+    color: var(--color-sunset-pink);
+  }
+
+  .overlay-readability {
+    background: var(--color-overlay-readability);
+  }
+
+  .glow-warm {
+    box-shadow: var(--shadow-glow-warm);
+  }
+
+  .glow-magenta {
+    box-shadow: var(--shadow-glow-magenta);
+  }
+
+  .story-ring {
+    background: var(--gradient-story-ring);
+    padding: 2px;
+    border-radius: var(--radius-pill);
+  }
+
+  @keyframes fly-to-bucket {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 1;
+    }
+    70% {
+      transform: translate(var(--fly-x, 120px), var(--fly-y, -280px)) scale(0.2);
+      opacity: 0.9;
+    }
+    100% {
+      transform: translate(var(--fly-x, 120px), var(--fly-y, -280px)) scale(0);
+      opacity: 0;
+    }
+  }
+
+  @keyframes bucket-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 rgba(249, 115, 22, 0);
+    }
+    50% {
+      box-shadow: var(--shadow-glow-warm);
+    }
+  }
+
+  @keyframes card-swipe-out-right {
+    to {
+      transform: translateX(120%) rotate(12deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes card-swipe-out-left {
+    to {
+      transform: translateX(-120%) rotate(-12deg);
+      opacity: 0;
+    }
+  }
+
+  @keyframes card-swipe-out-up {
+    to {
+      transform: translateY(-110%) scale(0.95);
+      opacity: 0;
+    }
+  }
+
+  @keyframes toast-in {
+    from {
+      transform: translateY(16px);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-fly-to-bucket {
+    animation: fly-to-bucket var(--duration-fly) var(--ease-out-expo) forwards;
+  }
+
+  .animate-bucket-glow {
+    animation: bucket-glow var(--duration-celebrate) var(--ease-out-soft);
+  }
+
+  .animate-swipe-right {
+    animation: card-swipe-out-right var(--duration-slow) var(--ease-out-expo) forwards;
+  }
+
+  .animate-swipe-left {
+    animation: card-swipe-out-left var(--duration-slow) var(--ease-out-expo) forwards;
+  }
+
+  .animate-swipe-up {
+    animation: card-swipe-out-up var(--duration-slow) var(--ease-out-expo) forwards;
+  }
+
+  .animate-toast-in {
+    animation: toast-in var(--duration-normal) var(--ease-out-expo);
+  }
+
+  .shadow-event-blue {
+    box-shadow:
+      0 0 0 2px rgba(59, 130, 246, 0.35),
+      0 12px 32px rgba(59, 130, 246, 0.2);
+  }
+}

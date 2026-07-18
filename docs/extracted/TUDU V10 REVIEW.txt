@@ -1,0 +1,102 @@
+TUDU V10 REVIEW
+Dec 17, 2025
+Landing Page
+Can we make Tudu Default setting (dusk). The dark themes seem to be the preferred. I don’t hate the idea of adding more.
+Based on users phone settings and dark and light mode.
+31349956667500left61521
+247600565133
+[add to home screen button] can we make this a permanent box instead of being able to close it out. Clean it up by removing the extra write up.
+315214050800035626654800
+251403918415
+This is how I was trying to explain. Once you touch install it takes you directly to this create short cut box.
+** you said icon should automatically appear once site is ready. I have EPS files on these icons.
+What TUDU
+Changes to action buttons
+241639872489005456637140800
+Only SKIP has an aura around it, can we have this on all 5 of the buttons, everyone seems to love that small feature.
+18811346826700
+Swap SHARE and ADD this will even out the main action buttons around the details button.
+Change BACK to *blue
+Change ADD to *green
+Button order
+[Back]  [Skip]   [details]   [Add]  [Share]
+Action Bubble that pops up giving details, does not pop up when you PRESS the skip button. Only when you swipe left. ** works for Back and Saved- Both swipe and pushing button. Just feels unfinished.
+It blocks the function of the buttons. Do we leave this or change it? Can we add sound effects?
+20307056391
+3). My TUDU
+3062795711860049847510731500
+What do these digits for Following, past events, Kudos and Bucket list, go up to for each category? Can they go to 4 digits each? ** don’t see anything going past 9999 for some time.
+Can these icons stay on there User profile. I can see them on the Organizer profile.
+1863065-61000
+Can we Remove [ Find something Tudu] button on the bottom of MY TUDU. Just takes you to WHAT TUDU. Which the button is right below. Cleans it up.
+1781175444500
+How do we implement the TRAVEL PASS? ( change home location)
+Do we just use the Existing home location bar.
+Do we add a second location field that says TRAVEL PASS
+Do we add a field on main MY TUDU page?
+A small bracket next to HOME LOCATION – (Travel pass enabled)?
+1905306-413
+Can we remove this top Back / logout button. Everyone keeps hitting it myself included to go back a page. Once you hit it it takes you back to the landing page and you have to re-sign in.
+As this is a website once you close window, should that not log you out?
+And once its an app I think the logout should be its own button in your profile. Keep people logged in all the time like Instagram and Facebook.
+4). PLANNER
+175006017462500
+Under organizer profile. It has fields for Facebook, X. Instagram Etc. Should we have buttons and quick links for these?
+Or arrows next to the URL in edit profile?
+What is your suggestion on this?
+2743200450766246257083400
+2472342144879488950165100036762985310
+28784282723300264017182048
+Title Cleaned up to “Trusted Host”
+Remove Price.. and change to [Upgrade to a Trusted Host]. Gets them to click without scaring them away at a large number. Sends to price package and all the details.
+We will list all perks of trusted hose on this page. ( Pricing needs to be reviewed)
+Should the [Upgrade to Trusted Host] window have a X to close out window to unclutter event planner page.
+3637656872900429260834500
+What does Browse all events look like as a feature? Between following organizers and WHAT TUDU Should you not be seeing all events?
+Do we need it?  Can it be removed to clean up event planner page?
+Create new event
+** when in event planner creating Event can the Planner Icon be lit up. like it is on other selections** its lit up in other categories but once you start an event its just not lit.
+Should we have a SAVE DRAFT, throught out the process or Auto of auto fill? reasoning is it is a 8 page form, id hate to fill out the first page and click back and have to redo it .
+Is there an autofill Ft for permanent companies.
+Step 1of 8
+Event Description
+417262617070700661481191189
+3560323197134
+The original Event description and Tudu intelligence are pretty much the same. 1 needs to go. ** prefer to keep your idea of  TUDU intelligence**
+Can Tudu intelligence be used to Craft a very good Description for users with just prompts. You suggested its an AI
+Can we integrate the characters and AI for this section. ** Phase 2? **
+Step 2 of 8
+Needs to start at top of page
+Event Imagery
+-Imagery is hard to use. When you try to center picture, the whole page scrolls up. would this be easier done if it was its own single page dedicated to cropping the photo.?
+Step 3 of 8
+Categorize Your Event
+When opening this page it defaults to near the bottom. Lets have it default at the top.
+Step 4 of 8
+Needs to start at top of page.
+When is it Happening
+Thoughts on this.
+Single day event- Freemium
+Multi-day event -freemium
+Recuring event – paid user
+Permanent event – paid organizer
+295529012319000253875541000
+4320003635000
+18449561742150
+18539311078430
+The thought on this is have them lighter and if they want this feature it takes them to the subscription page.
+Arrows
+124189214234
+Time looks messy, with the arrows covering the number. I believe we had a cleaner one on an earlier version.
+Step 5 of 8
+Details and Amenities
+Re center  family friendly and remove the Kid icon to clean it up
+Step 6 of 8
+Ticketing and promotion
+156496641764
+Should stat at top of page, starts
+How are we doing the PRIVATE events once selected. Who sees this? Just followers?
+If its sent to private people who follow can they have the opportunity to to RSVP and have a button that says UNAVALLABLE.  This allows this site to be used for businesses hosting events. ( page would the exact same as public but with the added UNAVALLABLE.
+Step 7 of 8
+Final Preview
+Should start at the top

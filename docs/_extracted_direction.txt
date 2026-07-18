@@ -1,0 +1,130 @@
+﻿How TUDU should work
+Find Tudu Icon on home screen and tap
+Currently switches between white logo and black logo before taking you to login screen
+loading screen and opens on card deck unless you had purposely signed out
+**can loading screen be a small animation like on Eventbrite.?**
+**Remove (more accurate distances) Tudu should always default to your current location. Unless you have TRAVEL PASS, and it will center to the city specified.
+Swipe through card deck
+Scroll left to skip
+Scroll right to save
+Scroll up to View
+Scroll down to Reset
+Press Share Button to Share
+Landing Page
+New Write ups.
+** Remove back ground picture**
+Looks framed in and words are hard to read. We can leave it as a dusk gradient. And allows for seamless flow on the extent of the page.
+Community is right outside your door. Tudu Gets you there
+Tudu exists for one reason: to get you off your screen and into your city. Local events, run by real people near you — find something, then go live it.
+Decrease font size- make look more professional
+Add JOIN THE TUDU CREW add onto home screen
+Add Quick Links to bottom
+Home ( Top of Screen)
+About us
+Our story. Write up about why I created TUDU.
+Where I want to take it
+Key goals we would like to achieve
+Tudu Crew
+Tudu Foundation
+Tudu Miles
+Careers
+Current Opportunities ( List to be edited to fulfill the needs of Tudu)
+Marketing Director
+Digital Creator
+Program developers
+Production advisor
+Tudu Crew Members
+Option 1 Quick apply with resume
+Option 2 Online Application
+First name
+Last name
+Address
+Email Address
+Phone Number
+Recent work history
+Attach project / achievements
+[submit application]
+Contact (admin@tudu.ca) - (Info@tudu.ca) Will need to add this email later
+Get in Touch
+( Write up about whether you are a director marketing or a user)
+First name *
+Last name *
+Email Address *
+Message ( How can we help you )
+Social media icons on very Bottom
+Facebook account created Tudu Entertainment
+Instagram-Account Created (tudu_entertainment
+Youtube- Not Created
+X -  Account Created (Tuducrew)
+Linkedin-  Account Created
+Tick toc- Account Created
+ADMIN DASHBOARD
+Need the ability to add events to peoples cards or send for approval
+Need the ability to gift UNLIMITED EVENTS for tudu and who we choose
+Need the ability to create ATTRACTIONS CARD. Basic card that always stays on card deck Only admin can create these cards for now TEAL boarder
+No boarder is verified users
+GREEN boarder is Trusted hose ( partner) we pull form there calanders
+ORANGE Pioneer  subscription
+BLUE Trusted Host Subscription
+Gold ( white?) will be Hidden Gems ( full time restruants or entertainment businesses
+TEAL will be attractions we enter into TUDU. These can be added and can fill the deck until traction. ( can later be filtered out when the filters adjust)
+** Later. The filters in your personal selection should be able to be more specific like when you are creating the event. Maybe an AI or a search bar that can truck the exact event you want ( if its on the deck )
+A feature TRUSTED HOST / HIDDEN GEM was supposed to have was the ability to see who has there event saved or in the bucket list. This was to allow people to reach out and offer promo codes or discounts as incentive ( not sure the rules on allowing this) event if they are just able to send a generic message or code.
+Invoice COMPLETE
+Need to change it visually to make it more professional logo and company name not just a logo in the corner
+Add a thank you message on the bottom of every invoice
+TUDU FOUNDATION
+complete
+TUDU CREW/Team
+What is it
+A group of out going brand ambassadors who are paid to travel to different events filming and making content.
+Will need to be able to clip and post video content a couple times a week. Footage to be used in conjunction of footage of tudu foundation to make you tube video content.
+Will need to create a TUDU CREW Instagram page
+They will travel to diffent event s and interview and film things along the way
+Will also work with the TUDU FOundaiton and make content
+Will have a youtube channel
+Have a tudu motor home that they will travel around in
+Careers and resume search is created to find talent and to advertise as part of gorilla marketing Campagne**
+Linked in
+Indeed
+Other job sites
+Wiki
+All social media
+Settings
+Laungurage
+Show distance in MI or KM
+Payment account
+Managepayment Account
+Manage google Play account
+Restore Purchase
+Contact us
+Help & Support
+Community
+Community guidelines
+Safety tips
+Saftey Center
+Privacy
+Emails & Communications
+Emails will be set up as employes are onboarded
+Current Emails
+apalm@tudu.ca
+Personal email for all employees to reach out
+All added employees will have first initial and last name. in case of multiples with same emails. A number will be allocated
+admin@tudu.ca
+Developers Email
+noreply@tudu.ca
+all information sent out
+Future Emails
+crew@tudu.ca
+For Tudu crew messaging
+EG.  of crew members emails  add as needed .
+asmith-crew@tudu.ca
+bjones-crew@tudu.ca
+info@tudu.ca
+for job applications and inquires
+support@tudu.ca
+For privacy related questions.
+Legal
+Privacy Policy COMPLETE
+Terms & Conditions  COMPLETE
+Cookies Policy COMPLETE

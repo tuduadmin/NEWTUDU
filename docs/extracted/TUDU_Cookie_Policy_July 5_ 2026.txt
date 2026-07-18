@@ -1,0 +1,64 @@
+left000
+Cookie Policy
+TUDU Entertainment Inc.
+Effective Date: [January 1, 2026]
+1. Introduction
+At TUDU Entertainment Inc. ("TUDU," "we," "us," or "our"), we use cookies and similar tracking technologies on www.tudu.ca (the "Site") to help our Site function properly, understand how visitors use our Site, and improve your overall experience. This Cookie Policy explains what cookies are, how we use them, and the choices availble to you.
+This policy should be read alongside our Privacy Policy, which explains more generally how we collect, use, and protect your personal information.
+2. What Are Cookies?
+Cookies are small text files placed on your device (computer, phone, or tablet) when you visit a website. They allow the website to recognize your device, remember your preferences and past actions, and collect information about how the site is used. Without cookies, a site would have no way of remembering that you were just there — every page you visit would treat you like a first-time stranger.
+Cookies may be:
+First-party cookies — set directly by TUDU.
+Third-party cookies — set by services we work with, such as Google Maps.
+Session cookies — temporary cookies deleted when you close your browser.
+Persistent cookies — cookies that remain on your device for a set period or until you delete them.
+We may also use similar technologies such as web beacons, pixels, and local storage, which work alongside cookies to collect information about your use of the Site. In this policy, we refer to all of these collectively as "cookies."
+3. Why We Use Cookies
+Cookies serve a few practical purposes for us and for you as a visitor:
+Making the Site work — some cookies are required just to load pages correctly and keep the Site secure.
+Remembering you — cookies let the Site recall choices you've already made, so you don't have to re-enter the same information every visit.
+Understanding usage — cookies help us see which pages and features people actually use, so we can prioritize improvements that matter.
+Supporting embedded features — some cookies come from third-party tools we embed directly into the Site, like maps and sign-in options.
+We do not use cookies to sell your personal information to third parties.
+4. Types of Cookies We Use
+Category
+Purpose
+Essential cookies
+Required for the Site to function — for example, enabling core features, maintaining security, and remembering basic settings. The Site cannot operate properly without these, and they cannot be disabled through our cookie tools.
+Functional cookies
+Remember your preferences and choices to provide a more personalized experience, such as language or display settings.
+Analytics cookies
+Help us understand how visitors interact with the Site — which pages are visited, how long visitors stay, and where visitors come from — so we can improve performance and content.
+Advertising cookies
+May be used in the future to deliver relevant advertising and measure the effectiveness of ad campaigns. TUDU does not currently use advertising cookies, but this policy will be updated before any such cookies are deployed.
+Social media cookies
+Used when you interact with social login or sharing features (such as signing in with Facebook or Google), enabling those platforms to recognize you and connect your activity with your account on that platform.
+5. Third-Party Services
+We work with the following third-party providers, which may set their own cookies or collect information when you use certain features of the Site:
+Google Maps — used to display maps and location-based features. Google may collect information in accordance with its own privacy and cookie policies.
+Facebook / Google Sign-In — used to let you create an account or log in using your existing Facebook or Google credentials. These providers may place cookies to enable this functionality and may collect information governed by their own policies.
+AI-powered features — TUDU is developing AI-powered functionality to enhance the Site experience. As these features are implemented, this policy will be updated to describe any related data collection or cookie use.
+We encourage you to review the privacy and cookie policies of these third parties for more information about how they handle your data.
+6. How to Control Cookies
+You have several options to manage or limit cookies:
+Cookie banner: When available, our cookie consent tool lets you accept or decline non-essential cookies when you first visit the Site.
+Browser settings: Most browsers let you block, limit, or delete cookies through their settings menu. Note that blocking essential cookies may affect the Site's functionality.
+Third-party opt-outs: You can manage preferences directly with providers like Google through their own account and ad settings tools.
+Instructions for managing cookies in common browsers:
+Google Chrome: Settings → Privacy and security → Cookies and other site data
+Safari: Preferences → Privacy → Manage Website Data
+Mozilla Firefox: Settings → Privacy & Security → Cookies and Site Data
+Microsoft Edge: Settings → Cookies and site permissions → Manage and delete cookies
+Disabling cookies through your browser applies broadly across the sites you visit, not just TUDU, so review your browser's help documentation for full details.
+7. Your Rights
+Depending on where you live, you may have rights regarding the personal information collected through cookies, such as the right to know what information we hold, request its correction or deletion, or withdraw consent for non-essential cookies at any time. In Canada, these principles are guided by federal and provincial privacy law, including PIPEDA.
+As TUDU grows into other regions, this section will be updated to reflect any additional rights that apply under local law (for example, the EU's GDPR or similar frameworks). To exercise any rights available to you now, contact us using the details in Section 9.
+8. Updates to This Policy
+We may update this Cookie Policy from time to time to reflect changes in the cookies and technologies we use, or for legal or regulatory reasons. We will post the updated version on this page with a revised effective date.
+9. Contact Us
+If you have questions about this Cookie Policy or how we handle your information, please contact us:
+TUDU Entertainment Inc.
+Box 2544
+Kindersley, SK S0L 1S0
+Canada
+Email: admin@tudu.ca

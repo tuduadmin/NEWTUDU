@@ -1,0 +1,58 @@
+0000
+TUDU Foundation
+Strategy & Direction Document
+1. Overview
+The TUDU Foundation is a philanthropic initiative built to extend TUDU's core mission — getting people out, connected, and doing more — to kids who don't otherwise have the means to access those experiences. Where the TUDU platform helps users discover and host events, the Foundation exists to actively create experiences for underprivileged kids, turning TUDU's brand and community into a vehicle for real-world impact.
+At the center of the concept is a branded tour bus — wrapped in TUDU's character designs — that travels the country bringing kids on exciting, memorable adventures. The bus, the kids, and the TUDU Crew become a traveling story that TUDU can document, share, and grow from, while giving back in a tangible, visible way.
+2. Mission Statement
+[DRAFT — to be refined] The TUDU Foundation exists to give underprivileged kids access to unforgettable adventures, connection, and community — proving that opportunity and excitement shouldn't depend on a family's income.
+3. How It Works
+A single tour bus, wrapped in TUDU's character branding, travels across Canada.
+The bus brings underprivileged kids on curated outings and adventures — the specific activities to be defined, but framed around the same spirit of discovery and experience that TUDU promotes on its main platform.
+The TUDU Crew participates in and documents the trips, creating video content that can be shared on TUDU's channels and used to promote both the platform and the Foundation.
+Content from the tour doubles as marketing for TUDU while building an authentic, mission-driven brand story.
+4. Relationship to TUDU Entertainment Inc.
+The Foundation will initially operate as a program under TUDU Entertainment Inc., rather than as a separately incorporated charity. This allows the concept to launch faster, using TUDU's existing infrastructure, brand, and team, while proving out the model before taking on the cost and complexity of separate nonprofit registration.
+As the Foundation grows — particularly once it expands beyond a single bus or seeks tax-deductible donation status — it is expected to spin off into its own registered nonprofit entity, with its own governance and reporting separate from TUDU's commercial operations.
+Direction note: Confirm the point at which spinning off into a registered charity becomes necessary — this is typically driven by donation volume, tax-receipt requirements for donors, and legal separation of liability between the for-profit platform and the charitable program.
+5. Funding Model
+The Foundation is intended to be funded through two channels:
+TUDU Entertainment funding — TUDU commits a portion of its own revenue or resources to fund the Foundation directly.
+Public donations — a future in-app or website "Donate" button allows users to contribute directly to the Foundation.
+Direction note: Determine how donated funds will be held and tracked separately from TUDU's operating revenue, even before formal spin-off, to keep donor funds clearly earmarked and auditable.
+Direction note: Decide whether donations will be tax-deductible from day one (which likely requires charitable registration first) or whether early donations will be framed as direct contributions without a tax receipt until the Foundation is independently registered.
+Direction note: Choose a payment processor for the donate button and confirm it supports charitable/nonprofit transaction types if applicable.
+6. The Bus & Brand Presence
+The bus will be wrapped using TUDU's existing character logo designs, making it an immediately recognizable, mobile piece of the TUDU brand as it travels through communities.
+Initial scale: one bus, touring nationally across Canada.
+Long-term vision: multiple buses, eventually one per continent, each with its own dedicated crew.
+Each stop or tour leg becomes a content opportunity — local media, social content, and community partnerships.
+Direction note: Identify what 'reaching a community' actually looks like operationally — will TUDU partner with local schools, community centers, or children's charities to identify and select participating kids, or run independent outreach?
+7. TUDU Crew Involvement
+The TUDU Crew is envisioned as an active participant in the Foundation's tours — not just support staff, but on-camera hosts and guides who help create the adventure and capture it for TUDU's content channels.
+Crew members help plan, host, and run the day-to-day experience for participating kids.
+Crew members produce video content (vlogs, highlight reels, social clips) from each tour stop.
+This reinforces the connection between the Foundation, the TUDU Crew identity, and the broader TUDU brand.
+Direction note: Because this program involves working directly with children, plan for background checks / vulnerable sector checks for any crew member or volunteer interacting with kids, along with a clear child-safety and supervision policy before the first tour launches.
+Direction note: Decide on consent and media release requirements — parents/guardians will need to sign release forms before their kids can appear in TUDU's video content.
+8. Growth Roadmap
+Phase
+Milestone
+Phase 1
+Single bus, national tour across Canada
+Phase 2
+Formal charitable registration / spin-off from TUDU Entertainment
+Phase 3
+Expansion to additional buses within Canada or into the U.S.
+Phase 4
+Multi-continent expansion — one or more buses and crews per continent
+9. Organizational Structure (Placeholder)
+As this concept develops, TUDU will need a clear organizational chart showing how TUDU Entertainment Inc., the TUDU Foundation, and the TUDU Crew relate to and report into one another — including who oversees the Foundation's operations, who manages Crew scheduling and content, and how decisions and funding approvals flow between the three.
+Direction note: Flag for follow-up: build a dedicated TUDU org chart covering TUDU Entertainment Inc., TUDU Foundation, and TUDU Crew, including reporting lines and decision-making authority for Foundation spending and tour planning.
+10. Open Questions Summary
+What is the legal timeline for spinning the Foundation into its own registered charity?
+How will donated funds be tracked separately from TUDU's operating revenue prior to spin-off?
+Will donations be tax-deductible immediately, or only after charitable registration?
+How will participating kids/families be identified and selected for each tour stop?
+What child-safety policies (background checks, consent forms, chaperone ratios) need to be in place before the first tour?
+What does the TUDU / Foundation / Crew org chart look like, and who owns final decision-making for the Foundation?

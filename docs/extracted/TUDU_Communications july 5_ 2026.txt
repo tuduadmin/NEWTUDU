@@ -1,0 +1,35 @@
+left5660
+Emails & Communications
+Internal Reference Document
+1. Overview
+This document outlines TUDU's email structure and naming conventions. Role-based inboxes are set up in advance to support growth, while personal employee emails are created as each new hire is onboarded.
+2. Naming Convention
+Employee email addresses follow the format: first initial + last name (e.g., apalm@tudu.ca).
+If two employees share the same first initial and last name, a number is appended to differentiate the accounts (e.g., apalm2@tudu.ca).
+3. Current Emails
+Email
+Purpose
+apalm@tudu.ca
+Personal employee email — available for direct outreach.
+admin@tudu.ca
+Developer / technical administration email.
+noreply@tudu.ca
+Automated outbound email — used for system notifications and information that does not require a reply.
+4. Future Emails
+The following role-based inboxes are planned as the team and platform grow:
+Email
+Purpose
+crew@tudu.ca
+General TUDU crew messaging.
+info@tudu.ca
+Job applications and general inquiries.
+support@tudu.ca
+Privacy-related questions and user support.
+Individual crew member emails will follow a dedicated naming pattern as they're added, for example:
+asmith-crew@tudu.ca
+bjones-crew@tudu.ca
+5. Direction & Open Considerations
+Direction note: Confirm whether support@tudu.ca should be scoped to privacy questions only, or expanded to general customer support as the user base grows — may be worth splitting into support@ (general) and privacy@ (privacy-specific) once volume increases.
+Direction note: Decide on a retention/handoff process for personal employee emails (e.g., apalm@tudu.ca) if that employee leaves the company, to avoid losing continuity with external contacts.
+Direction note: Consider whether info@tudu.ca and support@tudu.ca should route into a shared inbox / helpdesk tool (e.g., Google Workspace groups, Zendesk) rather than a single personal mailbox, once inquiry volume increases.
+Direction note: Determine whether noreply@tudu.ca should ever accept replies for compliance purposes (e.g., unsubscribe confirmations), since some jurisdictions require a working reply-to address on marketing emails.

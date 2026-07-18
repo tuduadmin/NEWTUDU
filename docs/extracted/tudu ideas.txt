@@ -1,0 +1,51 @@
+Review Oct 07, 2025
+First Page
+Need a button to add app to home screen, until site is converted to app and put on app store.
+will add to landing page.**
+Background image should be changed to something more exciting. (revolving pictures of events that have happened?
+This is cosmetic and can be changed later
+Terms of service and privacy policy. (need Lawyer to do this What do I need to cover for )
+Will use a basic terms of service for beta will need to find lawyer to write out terms of service and privacy policy
+From Garage sales to Galas.
+Edit whenever
+Should we add a little more detail about what kind of events. E.g. from Garage sales to Wing nights, Game nights and Galas.
+Second button for SMS notification is not working
+(Should work once beta is up and running)
+What is the organizer invite code and what will it do
+(will remove)
+Visual can we make welcome back. Name 2 lines Tudu Icon larger
+Will change to clean up in case names are longer.
+Main event listing page
+Icons need to be more clearly defined.
+X skipped ( what does this entail
+Clock- bottom of the deck
+Magnifying glass ( event details )
+Arrow and box ( share) is this the best icon
+Bucket list
+Will change buttons around to make more functional
+Once you open event. Back button needs to be more clear.
+MY TUDU
+Favorites icon not centered.
+Change the bucket list icon
+Have the picture top and centered.
+? followed organizers. How many will be shown? What if you follow 50. is it (show full list (takes to a new page to edit if needed. And delete.
+Will events be automatically removed once event is over (auto declutter someone’s Saved box. Manually remove with a trash can
+Can organizers see who’s saved or bucket list there event ( gives opportunity to offer discounts)
+NOTIFICATIONS
+Icon at top of phone can we make this the TUDU icon (Pin with T) and can we use color? ( May need to be an App
+Events reaction
+Partner ship
+Shared from other site Eg kamoot.
+Review Oct 07, 2025
+Questions
+Can we add videos to bucket list, can people monetize
+Do we get a marketing expert to do a makeover. Would now or later be better
+Basic ticket sales for small events ( with a cut )
+Accommodations tab.
+Ryde or uber button /Link
+Once RSVP could it open a screen do hotel food rides? Certain events have rooms blocked off at hotels could you advertise this on the site.
+Market place/  merchandise.
+How do we flag / report issues and adds not wanted
+QR code Phone Number
+V10 Review
+Default color setting should be DUSK.

@@ -1,0 +1,45 @@
+0000
+TUDU Bucket List Mode
+Strategy & Direction Document
+1. Overview
+Bucket List Mode reimagines the humble "save for later" list as something users actively build, personalize, and complete — not just a folder of saved cards, but a living, shareable collection of experiences with its own identity. Instead of quietly saving items and forgetting about them, users curate a bucket list with a soundtrack, discover other people's bucket lists the way they'd discover events, and mark items complete with a story attached.
+The goal is to make saving something feel like the start of a journey, not the end of the interaction.
+20129506350
+2. Discovering Experiences (The Card Deck)
+While browsing the main swipeable card deck, users can act on individual experience cards in a few ways beyond a simple save — for example, saving directly to their bucket list, or opening the card for more detail first. The exact save flow is still to be decided (see Section 4).
+3. Discovering Bucket Lists (New Dedicated Page)
+In addition to browsing individual experiences, Bucket List Mode introduces its own dedicated page where users swipe through other people's full bucket lists, rather than individual cards.
+Each swipeable card represents one person's bucket list, shown as a cover image.
+Tapping into a bucket list opens the full, readable list of items inside it.
+From there, users can save an individual item to their own bucket list, or save the entire list at once.
+Direction note: Clarify how this relates to the main card deck — are these two separate discovery surfaces (individual experiences vs. whole bucket lists), or should bucket lists surface as a filter/mode within the existing deck?
+4. Saving Behavior
+There are two possible approaches to how saving works, and a decision is needed on which one TUDU uses:
+Direct save — tapping save immediately adds the item to the user's bucket list, no extra steps.
+Save, then organize — tapping save adds the item to a holding area first, and the user organizes it into their bucket list afterward.
+The intent behind Bucket List Mode is to feel more proactive and intentional than a generic "Saved" folder, so the save flow should reinforce that — even if the underlying mechanism is similar to a standard save.
+Direction note: Decide between direct save and save-then-organize. A middle-ground option: direct save by default, with an easy 'organize' view available afterward, so nothing is lost but users aren't forced into an extra step every time.
+5. Inside a Bucket List
+Each bucket list — whether your own or one you're viewing — includes:
+A list of saved items, each with its own image and details.
+A Spotify playlist created for that specific bucket list, embedded at the bottom of the page.
+Links to related Instagram video content, where available.
+This turns a bucket list into more of a mood board or vision board than a plain checklist — sound, video, and visuals all reinforcing the feeling of the experiences inside it.
+6. Completing Items
+When a user opens an item within their own bucket list, they have the option to mark it as complete.
+Marking an item complete is a simple toggle.
+Users can optionally add a short write-up describing how the experience went.
+The write-up is never mandatory — completion should feel rewarding, not like homework.
+Direction note: Consider whether completed items with write-ups can be shared back out (e.g., as a story or post), turning completions into their own piece of shareable content.
+7. Spotify Integration
+7.1 Bucket List Soundtracks
+Each bucket list can have its own Spotify playlist, created by the list's owner and embedded directly at the bottom of the list. This gives every bucket list a mood and identity beyond just a set of saved items.
+7.2 Profile Soundtracks
+Spotify integration extends to user profiles as well — users can add a playlist as the soundtrack to their profile, giving their whole presence on TUDU a bit more personality, the same way a bucket list gets its own sound.
+Direction note: Confirm the technical integration path with Spotify (e.g., Spotify Web API / embed widget) and whether playback requires the viewer to have their own Spotify account.
+8. Open Considerations Summary
+Direct save vs. save-then-organize — which becomes the default save flow?
+How do the main card deck and the new bucket-list-browsing page relate to one another?
+Can completed items with write-ups be shared as their own content?
+What's the technical plan for embedding Spotify playlists on both bucket lists and profiles?
+How are Instagram video links attached to a bucket list — manually added by the creator, or auto-detected?

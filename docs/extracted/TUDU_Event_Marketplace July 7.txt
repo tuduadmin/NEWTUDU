@@ -1,0 +1,61 @@
+0000
+TUDU Event Marketplace
+Strategy & Direction Document
+1. Overview
+The TUDU Event Marketplace turns ticket purchasing into a true one-stop experience: when a user buys a ticket through TUDU, they can also pre-order event merchandise — apparel, gear, and vendor products — in the same checkout. Vendors get real demand data (sizes, quantities) ahead of the event, and attendees skip the merch line entirely, picking up their pre-ordered items through a dedicated fast-pass lane using the same QR code that gets them into the event.
+The goal is simple: one purchase, one QR code, zero friction between buying a ticket and walking in with everything you ordered.
+2. Core Concept
+Tickets and event merchandise are purchased together, in a single TUDU checkout flow.
+Vendors list their available products (clothing, gear, accessories) directly on the event page, with size and option selection built in.
+Every purchase — ticket or merch — is tied to one QR code per attendee.
+At the event, that same QR code both grants entry and lets vendors pull up the attendee's pre-order in a fast-pass pickup line.
+Merch can optionally be shipped ahead of time instead of picked up on-site.
+3. Attendee Experience
+Step
+What Happens
+1. Browse
+User finds an event on TUDU and opens the event page, which includes ticket options and any vendor merchandise available for that event.
+2. Customize
+User selects merch items, sizes, colors, and quantities alongside their ticket purchase.
+3. Checkout
+One payment covers the ticket and all pre-ordered merchandise.
+4. Choose Fulfillment
+User chooses to have merch shipped ahead of time, or picked up at the event.
+5. Show Up
+User's single QR code is scanned at the gate for entry.
+6. Fast-Pass Pickup
+If picking up on-site, the same QR code is scanned at a dedicated fast-pass line, where the vendor pulls up and hands over the pre-packed order — no browsing, no waiting in a general merch line.
+4. Vendor Experience
+Vendors gain a structured way to sell at events without guessing inventory:
+Vendors list products, sizes, and quantities available for a specific event through a TUDU vendor dashboard.
+Orders and size/quantity demand are visible ahead of time, allowing vendors to prepare or produce the right stock instead of over- or under-ordering.
+On event day, vendors work from a pre-sorted list of pickups tied to QR codes, rather than handling walk-up sales blind.
+Vendors can offer shipping as a fulfillment option where it makes sense (e.g., apparel that needs to be printed or sized ahead of time).
+Direction note: Define the vendor onboarding process — will TUDU vet or approve vendors before they can list products, and what quality/fulfillment standards will be required?
+5. Fulfillment Options
+5.1 Ship Ahead of Time
+Attendees who order early enough can have merchandise shipped directly to them before the event, removing any need for on-site pickup entirely.
+5.2 On-Site Fast-Pass Pickup
+Attendees who prefer (or order closer to the event) can pick up their pre-packed order on-site, using their QR code to skip general merch lines and go straight to a dedicated fast-pass pickup point.
+Direction note: Set a cutoff time before each event after which orders default to on-site pickup only, since shipping can no longer be guaranteed to arrive in time.
+6. QR Code & Entry
+Each attendee is issued a single QR code tied to their TUDU account and order — covering both event entry and any merchandise pickup. This avoids juggling separate tickets, receipts, or order confirmations.
+Direction note: Decide whether the QR code should reveal full order contents to vendor staff when scanned (for speed) or require an additional check (e.g., ID match) to reduce pickup fraud, especially for higher-value merchandise.
+7. Why This Matters
+7.1 For Attendees
+One purchase, one checkout, one QR code — no separate merch tables, no guessing what will still be in stock.
+Guaranteed sizing, since orders are placed ahead of time instead of hoping the right size is left on event day.
+7.2 For Vendors
+Real demand data ahead of time, reducing wasted inventory and missed sales from running out of popular sizes.
+Faster, simpler on-site operations — fulfilling pre-sorted orders instead of running a full retail counter.
+7.3 For TUDU
+An additional revenue stream from marketplace transactions, alongside ticketing.
+Deeper integration into the full event experience, reinforcing TUDU as the one-stop platform for attending and experiencing events.
+Direction note: Consider tying Event Marketplace purchases into the existing TUDU Miles program, the same way other marketplace and subscription spending already earns Miles — this would keep the rewards experience consistent across the platform.
+8. Open Considerations
+What's the revenue split or fee structure between TUDU and vendors for marketplace sales?
+How are refunds, exchanges, or sizing issues handled for pre-ordered apparel, especially once it's already shipped or printed?
+Does TUDU handle shipping logistics directly, or do vendors fulfill shipped orders themselves?
+What happens if a vendor runs out of stock after orders have already been placed?
+Will there be a general walk-up merch option for attendees who didn't pre-order, or is the marketplace pre-order only?
+How is the fast-pass pickup line staffed and organized at events with multiple vendors?
