@@ -8,6 +8,52 @@ export type OrgRole = 'owner' | 'admin' | 'staff' | 'viewer'
 export type EventVisibility = 'public' | 'private'
 export type HostEventStatus = 'draft' | 'upcoming' | 'live' | 'past'
 export type PostingAs = 'personal' | string
+export type EventType = 'single' | 'multi-day' | 'seasonal'
+export type RepeatPattern = 'none' | 'daily' | 'weekly' | 'biweekly' | 'monthly'
+export type VisitDuration = 'short' | 'medium' | 'long'
+export type AgeRestriction = 'all-ages' | 'family-friendly' | '18+'
+
+export type TicketTier = {
+  id: string
+  name: string
+  priceCents: number
+  quantity: number | null
+  sold: number
+  description: string
+  availableAtDoor: boolean
+}
+
+export type HostEventFormData = {
+  title: string
+  venueName: string
+  streetAddress: string
+  city: string
+  province: string
+  country: string
+  description: string
+  photos: string[]
+  eventType: EventType
+  repeats: RepeatPattern
+  recurrenceStartDate: string
+  recurrenceEndDate: string
+  eventDate: string
+  startHour: string
+  startMinute: string
+  startPeriod: 'AM' | 'PM'
+  endHour: string
+  endMinute: string
+  endPeriod: 'AM' | 'PM'
+  allDay: boolean
+  visitDuration: VisitDuration
+  primaryCategory: string
+  secondaryCategory: string
+  subCategories: string[]
+  customTags: string[]
+  ticketTiers: TicketTier[]
+  ageRestriction: AgeRestriction | ''
+  amenities: string[]
+  visibility: EventVisibility
+}
 
 /** Host Account — business entity separate from User (stored as Organization). */
 export interface Organization {
@@ -61,6 +107,33 @@ export interface HostEvent {
   createdBy: string
   createdAt: string
   status: HostEventStatus
+  venueName?: string
+  streetAddress?: string
+  city?: string
+  province?: string
+  country?: string
+  description?: string
+  photos?: string[]
+  eventType?: EventType
+  repeats?: RepeatPattern
+  recurrenceStartDate?: string
+  recurrenceEndDate?: string
+  eventDate?: string
+  startHour?: string
+  startMinute?: string
+  startPeriod?: 'AM' | 'PM'
+  endHour?: string
+  endMinute?: string
+  endPeriod?: 'AM' | 'PM'
+  allDay?: boolean
+  visitDuration?: VisitDuration
+  primaryCategory?: string
+  secondaryCategory?: string
+  subCategories?: string[]
+  customTags?: string[]
+  ticketTiers?: TicketTier[]
+  ageRestriction?: AgeRestriction
+  amenities?: string[]
 }
 
 const ACCOUNTS_KEY = 'tudu_accounts'
@@ -654,6 +727,198 @@ export function publishHostEvent(eventId: string): { ok: boolean; event?: HostEv
   }
 
   return updateHostEventStatus(eventId, 'live')
+}
+
+export function defaultTicketTier(): TicketTier {
+  return {
+    id: `tier_${Date.now()}`,
+    name: '',
+    priceCents: 0,
+    quantity: null,
+    sold: 0,
+    description: '',
+    availableAtDoor: false,
+  }
+}
+
+export function defaultHostEventFormData(): HostEventFormData {
+  return {
+    title: '',
+    venueName: '',
+    streetAddress: '',
+    city: '',
+    province: '',
+    country: 'Canada',
+    description: '',
+    photos: [],
+    eventType: 'single',
+    repeats: 'none',
+    recurrenceStartDate: '',
+    recurrenceEndDate: '',
+    eventDate: '',
+    startHour: '12',
+    startMinute: '00',
+    startPeriod: 'PM',
+    endHour: '02',
+    endMinute: '00',
+    endPeriod: 'PM',
+    allDay: false,
+    visitDuration: 'medium',
+    primaryCategory: '',
+    secondaryCategory: '',
+    subCategories: [],
+    customTags: [],
+    ticketTiers: [defaultTicketTier()],
+    ageRestriction: '',
+    amenities: [],
+    visibility: 'public',
+  }
+}
+
+export function isEventFree(event: HostEvent): boolean {
+  const tiers = event.ticketTiers ?? []
+  if (tiers.length === 0) return true
+  return tiers.every((t) => t.priceCents === 0)
+}
+
+export function isEventSoldOut(event: HostEvent): boolean {
+  const tiers = event.ticketTiers ?? []
+  if (tiers.length === 0) return false
+  return tiers.every((t) => t.quantity != null && t.sold >= t.quantity)
+}
+
+export function getEventLowestPriceCents(event: HostEvent): number | null {
+  const tiers = event.ticketTiers ?? []
+  const paid = tiers.filter((t) => t.priceCents > 0)
+  if (paid.length === 0) return null
+  return Math.min(...paid.map((t) => t.priceCents))
+}
+
+export function getEventCostLabel(event: HostEvent): string {
+  if (isEventSoldOut(event)) return 'UNAVAILABLE'
+  if (isEventFree(event)) return 'RSVP'
+  const lowest = getEventLowestPriceCents(event)
+  if (lowest == null) return 'RSVP'
+  return `$${(lowest / 100).toFixed(lowest % 100 === 0 ? 0 : 2)}`
+}
+
+export function getAgeRestrictionLabel(restriction?: AgeRestriction | ''): string {
+  switch (restriction) {
+    case 'family-friendly':
+      return 'Family Friendly'
+    case '18+':
+      return '18+'
+    default:
+      return 'All Ages'
+  }
+}
+
+function formDataToEventFields(form: HostEventFormData): Partial<HostEvent> {
+  return {
+    title: form.title.trim(),
+    venueName: form.venueName.trim(),
+    streetAddress: form.streetAddress.trim(),
+    city: form.city.trim(),
+    province: form.province.trim(),
+    country: form.country.trim(),
+    description: form.description.trim(),
+    photos: form.photos.slice(0, 3),
+    eventType: form.eventType,
+    repeats: form.repeats,
+    recurrenceStartDate: form.recurrenceStartDate,
+    recurrenceEndDate: form.recurrenceEndDate,
+    eventDate: form.eventDate,
+    startHour: form.startHour,
+    startMinute: form.startMinute,
+    startPeriod: form.startPeriod,
+    endHour: form.endHour,
+    endMinute: form.endMinute,
+    endPeriod: form.endPeriod,
+    allDay: form.allDay,
+    visitDuration: form.visitDuration,
+    primaryCategory: form.primaryCategory,
+    secondaryCategory: form.secondaryCategory,
+    subCategories: form.subCategories,
+    customTags: form.customTags,
+    ticketTiers: form.ticketTiers,
+    ageRestriction: form.ageRestriction || undefined,
+    amenities: form.amenities,
+    visibility: form.visibility,
+  }
+}
+
+export function updateHostEvent(
+  eventId: string,
+  partial: Partial<HostEvent>,
+): { ok: boolean; event?: HostEvent; error?: string } {
+  const events = getHostEvents()
+  const idx = events.findIndex((e) => e.id === eventId)
+  if (idx < 0) return { ok: false, error: 'Event not found.' }
+
+  events[idx] = { ...events[idx], ...partial }
+  writeJson(EVENTS_KEY, events)
+  syncPublicEventCount(events[idx].createdBy)
+  return { ok: true, event: events[idx] }
+}
+
+export function saveHostEventFromWizard(input: {
+  form: HostEventFormData
+  createdBy: string
+  hostAccountId?: string | null
+  postedAsUserId?: string
+  displayName?: string
+  status: HostEventStatus
+  eventId?: string
+}): { ok: boolean; event?: HostEvent; error?: string } {
+  const fields = formDataToEventFields(input.form)
+  const isPersonal = !input.hostAccountId
+
+  if (input.eventId) {
+    const existing = getHostEventById(input.eventId)
+    if (!existing) return { ok: false, error: 'Event not found.' }
+
+    const shareToken =
+      input.form.visibility === 'private'
+        ? existing.shareToken ?? generateShareToken()
+        : undefined
+
+    return updateHostEvent(input.eventId, {
+      ...fields,
+      status: input.status,
+      shareToken,
+    })
+  }
+
+  if (input.form.visibility === 'public' && input.status !== 'draft') {
+    const account = ensureAccount(input.createdBy)
+    const check = canCreatePublicEvent(account)
+    if (!check.allowed) {
+      if (check.reason === 'verify') {
+        return { ok: false, error: 'Verify your phone to publish public events.' }
+      }
+      return { ok: false, error: 'Upgrade for more public events.' }
+    }
+  }
+
+  const event: HostEvent = {
+    id: generateId('event'),
+    ...fields,
+    title: fields.title ?? '',
+    visibility: input.form.visibility,
+    hostAccountId: input.hostAccountId ?? null,
+    postedAsUserId: isPersonal ? (input.postedAsUserId ?? input.createdBy) : undefined,
+    displayName: isPersonal ? input.displayName : undefined,
+    shareToken: input.form.visibility === 'private' ? generateShareToken() : undefined,
+    createdBy: input.createdBy,
+    createdAt: new Date().toISOString(),
+    status: input.status,
+  }
+
+  const events = getHostEvents()
+  events.push(event)
+  writeJson(EVENTS_KEY, events)
+  syncPublicEventCount(input.createdBy)
+  return { ok: true, event }
 }
 
 export function createHostEvent(input: {

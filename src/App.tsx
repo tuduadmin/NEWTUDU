@@ -27,6 +27,7 @@ import OnboardingFriendsPage from './pages/onboarding/OnboardingFriendsPage'
 import VerifyPhonePage from './pages/VerifyPhonePage'
 import CreateOrgPage from './pages/host/CreateOrgPage'
 import TeamPage from './pages/host/TeamPage'
+import CreateEventPage from './pages/host/CreateEventPage'
 import PrivateEventPage from './pages/PrivateEventPage'
 
 export default function App() {
@@ -40,6 +41,7 @@ export default function App() {
       <Route path="/host/scan" element={<TicketScannerPage />} />
       <Route path="/host/profile" element={<EditPublicProfilePage />} />
       <Route path="/host/hidden-gem" element={<AddHiddenGemPage />} />
+      <Route path="/host/create-event" element={<CreateEventPage />} />
       <Route path="/host/create-org" element={<CreateOrgPage />} />
       <Route path="/host/team" element={<TeamPage />} />
       <Route path="/event/private/:id" element={<PrivateEventPage />} />

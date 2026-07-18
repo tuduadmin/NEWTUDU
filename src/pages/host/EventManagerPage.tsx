@@ -19,7 +19,6 @@ import {
 } from 'lucide-react'
 import AppHeaderBar from '../../components/locked/AppHeaderBar'
 import BottomNav from '../../components/BottomNav'
-import CreateEventModal from '../../components/CreateEventModal'
 import GradientButton from '../../components/GradientButton'
 import VerificationBadge from '../../components/VerificationBadge'
 import {
@@ -45,7 +44,6 @@ const ANALYTICS = [
 export default function EventManagerPage() {
   const [activeTab, setActiveTab] = useState<EventTab>('upcoming')
   const [searchQuery, setSearchQuery] = useState('')
-  const [showCreateEvent, setShowCreateEvent] = useState(false)
   const [, setRefreshKey] = useState(0)
 
   const user = getCurrentUser()
@@ -160,7 +158,7 @@ export default function EventManagerPage() {
             </div>
           </div>
 
-          <GradientButton fullWidth className="mt-4 py-3.5" onClick={() => setShowCreateEvent(true)}>
+          <GradientButton fullWidth className="mt-4 py-3.5" to="/host/create-event">
             <Plus size={18} className="mr-1.5" />
             Create Event
           </GradientButton>
@@ -343,13 +341,12 @@ export default function EventManagerPage() {
             <p className="mt-1 text-xs text-brown-muted">
               You don&apos;t have any {activeTab} events at the moment.
             </p>
-            <button
-              type="button"
-              onClick={() => setShowCreateEvent(true)}
-              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-orange py-3 font-display text-sm font-bold text-white transition hover:brightness-110"
+            <Link
+              to="/host/create-event"
+              className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-orange py-3 font-display text-sm font-bold text-white no-underline transition hover:brightness-110"
             >
               Create New Event
-            </button>
+            </Link>
           </div>
         </section>
 
@@ -371,13 +368,6 @@ export default function EventManagerPage() {
           </GradientButton>
         </section>
       </main>
-
-      <CreateEventModal
-        open={showCreateEvent}
-        onClose={() => setShowCreateEvent(false)}
-        onCreated={() => setRefreshKey((k) => k + 1)}
-        postingAs={postingAs}
-      />
 
       <BottomNav />
     </div>

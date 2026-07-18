@@ -17,6 +17,8 @@ export type DiscoverEvent = {
   dateTag?: string
   dateTime?: string
   cost?: string
+  isRsvp?: boolean
+  isUnavailable?: boolean
   ageRange?: string
   distance?: string
   categories?: DiscoverCategory[]
@@ -25,7 +27,8 @@ export type DiscoverEvent = {
   borderColor?: 'blue' | 'yellow'
 }
 
-import { getHostAccount, getPublicHostEventsForDiscover } from '../lib/account'
+import { getHostAccount, getPublicHostEventsForDiscover, getAgeRestrictionLabel, getEventCostLabel, type HostEvent } from '../lib/account'
+import { getCategoryById, type EventCategoryId } from './eventCategories'
 
 export const DISCOVER_EVENTS: DiscoverEvent[] = [
   {
@@ -96,31 +99,57 @@ const HOST_EVENT_IMAGES = [
   'https://images.unsplash.com/photo-1517456793572-1e8a4e4b875a?w=800&q=80',
 ]
 
-function hostEventToDiscoverCard(event: ReturnType<typeof getPublicHostEventsForDiscover>[number], index: number): DiscoverEvent {
+function formatEventDateTime(event: HostEvent): string | undefined {
+  if (!event.eventDate) return undefined
+  const date = new Date(event.eventDate + 'T12:00:00').toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
+  if (event.allDay) return date
+  const start = `${event.startHour ?? '12'}:${event.startMinute ?? '00'} ${event.startPeriod ?? 'PM'}`
+  return `${date}, ${start}`
+}
+
+function mapAmenities(event: HostEvent): DiscoverAmenity[] {
+  const list: DiscoverAmenity[] = []
+  if (event.amenities?.includes('food-drink')) list.push('food')
+  if (event.amenities?.includes('parking')) list.push('parking')
+  if (event.amenities?.includes('wheelchair')) list.push('wheelchair')
+  return list
+}
+
+function hostEventToDiscoverCard(event: HostEvent, index: number): DiscoverEvent {
   const hostAccount = event.hostAccountId ? getHostAccount(event.hostAccountId) : null
-  const city = hostAccount?.category === 'Community' ? 'Kindersley' : 'Saskatoon'
+  const city = event.city ?? (hostAccount?.category === 'Community' ? 'Kindersley' : 'Saskatoon')
+  const costLabel = getEventCostLabel(event)
+  const primary = event.primaryCategory
+    ? getCategoryById(event.primaryCategory as EventCategoryId)
+    : null
 
   return {
     id: `host-${event.id}`,
     title: event.title,
     city,
-    image: HOST_EVENT_IMAGES[index % HOST_EVENT_IMAGES.length],
+    image: event.photos?.[0] ?? HOST_EVENT_IMAGES[index % HOST_EVENT_IMAGES.length],
     badges: hostAccount ? ['TRUSTED HOST'] : ['HIDDEN GEM'],
+    amenities: mapAmenities(event),
     dateTag: event.status === 'live' ? 'Live Now' : 'Upcoming',
-    dateTime: new Date(event.createdAt).toLocaleDateString(undefined, {
-      month: 'short',
-      day: 'numeric',
-    }),
-    cost: 'Free',
-    ageRange: 'All Ages',
+    dateTime: formatEventDateTime(event),
+    cost: costLabel,
+    isRsvp: costLabel === 'RSVP',
+    isUnavailable: costLabel === 'UNAVAILABLE',
+    ageRange: getAgeRestrictionLabel(event.ageRestriction),
     distance: '~15 mins away',
-    categories: [
-      {
-        label: hostAccount?.category ?? 'Community',
-        color: 'teal',
-        icon: 'party',
-      },
-    ],
+    categories: primary
+      ? [{ label: primary.label, color: 'teal', icon: 'party' }]
+      : [
+          {
+            label: hostAccount?.category ?? 'Community',
+            color: 'teal',
+            icon: 'party',
+          },
+        ],
+    locationDetail: [event.venueName, event.streetAddress, event.city].filter(Boolean).join(', ') || undefined,
     borderColor: 'blue',
   }
 }
