@@ -14,11 +14,22 @@ import {
   ScanLine,
   Sparkles,
   Ticket,
+  Users,
   Wallet,
 } from 'lucide-react'
 import AppHeaderBar from '../../components/locked/AppHeaderBar'
 import BottomNav from '../../components/BottomNav'
+import CreateEventModal from '../../components/CreateEventModal'
 import GradientButton from '../../components/GradientButton'
+import VerificationBadge from '../../components/VerificationBadge'
+import {
+  canCreatePublicEvent,
+  getCurrentAccount,
+  getHostAccountsForUser,
+  getPostingAs,
+  setPostingAs,
+} from '../../lib/account'
+import { getCurrentUser } from '../../lib/auth'
 
 type EventTab = 'upcoming' | 'drafts' | 'past'
 
@@ -34,6 +45,29 @@ const ANALYTICS = [
 export default function EventManagerPage() {
   const [activeTab, setActiveTab] = useState<EventTab>('upcoming')
   const [searchQuery, setSearchQuery] = useState('')
+  const [showCreateEvent, setShowCreateEvent] = useState(false)
+  const [, setRefreshKey] = useState(0)
+
+  const user = getCurrentUser()
+  const account = getCurrentAccount()
+  const hostAccounts = user ? getHostAccountsForUser(user.email) : []
+  const postingAs = account ? getPostingAs(account) : 'personal'
+  const activeHostAccount =
+    postingAs !== 'personal' ? hostAccounts.find((h) => h.id === postingAs) ?? null : null
+  const displayHostAccount = activeHostAccount ?? hostAccounts[0] ?? null
+  const publicCheck = account ? canCreatePublicEvent(account) : null
+  const personalName = user ? `${user.firstName} ${user.lastName}`.trim() : 'Me'
+  const orgInitial = displayHostAccount?.logoInitial ?? (personalName.charAt(0).toUpperCase() || 'M')
+  const orgName =
+    postingAs === 'personal'
+      ? personalName
+      : (displayHostAccount?.name ?? 'Your Host Account')
+  const orgCategory =
+    postingAs === 'personal' ? 'Personal' : (displayHostAccount?.category ?? 'Entertainment')
+  const postingLabel =
+    postingAs === 'personal'
+      ? `Personal · ${personalName}`
+      : `Host Account · ${displayHostAccount?.name ?? 'Unknown'}`
 
   const tabCounts = { upcoming: 0, drafts: 0, past: 0 }
 
@@ -48,14 +82,71 @@ export default function EventManagerPage() {
         <section className="mt-4 rounded-[var(--radius-xl)] border border-brown/10 bg-white p-4 shadow-sm">
           <div className="flex flex-col items-center text-center">
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-tudu font-display text-2xl font-extrabold text-white shadow-md ring-4 ring-cream-dark">
-              T
+              {orgInitial}
             </div>
-            <h2 className="mt-3 font-display text-base font-bold italic text-brown-muted/70">
-              Your Organization Name
+            <h2 className={`mt-3 font-display text-base font-bold ${displayHostAccount || postingAs === 'personal' ? 'text-brown' : 'italic text-brown-muted/70'}`}>
+              {orgName}
             </h2>
-            <span className="mt-1.5 inline-block rounded-full bg-orange/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange">
-              Entertainment
-            </span>
+            <p className="mt-1 text-[11px] font-semibold text-brown-muted">{postingLabel}</p>
+            <div className="mt-2 flex flex-wrap items-center justify-center gap-1.5">
+              <PostAsChip
+                active={postingAs === 'personal'}
+                label={`Me (${personalName.split(' ')[0]})`}
+                onClick={() => {
+                  if (user) {
+                    setPostingAs(user.email, 'personal')
+                    setRefreshKey((k) => k + 1)
+                  }
+                }}
+              />
+              {hostAccounts.map((ha) => (
+                <PostAsChip
+                  key={ha.id}
+                  active={postingAs === ha.id}
+                  label={ha.name}
+                  onClick={() => {
+                    if (user) {
+                      setPostingAs(user.email, ha.id)
+                      setRefreshKey((k) => k + 1)
+                    }
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-1.5 flex flex-wrap items-center justify-center gap-2">
+              <span className="inline-block rounded-full bg-orange/15 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-orange">
+                {orgCategory}
+              </span>
+              <VerificationBadge account={account} showLink />
+            </div>
+            {!displayHostAccount && postingAs !== 'personal' && (
+              <Link
+                to="/host/create-org"
+                className="mt-2 text-xs font-semibold text-orange no-underline"
+              >
+                Create a Host Account →
+              </Link>
+            )}
+            {hostAccounts.length === 0 && postingAs === 'personal' && (
+              <Link
+                to="/host/create-org"
+                className="mt-2 text-xs font-semibold text-orange no-underline"
+              >
+                Create a Host Account for business events →
+              </Link>
+            )}
+            {account && publicCheck && (
+              <p className="mt-2 text-xs text-brown-muted">
+                Public events: {account.publicEventCount}/{publicCheck.limit}
+                {publicCheck.remaining > 0 && ` · ${publicCheck.remaining} remaining`}
+                {publicCheck.reason === 'verify' && (
+                  <> · <Link to="/verify-phone" className="font-semibold text-orange no-underline">Verify to unlock</Link></>
+                )}
+                {publicCheck.reason === 'upgrade' && (
+                  <> · <span className="font-semibold text-purple">Upgrade for more</span></>
+                )}
+              </p>
+            )}
             <div className="mt-2.5 flex items-center justify-center gap-2">
               <button type="button" className="flex h-7 w-7 items-center justify-center rounded-full border border-brown/10 text-brown-muted">
                 <Globe size={14} />
@@ -69,10 +160,18 @@ export default function EventManagerPage() {
             </div>
           </div>
 
-          <GradientButton fullWidth className="mt-4 py-3.5">
+          <GradientButton fullWidth className="mt-4 py-3.5" onClick={() => setShowCreateEvent(true)}>
             <Plus size={18} className="mr-1.5" />
             Create Event
           </GradientButton>
+
+          <Link
+            to="/host/team"
+            className="mt-2 flex items-center justify-center gap-1.5 text-xs font-semibold text-brown-muted no-underline transition hover:text-orange"
+          >
+            <Users size={14} />
+            Manage Team
+          </Link>
 
           <div className="mt-4 flex items-center justify-between">
             <div>
@@ -246,6 +345,7 @@ export default function EventManagerPage() {
             </p>
             <button
               type="button"
+              onClick={() => setShowCreateEvent(true)}
               className="mt-4 inline-flex w-full items-center justify-center rounded-full bg-orange py-3 font-display text-sm font-bold text-white transition hover:brightness-110"
             >
               Create New Event
@@ -272,8 +372,39 @@ export default function EventManagerPage() {
         </section>
       </main>
 
+      <CreateEventModal
+        open={showCreateEvent}
+        onClose={() => setShowCreateEvent(false)}
+        onCreated={() => setRefreshKey((k) => k + 1)}
+        postingAs={postingAs}
+      />
+
       <BottomNav />
     </div>
+  )
+}
+
+function PostAsChip({
+  active,
+  label,
+  onClick,
+}: {
+  active: boolean
+  label: string
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-full px-2.5 py-1 text-[10px] font-bold transition ${
+        active
+          ? 'bg-orange text-white'
+          : 'border border-brown/15 bg-white text-brown-muted hover:border-orange/30'
+      }`}
+    >
+      {label}
+    </button>
   )
 }
 

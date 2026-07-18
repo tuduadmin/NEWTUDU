@@ -25,6 +25,8 @@ export type DiscoverEvent = {
   borderColor?: 'blue' | 'yellow'
 }
 
+import { getHostAccount, getPublicHostEventsForDiscover } from '../lib/account'
+
 export const DISCOVER_EVENTS: DiscoverEvent[] = [
   {
     id: 'farmers-market',
@@ -87,3 +89,44 @@ export const DISCOVER_EVENTS: DiscoverEvent[] = [
     borderColor: 'yellow',
   },
 ]
+
+const HOST_EVENT_IMAGES = [
+  'https://images.unsplash.com/photo-1531058020387-3be344556be6?w=800&q=80',
+  'https://images.unsplash.com/photo-1501281668745-f7f57925c3b4?w=800&q=80',
+  'https://images.unsplash.com/photo-1517456793572-1e8a4e4b875a?w=800&q=80',
+]
+
+function hostEventToDiscoverCard(event: ReturnType<typeof getPublicHostEventsForDiscover>[number], index: number): DiscoverEvent {
+  const hostAccount = event.hostAccountId ? getHostAccount(event.hostAccountId) : null
+  const city = hostAccount?.category === 'Community' ? 'Kindersley' : 'Saskatoon'
+
+  return {
+    id: `host-${event.id}`,
+    title: event.title,
+    city,
+    image: HOST_EVENT_IMAGES[index % HOST_EVENT_IMAGES.length],
+    badges: hostAccount ? ['TRUSTED HOST'] : ['HIDDEN GEM'],
+    dateTag: event.status === 'live' ? 'Live Now' : 'Upcoming',
+    dateTime: new Date(event.createdAt).toLocaleDateString(undefined, {
+      month: 'short',
+      day: 'numeric',
+    }),
+    cost: 'Free',
+    ageRange: 'All Ages',
+    distance: '~15 mins away',
+    categories: [
+      {
+        label: hostAccount?.category ?? 'Community',
+        color: 'teal',
+        icon: 'party',
+      },
+    ],
+    borderColor: 'blue',
+  }
+}
+
+/** Static seed cards plus live/upcoming public host events for the card deck. */
+export function getDiscoverEventsPool(): DiscoverEvent[] {
+  const hostEvents = getPublicHostEventsForDiscover().map(hostEventToDiscoverCard)
+  return [...hostEvents, ...DISCOVER_EVENTS]
+}

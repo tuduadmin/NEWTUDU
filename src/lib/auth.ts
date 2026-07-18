@@ -1,3 +1,4 @@
+import { ensureAccount } from './account'
 import { isOnboardingComplete } from './preferences'
 
 export const DEMO_USER = {
@@ -61,6 +62,7 @@ export function signUp(userData: StoredUser): boolean {
   users.push(userData)
   saveUsers(users)
   setSession(userData.email)
+  ensureAccount(userData.email)
   return true
 }
 
@@ -70,6 +72,7 @@ export function signIn(email: string, password: string): boolean {
   )
   if (!user) return false
   setSession(user.email)
+  ensureAccount(user.email)
   return true
 }
 

@@ -24,6 +24,10 @@ import BudgetPage from './pages/onboarding/BudgetPage'
 import DistancePage from './pages/onboarding/DistancePage'
 import TimeframePage from './pages/onboarding/TimeframePage'
 import OnboardingFriendsPage from './pages/onboarding/OnboardingFriendsPage'
+import VerifyPhonePage from './pages/VerifyPhonePage'
+import CreateOrgPage from './pages/host/CreateOrgPage'
+import TeamPage from './pages/host/TeamPage'
+import PrivateEventPage from './pages/PrivateEventPage'
 
 export default function App() {
   return (
@@ -36,6 +40,11 @@ export default function App() {
       <Route path="/host/scan" element={<TicketScannerPage />} />
       <Route path="/host/profile" element={<EditPublicProfilePage />} />
       <Route path="/host/hidden-gem" element={<AddHiddenGemPage />} />
+      <Route path="/host/create-org" element={<CreateOrgPage />} />
+      <Route path="/host/team" element={<TeamPage />} />
+      <Route path="/event/private/:id" element={<PrivateEventPage />} />
+      <Route path="/e/:shareToken" element={<PrivateEventPage />} />
+      <Route path="/verify-phone" element={<VerifyPhonePage />} />
       <Route path="/road-trip" element={<RoadTripPage />} />
       <Route path="/bucket-list" element={<BucketListPage />} />
       <Route

@@ -1,11 +1,11 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AddToBucketListModal from '../components/AddToBucketListModal'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
 import SaveToBucketFlyAnimation from '../components/SaveToBucketFlyAnimation'
 import Toast from '../components/Toast'
-import { DISCOVER_EVENTS } from '../data/discoverEvents'
+import { getDiscoverEventsPool } from '../data/discoverEvents'
 import { saveEvent } from '../lib/savedEvents'
 
 const SWIPE_THRESHOLD = 80
@@ -35,16 +35,17 @@ export default function DiscoverPage() {
 
   const touchStart = useRef<{ x: number; y: number; time: number } | null>(null)
 
-  const event = DISCOVER_EVENTS[index % DISCOVER_EVENTS.length]
-  const progress = `${(index % DISCOVER_EVENTS.length) + 1} / ${DISCOVER_EVENTS.length}`
+  const discoverPool = useMemo(() => getDiscoverEventsPool(), [])
+  const event = discoverPool[index % discoverPool.length]
+  const progress = `${(index % discoverPool.length) + 1} / ${discoverPool.length}`
 
   const advanceCard = useCallback(() => {
     setHistory((prev) => [...prev, index])
-    setIndex((i) => (i + 1) % DISCOVER_EVENTS.length)
+    setIndex((i) => (i + 1) % discoverPool.length)
     setExpanded(false)
     setCardExit(null)
     setDragOffset({ x: 0, y: 0 })
-  }, [index])
+  }, [index, discoverPool.length])
 
   function handleSkip() {
     triggerHaptic(8)

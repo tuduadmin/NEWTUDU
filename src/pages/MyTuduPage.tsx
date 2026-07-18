@@ -17,6 +17,8 @@ import GradientButton from '../components/GradientButton'
 import { SAVED_TIME_FILTERS, SORT_OPTIONS } from '../data/categories'
 import type { SavedTimeFilterId, SortOptionId } from '../data/categories'
 import { getPreferences } from '../lib/preferences'
+import { getCurrentAccount } from '../lib/account'
+import VerificationBadge from '../components/VerificationBadge'
 
 type TabId = 'saved' | 'tickets' | 'past'
 
@@ -25,6 +27,7 @@ const TAB_COUNTS = { saved: 0, tickets: 0, past: 2 }
 export default function MyTuduPage() {
   const navigate = useNavigate()
   const prefs = getPreferences()
+  const account = getCurrentAccount()
   const [activeTab, setActiveTab] = useState<TabId>('saved')
   const [searchQuery, setSearchQuery] = useState('')
   const [timeFilter, setTimeFilter] = useState<SavedTimeFilterId>('today')
@@ -63,7 +66,10 @@ export default function MyTuduPage() {
             <div className="min-w-0 flex-1">
               <div className="flex items-start justify-between gap-2">
                 <div>
-                  <h1 className="text-lg font-bold capitalize text-brown">{prefs.screenName}</h1>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h1 className="text-lg font-bold capitalize text-brown">{prefs.screenName}</h1>
+                    <VerificationBadge account={account} showLink size="md" />
+                  </div>
                   <p className="mt-0.5 flex items-center gap-1 text-xs text-brown-muted">
                     <Calendar size={12} aria-hidden />
                     Joined Tudu April 2026

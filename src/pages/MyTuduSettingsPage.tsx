@@ -20,6 +20,8 @@ import {
   setTravelPassEnabled,
 } from '../lib/location'
 import { DEFAULT_PREFERENCES, getPreferences, savePreferences } from '../lib/preferences'
+import { getCurrentAccount } from '../lib/account'
+import VerificationBadge from '../components/VerificationBadge'
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/)
@@ -35,6 +37,9 @@ export default function MyTuduSettingsPage() {
   const [email, setEmail] = useState(DEFAULT_PREFERENCES.email)
   const [dob, setDob] = useState(DEFAULT_PREFERENCES.dob)
   const [phone] = useState(DEFAULT_PREFERENCES.phone)
+  const account = getCurrentAccount()
+  const phoneVerified = account?.verificationStatus === 'phone_verified'
+  const displayPhone = account?.phone ?? phone
   const [homeCity, setHomeCityState] = useState(getHomeCity())
   const [travelCity, setTravelCityState] = useState(getTravelPassCity() ?? '')
   const [travelPass, setTravelPass] = useState(hasTravelPass())
@@ -175,11 +180,23 @@ export default function MyTuduSettingsPage() {
 
             <Field label="Phone Number" icon={<Phone size={14} />}>
               <div className="flex items-center gap-2">
-                <input type="tel" value={phone} readOnly className={`min-w-0 flex-1 ${inputClass}`} />
-                <span className="shrink-0 rounded-full bg-success/20 px-2 py-0.5 text-[10px] font-bold uppercase text-success">
-                  Verified
-                </span>
+                <input
+                  type="tel"
+                  value={displayPhone}
+                  readOnly
+                  placeholder="Not set"
+                  className={`min-w-0 flex-1 ${inputClass}`}
+                />
+                <VerificationBadge account={account} variant="dark" showLink={!phoneVerified} />
               </div>
+              {!phoneVerified && (
+                <Link
+                  to="/verify-phone"
+                  className="mt-2 inline-block text-xs font-semibold text-sunset-orange no-underline"
+                >
+                  Verify phone to unlock public events →
+                </Link>
+              )}
             </Field>
           </div>
         </section>
