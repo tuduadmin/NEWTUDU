@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { Bookmark, Plus, X } from 'lucide-react'
 import {
   addEventsToBucketList,
   createBucketList,
   getBucketLists,
 } from '../lib/bucketLists'
+import { appFieldClassLg } from '../lib/formFieldClasses'
 import type { BucketList } from '../types/bucketList'
 
 type AddToBucketListModalProps = {
@@ -26,7 +28,6 @@ export default function AddToBucketListModal({
   function handleSelectList(listId: string) {
     const list = addEventsToBucketList(listId, eventIds)
     if (list) {
-      // Haptic recommendation: medium impact (Expo Haptics ImpactFeedbackStyle.Medium)
       if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
         navigator.vibrate(12)
       }
@@ -38,7 +39,6 @@ export default function AddToBucketListModal({
     const name = newName.trim()
     if (!name) return
     const list = createBucketList(name, eventIds)
-    // Haptic recommendation: success notification pattern
     if (typeof navigator !== 'undefined' && 'vibrate' in navigator) {
       navigator.vibrate([8, 40, 8])
     }
@@ -49,7 +49,7 @@ export default function AddToBucketListModal({
     <>
       <button
         type="button"
-        className="fixed inset-0 z-[var(--z-modal)] bg-black/70 backdrop-blur-sm"
+        className="fixed inset-0 z-[var(--z-modal)] bg-black/40 backdrop-blur-sm"
         aria-label="Close bucket list picker"
         onClick={onClose}
       />
@@ -57,24 +57,27 @@ export default function AddToBucketListModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby="bucket-picker-title"
-        className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom))] left-1/2 z-[calc(var(--z-modal)+1)] w-[calc(100%-32px)] max-w-md -translate-x-1/2 rounded-[var(--radius-xl)] glass-surface p-5 shadow-float"
+        className="fixed bottom-[calc(var(--app-bottom-nav-h)+env(safe-area-inset-bottom))] left-1/2 z-[calc(var(--z-modal)+1)] w-[calc(100%-32px)] max-w-md -translate-x-1/2 rounded-[14px] border border-app-subtle bg-app-elevated p-5 shadow-float"
       >
         <div className="mb-1 flex items-center justify-between">
           <p className="text-tagline">Now you know</p>
           <button
             type="button"
             onClick={onClose}
-            className="flex h-11 w-11 items-center justify-center rounded-full text-white/60 hover:bg-white/5 hover:text-white"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-brown-muted transition hover:bg-cream-dark hover:text-brown"
             aria-label="Close"
           >
-            ✕
+            <X size={20} aria-hidden />
           </button>
         </div>
-        <h2 id="bucket-picker-title" className="font-display text-lg font-bold text-white">
+        <h2 id="bucket-picker-title" className="font-display text-lg font-bold text-brown">
           Save to Bucket List
         </h2>
-        <p className="mt-1 text-sm text-white/60">
+        <p className="mt-1 text-sm text-brown-muted">
           {eventTitle ? `"${eventTitle}"` : `${eventIds.length} experience${eventIds.length === 1 ? '' : 's'}`}
+        </p>
+        <p className="mt-2 text-xs text-brown-muted/80">
+          Saved items also appear in My Tudu under <strong className="text-brown">Your Saved</strong>.
         </p>
 
         {creating ? (
@@ -85,14 +88,14 @@ export default function AddToBucketListModal({
               onChange={(e) => setNewName(e.target.value)}
               placeholder="e.g. Summer in Saskatchewan"
               autoFocus
-              className="w-full rounded-[var(--radius-lg)] border border-white/10 bg-midnight px-4 py-3 text-sm text-white outline-none focus:border-orange/50"
+              className={`${appFieldClassLg} px-4 py-3`}
               onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
             />
             <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => setCreating(false)}
-                className="flex h-11 flex-1 items-center justify-center rounded-full border border-white/10 text-sm font-semibold text-white/80"
+                className="flex h-11 flex-1 items-center justify-center rounded-[14px] border border-brown/15 text-sm font-semibold text-brown"
               >
                 Cancel
               </button>
@@ -100,7 +103,7 @@ export default function AddToBucketListModal({
                 type="button"
                 onClick={handleCreate}
                 disabled={!newName.trim()}
-                className="flex h-11 flex-1 items-center justify-center rounded-full bg-gradient-tudu text-sm font-bold text-white disabled:opacity-50"
+                className="flex h-11 flex-1 items-center justify-center rounded-[14px] bg-gradient-tudu text-sm font-bold text-white disabled:opacity-50"
               >
                 Create &amp; Save
               </button>
@@ -109,7 +112,7 @@ export default function AddToBucketListModal({
         ) : (
           <div className="mt-4 max-h-64 space-y-2 overflow-y-auto">
             {lists.length === 0 && (
-              <p className="rounded-[var(--radius-lg)] bg-white/5 px-4 py-6 text-center text-sm text-white/50">
+              <p className="rounded-[14px] bg-cream-dark px-4 py-6 text-center text-sm text-brown-muted">
                 No lists yet — create your first bucket list below.
               </p>
             )}
@@ -118,16 +121,16 @@ export default function AddToBucketListModal({
                 key={list.id}
                 type="button"
                 onClick={() => handleSelectList(list.id)}
-                className="flex min-h-[56px] w-full items-center gap-3 rounded-[var(--radius-lg)] border border-white/10 bg-midnight px-4 py-3 text-left transition hover:border-orange/40 hover:bg-midnight-surface"
+                className="flex min-h-[56px] w-full items-center gap-3 rounded-[14px] border border-brown/10 bg-cream/40 px-4 py-3 text-left transition hover:border-orange/40 hover:bg-orange/5"
               >
-                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[var(--radius-md)] bg-orange/15 text-lg">
-                  🪣
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[14px] bg-orange/10 text-orange">
+                  <Bookmark size={20} aria-hidden />
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate font-display text-sm font-semibold text-white">
+                  <span className="block truncate font-display text-sm font-semibold text-brown">
                     {list.name}
                   </span>
-                  <span className="text-xs text-white/50">
+                  <span className="text-xs text-brown-muted">
                     {list.eventIds.length} item{list.eventIds.length === 1 ? '' : 's'}
                   </span>
                 </span>
@@ -140,9 +143,9 @@ export default function AddToBucketListModal({
                 setCreating(true)
                 setLists(getBucketLists())
               }}
-              className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-full border-2 border-dashed border-white/20 py-3 font-display text-sm font-bold text-orange"
+              className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-brown/20 py-3 font-display text-sm font-bold text-orange"
             >
-              <span aria-hidden>＋</span>
+              <Plus size={18} aria-hidden />
               Create New List
             </button>
           </div>

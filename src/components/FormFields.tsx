@@ -1,4 +1,5 @@
 import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from 'react'
+import { appFieldClassWithIcon, appFieldClassWithIconLg } from '../lib/formFieldClasses'
 
 type FormFieldProps = {
   id: string
@@ -35,11 +36,11 @@ type IconInputProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export function IconInput({ icon, error, dark, className = '', id, ...props }: IconInputProps) {
   const baseClass = dark
-    ? `w-full rounded-[var(--radius-lg)] border bg-midnight py-3.5 pl-12 pr-4 text-white outline-none transition placeholder:text-white/30 focus:border-magenta/50 focus:ring-1 focus:ring-magenta/30 ${
+    ? `w-full rounded-[14px] border bg-midnight py-3.5 pl-12 pr-4 text-white outline-none transition placeholder:text-white/30 focus:border-magenta/50 focus:ring-1 focus:ring-magenta/30 ${
         error ? 'border-error' : 'border-white/[0.08]'
       }`
-    : `w-full rounded-[var(--radius-tudu)] border bg-white py-3.5 pl-12 pr-4 text-brown outline-none transition placeholder:text-brown-muted/60 focus:border-purple focus:ring-2 focus:ring-purple/20 ${
-        error ? 'border-red-500' : 'border-brown/15'
+    : `${appFieldClassWithIconLg} ${
+        error ? 'border-red-500' : ''
       }`
 
   return (
@@ -57,6 +58,7 @@ export function IconInput({ icon, error, dark, className = '', id, ...props }: I
 type PasswordInputProps = Omit<IconInputProps, 'type'> & {
   visible: boolean
   onToggle: () => void
+  toggleClassName?: string
 }
 
 export function PasswordInput({
@@ -66,15 +68,16 @@ export function PasswordInput({
   error,
   dark,
   className = '',
+  toggleClassName = '',
   id,
   ...props
 }: PasswordInputProps) {
   const baseClass = dark
-    ? `w-full rounded-[var(--radius-lg)] border bg-midnight py-3.5 pl-12 pr-12 text-white outline-none transition placeholder:text-white/30 focus:border-magenta/50 focus:ring-1 focus:ring-magenta/30 ${
+    ? `w-full rounded-[14px] border bg-midnight py-3.5 pl-12 pr-12 text-white outline-none transition placeholder:text-white/30 focus:border-magenta/50 focus:ring-1 focus:ring-magenta/30 ${
         error ? 'border-error' : 'border-white/[0.08]'
       }`
-    : `w-full rounded-[var(--radius-tudu)] border bg-white py-3.5 pl-12 pr-12 text-brown outline-none transition placeholder:text-brown-muted/60 focus:border-purple focus:ring-2 focus:ring-purple/20 ${
-        error ? 'border-red-500' : 'border-brown/15'
+    : `${appFieldClassWithIconLg} pr-12 ${
+        error ? 'border-red-500' : ''
       }`
 
   return (
@@ -94,7 +97,10 @@ export function PasswordInput({
       <button
         type="button"
         onClick={onToggle}
-        className={`absolute right-4 top-1/2 -translate-y-1/2 ${dark ? 'text-white/40 hover:text-white' : 'text-brown-muted hover:text-brown'}`}
+        className={`absolute right-3 top-1/2 -translate-y-1/2 ${
+          toggleClassName ||
+          (dark ? 'text-white/40 hover:text-white' : 'text-brown-muted hover:text-brown')
+        }`}
         aria-label={visible ? 'Hide password' : 'Show password'}
       >
         {visible ? <EyeOffIcon /> : <EyeIcon />}
@@ -111,11 +117,11 @@ type IconSelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
 
 export function IconSelect({ icon, error, dark, className = '', id, children, ...props }: IconSelectProps) {
   const baseClass = dark
-    ? `w-full appearance-none rounded-[var(--radius-lg)] border bg-midnight py-3.5 pl-12 pr-10 text-white outline-none transition focus:border-magenta/50 focus:ring-1 focus:ring-magenta/30 ${
+    ? `w-full appearance-none rounded-[14px] border bg-midnight py-3.5 pl-12 pr-10 text-white outline-none transition focus:border-magenta/50 focus:ring-1 focus:ring-magenta/30 ${
         error ? 'border-error' : 'border-white/[0.08]'
       }`
-    : `w-full appearance-none rounded-[var(--radius-tudu)] border bg-white py-3.5 pl-12 pr-10 text-brown outline-none transition focus:border-purple focus:ring-2 focus:ring-purple/20 ${
-        error ? 'border-red-500' : 'border-brown/15'
+    : `${appFieldClassWithIcon} pr-10 ${
+        error ? 'border-red-500' : ''
       }`
 
   return (
@@ -131,7 +137,7 @@ export function IconSelect({ icon, error, dark, className = '', id, children, ..
       <span
         className={`pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 ${dark ? 'text-white/40' : 'text-brown-muted'}`}
       >
-        ▾
+        â–¾
       </span>
     </div>
   )

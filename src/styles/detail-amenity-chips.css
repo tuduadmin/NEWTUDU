@@ -1,0 +1,68 @@
+/**
+ * View-only amenity chips for detail panels (Discover scroll, RSVP, event pages).
+ * Subtle read-only shells — icons keep gradient/amber wells; chip box is quiet info, not pref-choice active.
+ */
+
+.detail-amenity-grid {
+  gap: 0.5rem;
+}
+
+.detail-amenity-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.4375rem;
+  border-radius: 12px;
+  border: 1px solid var(--detail-amenity-border, rgb(61 44 41 / 0.15));
+  background-color: var(--detail-amenity-bg, rgb(255 255 255 / 1));
+  box-shadow: var(--detail-amenity-shadow, none);
+  padding: 0.5rem 0.625rem;
+  min-height: 2.375rem;
+  cursor: default;
+  user-select: none;
+}
+
+.detail-amenity-chip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 8px;
+  background: var(--detail-amenity-icon-bg, var(--pref-choice-active-icon-bg, rgba(249, 115, 22, 0.28)));
+  color: var(--detail-amenity-icon-color, var(--pref-choice-active-icon-color, #fbbf24));
+  box-shadow: var(--detail-amenity-icon-shadow, none);
+}
+
+.detail-amenity-chip__icon :is(svg, [aria-hidden]) {
+  color: inherit;
+}
+
+.detail-amenity-chip__label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--detail-amenity-label, rgb(61 44 41 / 0.72));
+}
+
+/* SOL dusk — icon gradient kept; chip shell uses faint purple read-only wash */
+html[data-app-theme='dusk'] .detail-amenity-chip {
+  border-color: var(--detail-amenity-border, rgba(192, 38, 160, 0.14));
+  background-color: var(--detail-amenity-bg, rgba(192, 38, 160, 0.07));
+  box-shadow: none;
+}
+
+html[data-app-theme='dusk'] .detail-amenity-chip__icon {
+  background: linear-gradient(
+    145deg,
+    rgba(249, 115, 22, 0.52) 0%,
+    rgba(192, 38, 160, 0.38) 100%
+  );
+  border: 1px solid rgba(249, 115, 22, 0.35);
+  color: #fbbf24;
+  box-shadow: 0 0 10px rgba(249, 115, 22, 0.28);
+}
+
+html[data-app-theme='dusk'] .detail-amenity-chip__label {
+  color: var(--detail-amenity-label, rgba(233, 213, 255, 0.78));
+}

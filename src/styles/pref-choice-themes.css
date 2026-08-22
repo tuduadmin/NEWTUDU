@@ -1,0 +1,180 @@
+/**
+ * Preference / category choice chips — accent colors per app theme.
+ * Structure + layout live in prefChoiceClasses.ts; colors only here.
+ */
+
+.pref-choice--active {
+  border-width: 2px;
+  border-color: var(--pref-choice-active-border);
+  background-color: var(--pref-choice-active-bg);
+  box-shadow: var(--pref-choice-active-shadow);
+  --tw-ring-color: var(--pref-choice-active-ring);
+}
+
+.pref-choice--active .pref-choice-label {
+  color: var(--pref-choice-active-label);
+  background-color: transparent;
+}
+
+.pref-choice--active .pref-choice-icon {
+  background-color: var(--pref-choice-active-icon-bg);
+  color: var(--pref-choice-active-icon-color);
+}
+
+/* SOL — warm dusk gradient glow */
+html[data-app-theme='dusk'] {
+  --pref-choice-active-border: rgba(249, 115, 22, 0.62);
+  --pref-choice-active-bg: rgba(192, 38, 160, 0.14);
+  --pref-choice-active-shadow: 0 0 22px rgba(249, 115, 22, 0.32), 0 0 12px rgba(192, 38, 160, 0.18);
+  --pref-choice-active-ring: rgba(249, 115, 22, 0.35);
+  --pref-choice-active-label: rgba(248, 250, 252, 0.96);
+  --pref-choice-active-icon-bg: rgba(249, 115, 22, 0.22);
+  --pref-choice-active-icon-color: #fbbf24;
+  --theme-accent-fg: #f97316;
+  /* Detail amenity chips — subtle read-only purple wash (icons stay vivid) */
+  --detail-amenity-border: rgba(192, 38, 160, 0.14);
+  --detail-amenity-bg: rgba(192, 38, 160, 0.07);
+  --detail-amenity-shadow: none;
+  --detail-amenity-label: rgba(233, 213, 255, 0.78);
+  --detail-amenity-icon-color: #fbbf24;
+  --detail-amenity-icon-shadow: 0 0 10px rgba(249, 115, 22, 0.28);
+}
+
+/* AXIS — aurora green haze */
+html[data-app-theme='aurora'] {
+  --pref-choice-active-border: rgba(110, 231, 183, 0.82);
+  --pref-choice-active-bg: rgba(52, 211, 153, 0.24);
+  --pref-choice-active-shadow: 0 0 26px rgba(52, 211, 153, 0.38), 0 0 12px rgba(110, 231, 183, 0.22);
+  --pref-choice-active-ring: rgba(110, 231, 183, 0.45);
+  --pref-choice-active-label: #ecfdf5;
+  --pref-choice-active-icon-bg: rgba(52, 211, 153, 0.32);
+  --pref-choice-active-icon-color: #a7f3d0;
+  --theme-accent-fg: #34d399;
+  --detail-amenity-border: rgba(110, 231, 183, 0.14);
+  --detail-amenity-bg: rgba(52, 211, 153, 0.06);
+  --detail-amenity-shadow: none;
+  --detail-amenity-label: rgba(209, 250, 229, 0.72);
+  --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
+  --detail-amenity-icon-shadow: 0 0 10px rgba(52, 211, 153, 0.24);
+}
+
+html[data-app-theme='aurora'] .pref-choice:not(.pref-choice--active) {
+  border-color: rgba(125, 211, 252, 0.14);
+}
+
+html[data-app-theme='aurora'] .pref-choice:not(.pref-choice--active):hover {
+  border-color: rgba(125, 211, 252, 0.28);
+}
+
+/* Lumi — warm dawn sunrise */
+html[data-app-theme='dawn'] {
+  --pref-choice-active-border: rgba(249, 115, 22, 0.72);
+  --pref-choice-active-bg: rgba(251, 146, 60, 0.18);
+  --pref-choice-active-shadow: 0 0 20px rgba(251, 146, 60, 0.28);
+  --pref-choice-active-ring: rgba(249, 115, 22, 0.32);
+  --pref-choice-active-label: #7c2d12;
+  --pref-choice-active-icon-bg: rgba(249, 115, 22, 0.2);
+  --pref-choice-active-icon-color: #ea580c;
+  --theme-accent-fg: #ea580c;
+  --detail-amenity-border: rgb(61 44 41 / 0.15);
+  --detail-amenity-bg: rgba(192, 38, 160, 0.05);
+  --detail-amenity-shadow: none;
+  --detail-amenity-label: rgb(61 44 41 / 0.72);
+  --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
+}
+
+/* Nova — deep midnight blues */
+html[data-app-theme='midnight'] {
+  --pref-choice-active-border: rgba(129, 140, 248, 0.75);
+  --pref-choice-active-bg: rgba(67, 56, 202, 0.22);
+  --pref-choice-active-shadow: 0 0 24px rgba(99, 102, 241, 0.38), 0 0 10px rgba(129, 140, 248, 0.22);
+  --pref-choice-active-ring: rgba(129, 140, 248, 0.4);
+  --pref-choice-active-label: rgba(224, 231, 255, 0.96);
+  --pref-choice-active-icon-bg: rgba(99, 102, 241, 0.28);
+  --pref-choice-active-icon-color: #c7d2fe;
+  --theme-accent-fg: #818cf8;
+  --detail-amenity-border: rgba(129, 140, 248, 0.16);
+  --detail-amenity-bg: rgba(99, 102, 241, 0.07);
+  --detail-amenity-shadow: none;
+  --detail-amenity-label: rgba(199, 210, 254, 0.78);
+  --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
+  --detail-amenity-icon-shadow: 0 0 10px rgba(99, 102, 241, 0.24);
+}
+
+/* Ember — summer day: greens + ocean blues */
+html[data-app-theme='evergreen'] {
+  --pref-choice-active-border: rgba(20, 184, 166, 0.7);
+  --pref-choice-active-bg: rgba(52, 211, 153, 0.16);
+  --pref-choice-active-shadow: 0 0 22px rgba(45, 212, 191, 0.28), 0 0 10px rgba(56, 189, 248, 0.18);
+  --pref-choice-active-ring: rgba(20, 184, 166, 0.32);
+  --pref-choice-active-label: #064e3b;
+  --pref-choice-active-icon-bg: rgba(56, 189, 248, 0.2);
+  --pref-choice-active-icon-color: #0d9488;
+  --theme-accent-fg: #0d9488;
+  --detail-amenity-border: rgba(20, 184, 166, 0.14);
+  --detail-amenity-bg: rgba(52, 211, 153, 0.06);
+  --detail-amenity-shadow: none;
+  --detail-amenity-label: rgba(6, 78, 59, 0.72);
+  --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
+}
+
+/* Marigold — autumn harvest leaves */
+html[data-app-theme='harvest'] {
+  --pref-choice-active-border: rgba(234, 88, 12, 0.78);
+  --pref-choice-active-bg: rgba(180, 83, 9, 0.16);
+  --pref-choice-active-shadow: 0 0 22px rgba(234, 88, 12, 0.3), 0 0 10px rgba(202, 138, 4, 0.2);
+  --pref-choice-active-ring: rgba(234, 88, 12, 0.34);
+  --pref-choice-active-label: #7c2d12;
+  --pref-choice-active-icon-bg: rgba(202, 138, 4, 0.24);
+  --pref-choice-active-icon-color: #b45309;
+  --theme-accent-fg: #ea580c;
+  --detail-amenity-border: rgb(61 44 41 / 0.15);
+  --detail-amenity-bg: rgba(180, 83, 9, 0.05);
+  --detail-amenity-shadow: none;
+  --detail-amenity-label: rgb(61 44 41 / 0.72);
+  --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
+}
+
+/* Shared theme accent utilities (Saved/Past tabs, filters, etc.) */
+.theme-accent-text {
+  color: var(--theme-accent-fg, var(--pref-choice-active-label));
+}
+
+.theme-accent-icon {
+  color: var(--theme-accent-fg, var(--pref-choice-active-icon-color));
+}
+
+.theme-accent-underline {
+  background-color: var(--pref-choice-active-border);
+}
+
+.theme-accent-border {
+  border-color: color-mix(in srgb, var(--pref-choice-active-border) 45%, transparent);
+}
+
+.theme-accent-border-strong {
+  border-color: var(--pref-choice-active-border);
+}
+
+.theme-accent-fill {
+  background-color: var(--pref-choice-active-border);
+  border-color: var(--pref-choice-active-border);
+}
+
+.theme-accent-selected {
+  color: var(--theme-accent-fg, var(--pref-choice-active-label));
+  font-weight: 600;
+}
+
+.theme-accent-bg-subtle {
+  background-color: color-mix(in srgb, var(--pref-choice-active-border) 8%, transparent);
+}
+
+.theme-accent-checkbox {
+  accent-color: var(--theme-accent-fg, var(--pref-choice-active-icon-color));
+}
+
+.theme-accent-hover:hover {
+  border-color: color-mix(in srgb, var(--pref-choice-active-border) 40%, transparent);
+  color: var(--theme-accent-fg, var(--pref-choice-active-label));
+}

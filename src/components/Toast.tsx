@@ -16,7 +16,7 @@ export default function Toast({ message, onDismiss, duration = 3000, dark = fals
   return (
     <div
       role="status"
-      className={`fixed bottom-24 left-1/2 z-50 flex max-w-sm -translate-x-1/2 items-center gap-3 rounded-tudu px-4 py-3 text-sm shadow-lg ${
+      className={`app-toast fixed bottom-24 left-1/2 z-50 flex max-w-sm -translate-x-1/2 items-center gap-3 rounded-tudu px-4 py-3 text-sm shadow-lg ${
         dark
           ? 'bg-app-dark-elevated text-white ring-1 ring-white/10'
           : 'bg-brown text-white'

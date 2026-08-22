@@ -48,14 +48,14 @@ export default function CookieConsentBanner() {
           <button
             type="button"
             onClick={() => saveConsent('essential-only')}
-            className="rounded-full border border-brown/20 bg-cream px-4 py-2 text-sm font-semibold text-brown transition hover:border-brown/40"
+            className="rounded-[14px] border border-brown/20 bg-cream px-4 py-2 text-sm font-semibold text-brown transition hover:border-brown/40"
           >
             Essential only
           </button>
           <button
             type="button"
             onClick={() => saveConsent('accepted')}
-            className="rounded-full bg-gradient-tudu px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
+            className="rounded-[14px] bg-gradient-tudu px-4 py-2 text-sm font-semibold text-white transition hover:opacity-95"
           >
             Accept
           </button>

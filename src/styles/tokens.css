@@ -1,6 +1,8 @@
 /* TUDU Bucket List Mode — Design Tokens */
 
 :root {
+  --color-page-bg: #0b0f1a;
+
   /* ── Dusk palette (refined) ── */
   --color-midnight: #0b0f1a;
   --color-midnight-elevated: #121828;
@@ -88,15 +90,19 @@
   --space-safe-bottom: max(16px, env(safe-area-inset-bottom));
   --space-safe-top: max(12px, env(safe-area-inset-top));
 
-  /* ── Radii ── */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
-  --radius-2xl: 32px;
+  /* ── Radii (14px standard; pill for avatars / circle icon buttons only) ── */
+  --radius-chrome: 14px;
+  --radius-surface: 14px;
+  --radius-button: 14px;
+  --radius-ui: 14px;
+  --radius-sm: 14px;
+  --radius-md: 14px;
+  --radius-lg: 14px;
+  --radius-xl: 14px;
+  --radius-2xl: 14px;
   --radius-pill: 9999px;
-  --radius-card: 24px;
-  --radius-cover: 20px;
+  --radius-card: 14px;
+  --radius-cover: 14px;
 
   /* ── Typography ── */
   --font-display: 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -119,6 +125,11 @@
   --icon-md: 20px;
   --icon-lg: 24px;
   --icon-xl: 32px;
+
+  /* ── App chrome heights ── */
+  --app-header-h: calc(52px + 0.5rem);
+  --app-bottom-nav-h: 56px;
+  --app-column-max-w: 32rem; /* matches Tailwind max-w-lg — keep in sync with page shells */
 
   /* ── Touch targets ── */
   --touch-min: 44px;
@@ -143,6 +154,51 @@
   --duration-slow: 320ms;
   --duration-celebrate: 450ms;
   --duration-fly: 700ms;
+}
+
+html[data-app-theme='dusk'] {
+  --color-page-bg: #0b0f1a;
+}
+
+html[data-app-theme='aurora'] {
+  --color-page-bg: #050b14;
+  --color-midnight: #050b14;
+  --color-midnight-elevated: #0c1829;
+  --color-midnight-surface: #122238;
+  --color-app-dark: #050b14;
+  --color-app-dark-elevated: #0c1829;
+  --color-magenta: #f472b6;
+  --color-magenta-bright: #f9a8d4;
+  --color-sunset-pink: #6ee7b7;
+  --color-sunset-orange: #38bdf8;
+  --color-electric-blue: #7dd3fc;
+  --color-glass-bg: rgba(12, 24, 41, 0.78);
+  --color-glass-border: rgba(125, 211, 252, 0.14);
+  --gradient-dusk: linear-gradient(
+    135deg,
+    #050b14 0%,
+    #0c4a6e 22%,
+    #34d399 42%,
+    #38bdf8 58%,
+    #f472b6 78%,
+    #6ee7b7 100%
+  );
+  --gradient-dusk-soft: linear-gradient(
+    135deg,
+    rgba(52, 211, 153, 0.88) 0%,
+    rgba(56, 189, 248, 0.85) 48%,
+    rgba(244, 114, 182, 0.85) 100%
+  );
+  --gradient-story-ring: conic-gradient(
+    from 180deg,
+    #34d399,
+    #38bdf8,
+    #f472b6,
+    #6ee7b7,
+    #34d399
+  );
+  --shadow-glow-warm: 0 0 28px rgba(52, 211, 153, 0.4);
+  --shadow-glow-magenta: 0 0 32px rgba(244, 114, 182, 0.35);
 }
 
 @media (prefers-reduced-motion: reduce) {

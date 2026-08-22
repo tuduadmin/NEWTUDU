@@ -1,3 +1,6 @@
+import { ArrowLeftIcon, XMarkIcon } from '@heroicons/react/24/outline'
+import { ShareIcon } from './NavActionButtons'
+
 type DiscoverActionButtonsProps = {
   onBack: () => void
   onSkip: () => void
@@ -5,33 +8,66 @@ type DiscoverActionButtonsProps = {
   onSave: () => void
   onShare: () => void
   backDisabled?: boolean
+  backsRemaining?: number
 }
 
-type ActionProps = {
+type DeckCircleButtonProps = {
   label: string
-  color: string
   onClick: () => void
   disabled?: boolean
-  large?: boolean
+  size: 'side' | 'center' | 'view'
+  variant: 'orange' | 'back' | 'skip' | 'save' | 'share'
   children: React.ReactNode
 }
 
-function ActionButton({ label, color, onClick, disabled, large, children }: ActionProps) {
+const borderedCircleClass = 'border border-brown/15 bg-white shadow-sm'
+
+const accentClass = {
+  back: 'text-electric-blue',
+  skip: 'text-red-500',
+  save: 'text-green-500',
+  share: 'text-purple',
+} as const
+
+function DeckCircleButton({
+  label,
+  onClick,
+  disabled,
+  size,
+  variant,
+  children,
+}: DeckCircleButtonProps) {
+  const sizeClass =
+    size === 'view'
+      ? 'h-[5.25rem] w-[5.25rem]'
+      : size === 'center'
+        ? 'h-[4rem] w-[4rem]'
+        : 'h-[3.75rem] w-[3.75rem]'
+
+  const variantClass =
+    variant === 'orange'
+      ? 'bg-orange text-white shadow-[0_0_24px_rgba(246,142,93,0.45)]'
+      : `${borderedCircleClass} ${accentClass[variant]}`
+
+  const labelClass =
+    variant === 'orange'
+      ? 'text-[11px] font-bold leading-none text-white'
+      : `text-[11px] font-bold leading-none ${accentClass[variant]}`
+
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex flex-col items-center gap-1 disabled:opacity-40"
+      aria-label={label}
+      className="flex shrink-0 disabled:opacity-40"
     >
       <span
-        className={`flex items-center justify-center rounded-full bg-app-dark-elevated transition active:scale-95 ${
-          large ? 'h-[4.25rem] w-[4.25rem] shadow-[0_0_24px_rgba(246,142,93,0.45)]' : 'h-12 w-12'
-        }`}
+        className={`flex flex-col items-center justify-center gap-0.5 rounded-full transition active:scale-95 ${sizeClass} ${variantClass}`}
       >
         {children}
+        <span className={labelClass}>{label}</span>
       </span>
-      <span className={`text-[10px] font-medium ${color}`}>{label}</span>
     </button>
   )
 }
@@ -43,58 +79,48 @@ export default function DiscoverActionButtons({
   onSave,
   onShare,
   backDisabled = false,
+  backsRemaining,
 }: DiscoverActionButtonsProps) {
+  const backLabel =
+    backsRemaining != null && backsRemaining >= 0 ? `Back (${backsRemaining})` : 'Back'
+
   return (
-    <div className="mx-auto flex w-full max-w-md items-end justify-between px-2 py-3">
-      <ActionButton label="Back" color="text-blue-400" onClick={onBack} disabled={backDisabled}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M9 14 4 9l5-5M20 20v-7a4 4 0 0 0-4-4H4"
-            stroke="#60A5FA"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
+    <div className="mx-auto flex w-full max-w-md shrink-0 items-center justify-between px-0">
+      <DeckCircleButton
+        label={backLabel}
+        onClick={onBack}
+        disabled={backDisabled}
+        size="side"
+        variant="back"
+      >
+        <ArrowLeftIcon className="h-7 w-7 shrink-0 stroke-[2.5] drop-shadow-sm" aria-hidden />
+      </DeckCircleButton>
+
+      <DeckCircleButton label="Skip" onClick={onSkip} size="center" variant="skip">
+        <XMarkIcon className="h-7 w-7 shrink-0 stroke-[2.5] drop-shadow-sm" aria-hidden />
+      </DeckCircleButton>
+
+      <DeckCircleButton label="View" onClick={onView} size="view" variant="orange">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 drop-shadow-sm">
+          <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="3" />
+          <path d="M11 8v3l2 2M16 16l4 4" stroke="white" strokeWidth="3" strokeLinecap="round" />
         </svg>
-      </ActionButton>
+      </DeckCircleButton>
 
-      <ActionButton label="Skip" color="text-red-400" onClick={onSkip}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path d="M18 6 6 18M6 6l12 12" stroke="#F87171" strokeWidth="2.5" strokeLinecap="round" />
-        </svg>
-      </ActionButton>
-
-      <ActionButton label="View" color="text-orange" onClick={onView} large>
-        <span className="flex h-full w-full items-center justify-center rounded-full bg-orange">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
-            <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
-            <path d="M11 8v3l2 2M16 16l4 4" stroke="white" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        </span>
-      </ActionButton>
-
-      <ActionButton label="Save" color="text-green-400" onClick={onSave}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <DeckCircleButton label="Save" onClick={onSave} size="center" variant="save">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden className="shrink-0 drop-shadow-sm">
           <path
             d="M6 4h12v16l-6-4-6 4V4Z"
-            stroke="#4ADE80"
-            strokeWidth="2"
+            stroke="currentColor"
+            strokeWidth="3"
             strokeLinejoin="round"
           />
         </svg>
-      </ActionButton>
+      </DeckCircleButton>
 
-      <ActionButton label="Share" color="text-purple-400" onClick={onShare}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden>
-          <path
-            d="M12 3v12M12 15l4-4M12 15l-4-4M5 19h14"
-            stroke="#C084FC"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </ActionButton>
+      <DeckCircleButton label="Share" onClick={onShare} size="side" variant="share">
+        <ShareIcon className="h-6 w-6 shrink-0 drop-shadow-sm" aria-hidden />
+      </DeckCircleButton>
     </div>
   )
 }

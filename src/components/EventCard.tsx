@@ -23,13 +23,13 @@ export default function EventCard({
 }: EventCardProps) {
   return (
     <article
-      className={`overflow-hidden rounded-[var(--radius-tudu-xl)] border border-brown/10 bg-white ${
+      className={`overflow-hidden rounded-[14px] border border-brown/10 bg-white ${
         highlighted ? 'shadow-event-blue' : 'shadow-sm'
       }`}
     >
       <div className="relative h-44 w-full">
         <img src={image} alt="" className="h-full w-full object-cover" loading="lazy" />
-        <span className="absolute right-3 top-3 rounded-full bg-orange px-3 py-1 text-xs font-semibold text-white">
+        <span className="absolute right-3 top-3 rounded-[14px] bg-orange px-3 py-1 text-xs font-semibold text-white">
           Hottest event
         </span>
       </div>

@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react'
-import { Link } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
 import GradientButton from '../GradientButton'
+import { SkipButton } from '../NavActionButtons'
+import { isPlatformAdmin } from '../../lib/auth'
 import { completeOnboarding } from '../../lib/preferences'
 
 type OnboardingLayoutProps = {
@@ -22,7 +24,17 @@ export default function OnboardingLayout({
   continueDisabled = false,
   children,
 }: OnboardingLayoutProps) {
+  const navigate = useNavigate()
   const progress = (step / totalSteps) * 100
+
+  if (isPlatformAdmin()) {
+    return <Navigate to="/admin" replace />
+  }
+
+  function handleSkipOnboarding() {
+    completeOnboarding()
+    navigate('/discover', { replace: true })
+  }
 
   return (
     <div className="relative mx-auto min-h-svh max-w-md bg-midnight pb-10">
@@ -34,7 +46,7 @@ export default function OnboardingLayout({
         <div className="mt-4 flex items-center gap-3">
           <div className="h-1 flex-1 overflow-hidden rounded-full bg-white/10">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-magenta via-sunset-pink to-sunset-orange transition-all duration-[var(--duration-slow)]"
+              className="h-full rounded-[14px] bg-gradient-to-r from-magenta via-sunset-pink to-sunset-orange transition-all duration-[var(--duration-slow)]"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -46,7 +58,7 @@ export default function OnboardingLayout({
         <h1 className="mt-6 font-display text-2xl font-extrabold tracking-tight text-white">{title}</h1>
         <p className="mt-2 text-sm text-white/60">{subtitle}</p>
 
-        <div className="mt-8 rounded-[var(--radius-xl)] glass-surface p-5">{children}</div>
+        <div className="mt-8 rounded-[14px] glass-surface p-5">{children}</div>
 
         <GradientButton
           fullWidth
@@ -56,13 +68,9 @@ export default function OnboardingLayout({
         >
           Continue
         </GradientButton>
-        <Link
-          to="/discover"
-          onClick={() => completeOnboarding()}
-          className="mt-4 block text-center text-sm text-white/48 no-underline transition hover:text-sunset-orange"
-        >
+        <SkipButton variant="dark" onClick={handleSkipOnboarding} className="mt-4">
           Skip onboarding
-        </Link>
+        </SkipButton>
       </main>
     </div>
   )

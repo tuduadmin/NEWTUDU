@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import Toast from '../components/Toast'
+import { BackLink, ShareIcon } from '../components/NavActionButtons'
 import { getBucketLists } from '../lib/bucketLists'
 import {
   getCompletedStoryById,
@@ -151,9 +152,9 @@ export default function BucketListStoryPage() {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-app-dark text-white">
         <h1 className="text-xl font-bold">Story not found</h1>
-        <Link to="/bucket-list" className="mt-4 text-sm font-semibold text-orange no-underline">
-          ← Back to Bucket Lists
-        </Link>
+        <BackLink to="/bucket-list" className="mt-4 text-orange hover:text-orange">
+          Back to Bucket Lists
+        </BackLink>
       </div>
     )
   }
@@ -178,7 +179,7 @@ export default function BucketListStoryPage() {
         {story.slides.map((_, i) => (
           <div key={i} className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/30">
             <div
-              className="h-full rounded-full bg-white transition-all duration-100 ease-linear"
+              className="h-full rounded-[14px] bg-white transition-all duration-100 ease-linear"
               style={{
                 width:
                   i < slideIndex ? '100%' : i === slideIndex ? `${progress}%` : '0%',
@@ -201,11 +202,11 @@ export default function BucketListStoryPage() {
         </div>
         <button
           type="button"
-          onClick={() => navigate('/bucket-list?tab=discover&discover=completed')}
+          onClick={() => navigate('/bucket-list?tab=mine&discover=completed')}
           className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-white backdrop-blur-sm"
           aria-label="Close story"
         >
-          ✕
+          âœ•
         </button>
       </div>
 
@@ -226,14 +227,14 @@ export default function BucketListStoryPage() {
           {slide.city}
           {slide.completedAt && (
             <span className="ml-2 normal-case text-white/50">
-              · {formatCompletedDate(slide.completedAt)}
+              | {formatCompletedDate(slide.completedAt)}
             </span>
           )}
         </p>
         <h2 className="mt-1 text-2xl font-extrabold text-white">{slide.title}</h2>
         {(slide.dateTime || slide.cost) && (
           <p className="mt-1 text-sm text-white/70">
-            {[slide.dateTime, slide.cost].filter(Boolean).join(' · ')}
+            {[slide.dateTime, slide.cost].filter(Boolean).join(' | ')}
           </p>
         )}
         {slide.completionNote && (
@@ -250,21 +251,21 @@ export default function BucketListStoryPage() {
               e.stopPropagation()
               setShowSoundtrack((s) => !s)
             }}
-            className="pointer-events-auto flex items-center gap-2 rounded-full bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm"
+            className="pointer-events-auto flex items-center gap-2 rounded-[14px] bg-black/50 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur-sm"
           >
-            <span aria-hidden>🎵</span>
-            {showSoundtrack ? 'Hide soundtrack' : 'Now playing · Spotify'}
+            <span aria-hidden>ðŸŽµ</span>
+            {showSoundtrack ? 'Hide soundtrack' : 'Now playing | Spotify'}
           </button>
         ) : (
-          <div className="flex items-center gap-2 rounded-full bg-black/40 px-3 py-1.5 text-xs text-white/60 backdrop-blur-sm">
-            <span aria-hidden>🎶</span>
+          <div className="flex items-center gap-2 rounded-[14px] bg-black/40 px-3 py-1.5 text-xs text-white/60 backdrop-blur-sm">
+            <span aria-hidden>ðŸŽ¶</span>
             No soundtrack attached
           </div>
         )}
       </div>
 
       {showSoundtrack && embedUrl && (
-        <div className="pointer-events-auto absolute bottom-36 left-4 right-4 z-20 overflow-hidden rounded-xl bg-black/80 ring-1 ring-white/10">
+        <div className="pointer-events-auto absolute bottom-36 left-4 right-4 z-20 overflow-hidden rounded-[14px] bg-black/80 ring-1 ring-white/10">
           <iframe
             title="Spotify soundtrack"
             src={embedUrl}
@@ -280,7 +281,7 @@ export default function BucketListStoryPage() {
       {/* Action bar */}
       <div className="absolute bottom-0 left-0 right-0 z-10 flex items-center justify-around border-t border-white/10 bg-black/60 px-6 py-4 pb-[max(1rem,env(safe-area-inset-bottom))] backdrop-blur-md">
         <StoryAction
-          icon={liked ? '❤️' : '🤍'}
+          icon={liked ? 'â¤ï¸' : 'ðŸ¤'}
           label={likeCount > 0 ? String(likeCount) : 'Like'}
           active={liked}
           onClick={(e) => {
@@ -289,7 +290,7 @@ export default function BucketListStoryPage() {
           }}
         />
         <StoryAction
-          icon="↗"
+          icon={<ShareIcon className="h-6 w-6" aria-hidden />}
           label="Share"
           onClick={(e) => {
             e.stopPropagation()
@@ -297,7 +298,7 @@ export default function BucketListStoryPage() {
           }}
         />
         <StoryAction
-          icon="🔖"
+          icon="ðŸ”–"
           label="Save"
           onClick={(e) => {
             e.stopPropagation()
@@ -325,7 +326,7 @@ function StoryAction({
   active,
   onClick,
 }: {
-  icon: string
+  icon: React.ReactNode
   label: string
   active?: boolean
   onClick: (e: React.MouseEvent) => void
@@ -338,7 +339,7 @@ function StoryAction({
         active ? 'text-red-400' : 'text-white'
       }`}
     >
-      <span className="text-2xl">{icon}</span>
+      <span className="flex h-8 w-8 items-center justify-center text-2xl">{icon}</span>
       {label}
     </button>
   )
@@ -379,9 +380,9 @@ function SaveToListModal({
           <button
             type="button"
             onClick={onCreate}
-            className="w-full rounded-full border border-dashed border-white/20 py-2 text-sm font-semibold text-orange"
+            className="w-full rounded-[14px] border border-dashed border-white/20 py-2 text-sm font-semibold text-orange"
           >
-            ＋ Create new list
+            ï¼‹ Create new list
           </button>
         </div>
       </div>

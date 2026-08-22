@@ -30,7 +30,7 @@ export default function VerificationBadge({
 
   const content = (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-bold uppercase ${textSize} ${
+      className={`inline-flex items-center gap-1 rounded-[14px] px-2 py-0.5 font-bold uppercase ${textSize} ${
         verified ? verifiedClasses : unverifiedClasses
       }`}
     >

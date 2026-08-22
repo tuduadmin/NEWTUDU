@@ -28,3 +28,15 @@ Do not modify without explicit user approval.
 **User-approved exception (2026-07-18):** EventManagerPage org profile section — centered avatar/logo layout and placeholder org name ("Your Organization Name").
 
 **User-approved exception (2026-07-18):** EventManagerPage Create Event buttons wired to `/host/create-event` wizard (replaces CreateEventModal entry).
+
+**User-approved exception (2026-07-18):** EventManagerPage — removal of progress section (Live Events progress bar, featured event % indicator, and setup/completion progress UI).
+
+**User-approved exception (2026-07-18):** FinalStep.tsx — ticketing mode picker (`free_rsvp`, `free_donation`, `sell`, `external`), capacity/waitlist, external URL, live preview snippet.
+
+**User-approved exception (2026-07-18):** FinalStep.tsx + ReviewStep.tsx — Attendee Checklist section (Step 4, after ticketing, before age/amenities).
+
+**User-approved exception (2026-07-18):** New checklist components (not locked):
+- `src/components/create-event/ChecklistBuilder.tsx` — host-side template/custom builder
+- `src/components/AttendeeChecklistForm.tsx` — attendee-facing potluck/conference/custom UI
+- `src/lib/checklist.ts` — localStorage claims/responses demo
+- `src/pages/EventRsvpPage.tsx` — `/event/:id/rsvp` flow

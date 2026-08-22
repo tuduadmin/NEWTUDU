@@ -1,40 +1,54 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Lock, User, X } from 'lucide-react'
 import GradientButton from '../components/GradientButton'
-import { LogoPinGradient } from '../components/Logo'
+import TuduLogo from '../components/TuduLogo'
+import AddToHomeScreenButton from '../components/AddToHomeScreenButton'
+import InstallAppOverlay from '../components/settings/InstallAppOverlay'
 import { PasswordInput } from '../components/FormFields'
-import { getPostAuthPath, signIn } from '../lib/auth'
+import { usePwaInstall } from '../hooks/usePwaInstall'
+import { getPostAuthPath, getRememberedEmail, repairKnownDemoUsers, signIn } from '../lib/auth'
+import { appFieldClassWithIconLg } from '../lib/formFieldClasses'
 
 export default function SignInPage() {
   const navigate = useNavigate()
+  const pwaInstall = usePwaInstall()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [remember, setRemember] = useState(true)
+  const [remember, setRemember] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    repairKnownDemoUsers()
+    const remembered = getRememberedEmail()
+    if (remembered) {
+      setEmail(remembered)
+      setRemember(true)
+    }
+  }, [])
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault()
     setError('')
 
-    if (!signIn(email.trim(), password)) {
-      setError('Invalid email or password. Please try again.')
+    const result = signIn(email.trim(), password, { remember })
+    if (!result.ok) {
+      setError(result.error ?? 'Invalid email or password. Please try again.')
       return
     }
 
     navigate(getPostAuthPath())
   }
 
-  const inputClass =
-    'w-full rounded-[var(--radius-tudu)] border border-brown/15 bg-white py-3.5 pl-12 pr-4 text-brown outline-none transition placeholder:text-brown-muted/60 focus:border-purple focus:ring-2 focus:ring-purple/20'
+  const inputClass = appFieldClassWithIconLg
 
   return (
-    <div className="relative flex min-h-svh items-center justify-center px-4 py-8">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#f68e5d]/35 via-pink-200/50 to-[#c02e8d]/35" />
-      <div className="absolute inset-0 backdrop-blur-md" />
+    <div className="auth-flow-page relative flex min-h-svh items-center justify-center px-4 py-8">
+      <div className="auth-flow-gradient absolute inset-0 bg-gradient-to-br from-[#f68e5d]/35 via-pink-200/50 to-[#c02e8d]/35" />
+      <div className="auth-flow-blur absolute inset-0 backdrop-blur-md" />
 
-      <div className="relative w-full max-w-md rounded-[var(--radius-tudu-xl)] bg-white p-8 shadow-xl">
+      <div className="app-surface-card relative w-full max-w-md p-8 shadow-xl">
         <button
           type="button"
           onClick={() => navigate(-1)}
@@ -45,7 +59,7 @@ export default function SignInPage() {
         </button>
 
         <div className="mb-6 flex justify-center">
-          <LogoPinGradient />
+          <TuduLogo variant="iconOnly" size="lg" linkTo="" />
         </div>
 
         <div className="mb-8 text-center">
@@ -94,9 +108,12 @@ export default function SignInPage() {
               />
               Remember me
             </label>
-            <a href="#forgot" className="font-medium text-maroon no-underline hover:underline">
+            <Link
+              to="/signin/forgot-password"
+              className="font-medium text-maroon no-underline hover:underline"
+            >
               Forgot Password?
-            </a>
+            </Link>
           </div>
 
           {error && (
@@ -118,7 +135,7 @@ export default function SignInPage() {
 
         <button
           type="button"
-          className="flex w-full items-center justify-center gap-3 rounded-[var(--radius-tudu)] border border-brown/15 bg-white py-3.5 font-medium text-brown transition hover:bg-cream active:scale-[0.98]"
+          className="auth-oauth-button flex w-full items-center justify-center gap-3 rounded-[14px] border border-brown/15 bg-white py-3.5 font-medium text-brown transition hover:bg-cream active:scale-[0.98]"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
             <path
@@ -141,6 +158,24 @@ export default function SignInPage() {
           Sign in with Google
         </button>
 
+        {!pwaInstall.isInstalled && (
+          <div className="mt-8">
+            <AddToHomeScreenButton
+              busy={pwaInstall.installBusy}
+              onClick={() => void pwaInstall.requestInstall()}
+            />
+            {pwaInstall.installHint ? (
+              <p className="mt-2 text-center text-xs text-red-400" role="status">
+                {pwaInstall.installHint}
+              </p>
+            ) : (
+              <p className="mt-2 text-center text-xs text-brown-muted">
+                One tap installs Tudu on this device when your browser supports it.
+              </p>
+            )}
+          </div>
+        )}
+
         <p className="mt-6 text-center text-sm text-brown-muted">
           Don&apos;t have an account?{' '}
           <Link to="/signup" className="font-semibold text-orange no-underline hover:underline">
@@ -148,6 +183,8 @@ export default function SignInPage() {
           </Link>
         </p>
       </div>
+
+      <InstallAppOverlay open={pwaInstall.instructionsOpen} onClose={pwaInstall.closeInstructions} />
     </div>
   )
 }

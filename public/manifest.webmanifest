@@ -1,0 +1,30 @@
+{
+  "name": "TUDU — Find something to do",
+  "short_name": "TUDU",
+  "description": "Swipe to discover local events. Host what you love.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#faf6ef",
+  "theme_color": "#7c2942",
+  "icons": [
+    {
+      "src": "/tudu-icon.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tudu-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/tudu-icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

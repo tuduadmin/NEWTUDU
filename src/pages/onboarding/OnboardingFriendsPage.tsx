@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import FriendsPage from '../FriendsPage'
 import GradientButton from '../../components/GradientButton'
+import { SkipButton } from '../../components/NavActionButtons'
+import { getPostAuthPath } from '../../lib/auth'
 import { completeOnboarding } from '../../lib/preferences'
 
 export default function OnboardingFriendsPage() {
@@ -8,7 +10,7 @@ export default function OnboardingFriendsPage() {
 
   function finishOnboarding() {
     completeOnboarding()
-    navigate('/discover')
+    navigate(getPostAuthPath())
   }
 
   return (
@@ -20,13 +22,9 @@ export default function OnboardingFriendsPage() {
           <GradientButton fullWidth onClick={finishOnboarding}>
             Continue to Discover
           </GradientButton>
-          <button
-            type="button"
-            onClick={finishOnboarding}
-            className="text-center text-sm text-white/48 transition hover:text-white"
-          >
+          <SkipButton variant="dark" onClick={finishOnboarding}>
             Skip for now
-          </button>
+          </SkipButton>
         </div>
       </div>
     </div>

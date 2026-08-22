@@ -1,59 +1,119 @@
-import { Check, HelpCircle, Pencil } from 'lucide-react'
+import { Check, Pencil } from 'lucide-react'
+import type { CreateEventStep } from '../../lib/createEventDraft'
+import type { HostEventFormData } from '../../lib/account'
+import {
+  CREATE_EVENT_STEPS,
+  getStepStatus,
+  type StepStatus,
+} from '../../lib/createEventValidation'
 
-export type StepperStep = 'basics' | 'schedule' | 'category' | 'final' | 'review'
-
-const STEPS: { id: StepperStep; label: string; number: number }[] = [
-  { id: 'basics', label: 'BASICS', number: 1 },
-  { id: 'schedule', label: 'SCHEDULE', number: 2 },
-  { id: 'category', label: 'CATEGORY', number: 3 },
-  { id: 'final', label: 'FINAL', number: 4 },
-  { id: 'review', label: 'REVIEW', number: 5 },
-]
+type StepVisualState = 'untouched' | 'incomplete' | 'complete'
 
 type CreateEventStepperProps = {
-  currentStep: number
-  completedSteps?: number[]
+  currentStep: CreateEventStep
+  form: HostEventFormData
+  visitedSteps: ReadonlySet<CreateEventStep>
+  onStepClick: (step: CreateEventStep) => void
 }
 
-export default function CreateEventStepper({ currentStep, completedSteps = [] }: CreateEventStepperProps) {
-  return (
-    <div className="mt-3">
-      <div className="flex gap-1">
-        {STEPS.map((step) => {
-          const isActive = step.number === currentStep
-          const isComplete = completedSteps.includes(step.number) && !isActive
-          const isFuture = step.number > currentStep && !isComplete
+function getStepVisualState(
+  step: CreateEventStep,
+  status: StepStatus,
+  visitedSteps: ReadonlySet<CreateEventStep>,
+): StepVisualState {
+  if (status === 'complete') return 'complete'
+  if (!visitedSteps.has(step)) return 'untouched'
+  return 'incomplete'
+}
 
-          return (
-            <div key={step.id} className="relative flex-1">
-              {isActive && (
-                <span
-                  className="absolute -top-2 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[5px] border-t-[6px] border-x-transparent border-t-orange"
-                  aria-hidden
-                />
-              )}
+function stepButtonClass(visual: StepVisualState, isCurrent: boolean): string {
+  const focus =
+    'transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple focus-visible:ring-offset-2 focus-visible:ring-offset-cream'
+
+  if (visual === 'complete') {
+    return `bg-success hover:bg-success-deep ${focus}${isCurrent ? ' ring-2 ring-success-deep/40' : ''}`
+  }
+
+  if (visual === 'incomplete') {
+    return `bg-warm-yellow hover:bg-amber-400 ${focus}${isCurrent ? ' ring-2 ring-amber-500/50' : ''}`
+  }
+
+  return `bg-brown-muted/25 hover:bg-brown-muted/35 ${focus}${isCurrent ? ' ring-2 ring-brown-muted/30' : ''}`
+}
+
+function stepIcon(visual: StepVisualState) {
+  if (visual === 'complete') {
+    return (
+      <span
+        className="flex h-4 w-4 items-center justify-center rounded-full bg-white"
+        aria-hidden
+      >
+        <Check size={10} className="text-success" strokeWidth={3} />
+      </span>
+    )
+  }
+
+  if (visual === 'incomplete') {
+    return <Pencil size={12} className="text-white" strokeWidth={2.5} aria-hidden />
+  }
+
+  return null
+}
+
+function stepAriaLabel(
+  label: string,
+  visual: StepVisualState,
+  isCurrent: boolean,
+): string {
+  const current = isCurrent ? ', current step' : ''
+  if (visual === 'complete') return `${label} â€” complete${current}`
+  if (visual === 'untouched') return `${label} â€” not started${current}`
+  return `${label} â€” in progress, required fields missing${current}`
+}
+
+export default function CreateEventStepper({
+  currentStep,
+  form,
+  visitedSteps,
+  onStepClick,
+}: CreateEventStepperProps) {
+  return (
+    <nav className="mt-3" aria-label="Create event steps">
+      <div className="overflow-x-auto">
+        <div className="flex min-w-full gap-1.5 px-2 pt-2 pb-0.5">
+          {CREATE_EVENT_STEPS.map((step) => {
+            const status = getStepStatus(step.number, form)
+            const visual = getStepVisualState(step.number, status, visitedSteps)
+            const isCurrent = step.number === currentStep
+            const label = stepAriaLabel(step.label, visual, isCurrent)
+
+            return (
               <div
-                className={`flex h-9 items-center justify-center gap-1 rounded-md text-[9px] font-bold tracking-wide transition ${
-                  isActive
-                    ? 'bg-gradient-to-r from-warm-yellow to-orange text-brown'
-                    : isComplete
-                      ? 'bg-success text-white'
-                      : 'bg-cream-dark text-brown-muted/70'
-                }`}
+                key={step.id}
+                className="flex min-w-[3rem] flex-1 flex-col items-center gap-1"
               >
-                {isComplete ? (
-                  <Check size={12} strokeWidth={3} />
-                ) : isActive ? (
-                  <Pencil size={11} />
-                ) : isFuture ? (
-                  <HelpCircle size={11} />
-                ) : null}
-                <span className="hidden min-[380px]:inline">{step.label}</span>
+                <button
+                  type="button"
+                  onClick={() => onStepClick(step.number)}
+                  aria-current={isCurrent ? 'step' : undefined}
+                  aria-label={label}
+                  title={label}
+                  className={`flex h-6 w-full origin-center items-center justify-center rounded-[14px] ${stepButtonClass(visual, isCurrent)}`}
+                >
+                  {stepIcon(visual)}
+                </button>
+                <span
+                  className={`text-center text-[8px] font-bold leading-tight tracking-wide ${
+                    isCurrent ? 'text-brown' : 'text-brown-muted'
+                  }`}
+                >
+                  {step.label}
+                </span>
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
-    </div>
+    </nav>
   )
 }

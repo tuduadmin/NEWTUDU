@@ -1,5 +1,6 @@
 import TuduLogo from './TuduLogo'
 import GradientButton from './GradientButton'
+import AdminEntryLink from './AdminEntryLink'
 
 type HeaderProps = {
   variant?: 'light' | 'dark'
@@ -10,17 +11,31 @@ export default function Header({ variant = 'dark' }: HeaderProps) {
 
   return (
     <header
-      className={`sticky top-0 z-[var(--z-header)] flex items-center justify-between px-4 py-3 backdrop-blur-md sm:px-6 ${
-        isDark
-          ? 'border-b border-white/[0.08] bg-midnight/90'
-          : 'bg-cream/95'
-      }`}
-      style={{ paddingTop: 'max(0.75rem, env(safe-area-inset-top))' }}
+      className="sticky top-0 z-[var(--z-header)] px-2 pt-2"
+      style={{ paddingTop: 'max(0.5rem, env(safe-area-inset-top))' }}
     >
-      <TuduLogo variant="iconWithText" />
-      <GradientButton to="/signin" variant={isDark ? 'default' : 'default'} className="px-5 py-2 text-sm">
-        Sign In
-      </GradientButton>
+      <div
+        className={`flex items-center justify-between rounded-[14px] border px-4 py-3 backdrop-blur-md sm:px-6 ${
+          isDark
+            ? 'border-white/10 bg-midnight/90'
+            : 'border-brown/10 bg-cream/95'
+        }`}
+      >
+        <TuduLogo variant="iconWithText" />
+        <div className="flex items-center gap-2 sm:gap-3">
+          {!isDark && (
+            <AdminEntryLink
+              className="text-[11px] font-medium text-brown-muted no-underline opacity-55 transition hover:text-brown hover:opacity-90"
+              aria-label="Platform admin sign in"
+            >
+              Admin
+            </AdminEntryLink>
+          )}
+          <GradientButton to="/signin" variant={isDark ? 'default' : 'default'} className="px-5 py-2 text-sm">
+            Sign In
+          </GradientButton>
+        </div>
+      </div>
     </header>
   )
 }

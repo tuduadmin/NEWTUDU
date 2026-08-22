@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout'
+import { prefChoiceClasses, PREF_CHOICE_ACTIVE_TEXT } from '../../lib/prefChoiceClasses'
 
 const BUDGET_OPTIONS = [
   { id: 'free', label: 'Free events only', desc: 'No ticket cost' },
@@ -23,22 +24,27 @@ export default function BudgetPage() {
       continueDisabled={!selected}
     >
       <ul className="space-y-3">
-        {BUDGET_OPTIONS.map((opt) => (
-          <li key={opt.id}>
-            <button
-              type="button"
-              onClick={() => setSelected(opt.id)}
-              className={`w-full rounded-[var(--radius-lg)] border-2 p-4 text-left transition active:scale-[0.98] ${
-                selected === opt.id
-                  ? 'border-magenta bg-magenta/15'
-                  : 'border-white/[0.08] bg-midnight-surface hover:border-magenta/30'
-              }`}
-            >
-              <span className="block font-semibold text-white">{opt.label}</span>
-              <span className="mt-0.5 block text-sm text-white/48">{opt.desc}</span>
-            </button>
-          </li>
-        ))}
+        {BUDGET_OPTIONS.map((opt) => {
+          const active = selected === opt.id
+          return (
+            <li key={opt.id}>
+              <button
+                type="button"
+                onClick={() => setSelected(opt.id)}
+                className={prefChoiceClasses(active, 'w-full p-4 text-left')}
+              >
+                <span
+                  className={`pref-choice-label block ${
+                    active ? PREF_CHOICE_ACTIVE_TEXT : 'font-medium text-brown'
+                  }`}
+                >
+                  {opt.label}
+                </span>
+                <span className="mt-0.5 block text-sm text-brown-muted">{opt.desc}</span>
+              </button>
+            </li>
+          )
+        })}
       </ul>
     </OnboardingLayout>
   )

@@ -13,7 +13,7 @@ export default function SaveToBucketFlyAnimation({
 
   return (
     <div
-      className="pointer-events-none fixed z-[var(--z-save-fly)] animate-fly-to-bucket overflow-hidden rounded-xl ring-2 ring-orange/60"
+      className="pointer-events-none fixed z-[var(--z-save-fly)] animate-fly-to-bucket overflow-hidden rounded-[14px] ring-2 ring-orange/60"
       style={{
         width: 72,
         height: 72,

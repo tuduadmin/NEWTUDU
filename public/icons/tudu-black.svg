@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Tudu Black">
+  <defs>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5e6a8" />
+      <stop offset="35%" stop-color="#d4af37" />
+      <stop offset="70%" stop-color="#b8860b" />
+      <stop offset="100%" stop-color="#8b6914" />
+    </linearGradient>
+  </defs>
+  <path
+    fill="url(#gold)"
+    d="M32 4c10.5 0 19 8.5 19 19 0 7.2-4 13.4-9.9 16.6L32 60 22.9 39.6C17 36.4 13 30.2 13 23 13 12.5 21.5 4 32 4Z"
+  />
+  <circle cx="32" cy="23" r="11.5" fill="#0a0a0a" />
+  <path
+    fill="url(#gold)"
+    d="M26.5 16.5h11v3.2h-3.8v13.2h-3.4V19.7h-3.8z"
+  />
+</svg>

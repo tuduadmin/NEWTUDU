@@ -1,9 +1,17 @@
 import type { DiscoverEvent } from '../data/discoverEvents'
 import { DISCOVER_EVENTS } from '../data/discoverEvents'
-import type { BucketList, PublicBucketList } from '../types/bucketList'
+import type {
+  BucketList,
+  CustomBucketListItem,
+  PublicBucketList,
+  VibeTag,
+} from '../types/bucketList'
+import { DEMO_USER } from './demoAccounts'
 import { removeSavedEvents } from './savedEvents'
+import { recordEventSave } from './distantSaves'
+import { resolveEventSaveMeta } from './eventSaveMeta'
 
-export type { BucketList, PublicBucketList } from '../types/bucketList'
+export type { BucketList, PublicBucketList, CustomBucketListItem } from '../types/bucketList'
 
 const LISTS_KEY = 'tudu_bucket_lists'
 const PUBLIC_KEY = 'tudu_public_bucket_lists'
@@ -36,7 +44,11 @@ export function getBucketListById(id: string): BucketList | undefined {
   return readLists().find((l) => l.id === id)
 }
 
-export function createBucketList(name: string, eventIds: string[] = []): BucketList {
+export function createBucketList(
+  name: string,
+  eventIds: string[] = [],
+  options?: { ownerId?: string; isPrivate?: boolean; description?: string },
+): BucketList {
   const now = new Date().toISOString()
   const list: BucketList = {
     id: generateId(),
@@ -46,6 +58,9 @@ export function createBucketList(name: string, eventIds: string[] = []): BucketL
     updatedAt: now,
     completedIds: [],
     completionNotes: {},
+    ownerId: options?.ownerId,
+    isPrivate: options?.isPrivate ?? false,
+    description: options?.description,
   }
   writeLists([list, ...readLists()])
   return list
@@ -73,6 +88,21 @@ export function addEventsToBucketList(id: string, eventIds: string[]): BucketLis
   const merged = [...new Set([...lists[idx].eventIds, ...eventIds])]
   lists[idx] = { ...lists[idx], eventIds: merged, updatedAt: new Date().toISOString() }
   writeLists(lists)
+
+  for (const eventId of eventIds) {
+    const meta = resolveEventSaveMeta(eventId)
+    if (meta) {
+      recordEventSave({
+        eventId: meta.eventId,
+        eventCity: meta.eventCity,
+        hostEventId: meta.hostEventId,
+        attractionId: meta.attractionId,
+        hiddenGemId: meta.hiddenGemId,
+        saveContext: 'bucket_list',
+      })
+    }
+  }
+
   return lists[idx]
 }
 
@@ -141,6 +171,53 @@ export function deleteBucketList(id: string): void {
   writeLists(readLists().filter((l) => l.id !== id))
 }
 
+export function updateBucketListVisibility(
+  id: string,
+  isPrivate: boolean,
+): BucketList | undefined {
+  const lists = readLists()
+  const idx = lists.findIndex((l) => l.id === id)
+  if (idx === -1) return undefined
+  lists[idx] = {
+    ...lists[idx],
+    isPrivate,
+    updatedAt: new Date().toISOString(),
+  }
+  writeLists(lists)
+  return lists[idx]
+}
+
+export function getBucketListsForUser(ownerId: string): BucketList[] {
+  const normalized = ownerId.trim().toLowerCase()
+  return readLists().filter((l) => l.ownerId?.toLowerCase() === normalized)
+}
+
+const ADMIN_DEMO_LISTS_FLAG = 'tudu_admin_demo_bucket_lists'
+
+export function seedDemoBucketListsForAdmin(eventIds: string[] = []): void {
+  if (localStorage.getItem(ADMIN_DEMO_LISTS_FLAG) === 'true') return
+
+  const demoEmail = DEMO_USER.email
+  const ids = eventIds.length > 0 ? eventIds : []
+
+  createBucketList('Saskatchewan Summer Hits', ids.slice(0, 4), {
+    ownerId: demoEmail,
+    isPrivate: false,
+    description: 'Must-do prairie events before the snow flies.',
+  })
+  createBucketList('Date Night Ideas', ids.slice(2, 6), {
+    ownerId: demoEmail,
+    isPrivate: true,
+    description: 'Private list for planning evenings out.',
+  })
+  createBucketList('Family Weekend Picks', ids.slice(0, 3), {
+    ownerId: demoEmail,
+    isPrivate: false,
+  })
+
+  localStorage.setItem(ADMIN_DEMO_LISTS_FLAG, 'true')
+}
+
 export function copyPublicListToMine(
   publicList: PublicBucketList,
   customName?: string,
@@ -164,8 +241,193 @@ export function resolveEvents(eventIds: string[]): DiscoverEvent[] {
 }
 
 export function getListCoverImage(list: BucketList): string | undefined {
+  if (list.coverImageUrl) return list.coverImageUrl
+  const firstCustom = list.customItems?.[0]
+  if (firstCustom?.image) return firstCustom.image
+  if (firstCustom?.videoUrl) return firstCustom.videoUrl
   const first = resolveEvent(list.eventIds[0])
   return first?.image
+}
+
+const DEFAULT_COVER =
+  'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80'
+
+export function customItemToDiscoverEvent(item: CustomBucketListItem): DiscoverEvent {
+  const mediaType = item.mediaType ?? (item.videoUrl ? 'video' : 'image')
+  const image =
+    item.image.trim() ||
+    (mediaType === 'video' && item.videoUrl ? item.videoUrl : DEFAULT_COVER)
+
+  return {
+    id: item.id,
+    title: item.title,
+    city: item.caption?.slice(0, 48) || 'Bucket list item',
+    image,
+    badges: [],
+    locationDetail: item.link,
+    videoUrl: item.videoUrl,
+    mediaType,
+  }
+}
+
+export function resolveListDisplayEvents(list: BucketList): DiscoverEvent[] {
+  const custom = (list.customItems ?? []).map(customItemToDiscoverEvent)
+  const fromEvents = resolveEventsFromAnySource(list.eventIds)
+  return [...custom, ...fromEvents]
+}
+
+export type AdminBucketListInput = {
+  name: string
+  description?: string
+  coverImageUrl?: string
+  customItems?: CustomBucketListItem[]
+  eventIds?: string[]
+  isPrivate?: boolean
+  vibe?: VibeTag
+  region?: string
+  spotifyUrl?: string
+  appleMusicUrl?: string
+  ownerName?: string
+  ownerInitials?: string
+  ownerAvatarUrl?: string
+  ownerAvatarSecondaryUrl?: string
+}
+
+function normalizeCustomItems(items: CustomBucketListItem[] | undefined): CustomBucketListItem[] {
+  return (items ?? [])
+    .filter((item) => item.title.trim() || item.image.trim() || item.videoUrl?.trim())
+    .map((item) => ({
+      id: item.id || generateId(),
+      title: item.title.trim() || 'Untitled',
+      image: item.image.trim() || (item.videoUrl?.trim() ? '' : DEFAULT_COVER),
+      videoUrl: item.videoUrl?.trim() || undefined,
+      mediaType: item.mediaType ?? (item.videoUrl?.trim() ? 'video' : 'image'),
+      caption: item.caption?.trim() || undefined,
+      link: item.link?.trim() || undefined,
+    }))
+}
+
+export function bucketListToPublic(list: BucketList): PublicBucketList | null {
+  if (list.isPrivate) return null
+
+  const events = resolveListDisplayEvents(list)
+  const itemCount = events.length
+  const hasSoundtrack = Boolean(list.spotifyUrl?.trim() || list.appleMusicUrl?.trim())
+
+  return {
+    id: list.id,
+    name: list.name,
+    ownerName: list.ownerName ?? 'TUDU',
+    ownerInitials: list.ownerInitials ?? 'TU',
+    ownerAvatarUrl: list.ownerAvatarUrl,
+    ownerAvatarSecondaryUrl: list.ownerAvatarSecondaryUrl,
+    ownerVerified: list.seededByAdmin === true,
+    coverImage: getListCoverImage(list) ?? DEFAULT_COVER,
+    description: list.description?.trim() || list.name,
+    region: list.region,
+    vibe: list.vibe ?? 'Adventurous',
+    itemCount,
+    completedCount: list.completedIds.length,
+    likeCount: list.likeCount ?? 0,
+    saveCount: list.saveCount ?? 0,
+    hasSoundtrack,
+    spotifyUrl: list.spotifyUrl,
+    appleMusicUrl: list.appleMusicUrl,
+    seededByAdmin: list.seededByAdmin,
+    events,
+  }
+}
+
+export function createAdminBucketList(input: AdminBucketListInput): BucketList {
+  const now = new Date().toISOString()
+  const customItems = normalizeCustomItems(input.customItems)
+  const eventIds = [...new Set(input.eventIds ?? [])]
+
+  const list: BucketList = {
+    id: generateId(),
+    name: input.name.trim() || 'Untitled List',
+    description: input.description?.trim(),
+    coverImageUrl: input.coverImageUrl?.trim() || customItems[0]?.image || customItems[0]?.videoUrl || DEFAULT_COVER,
+    eventIds,
+    customItems,
+    createdAt: now,
+    updatedAt: now,
+    completedIds: [],
+    completionNotes: {},
+    isPrivate: input.isPrivate ?? false,
+    seededByAdmin: true,
+    vibe: input.vibe ?? 'Adventurous',
+    region: input.region?.trim(),
+    spotifyUrl: input.spotifyUrl?.trim() || undefined,
+    appleMusicUrl: input.appleMusicUrl?.trim() || undefined,
+    ownerName: input.ownerName?.trim() || 'TUDU',
+    ownerInitials: input.ownerInitials?.trim() || 'TU',
+    ownerAvatarUrl: input.ownerAvatarUrl?.trim() || undefined,
+    ownerAvatarSecondaryUrl: input.ownerAvatarSecondaryUrl?.trim() || undefined,
+    likeCount: 0,
+    saveCount: 0,
+  }
+
+  writeLists([list, ...readLists()])
+  return list
+}
+
+export function updateAdminBucketList(
+  id: string,
+  input: AdminBucketListInput,
+): BucketList | undefined {
+  const lists = readLists()
+  const idx = lists.findIndex((l) => l.id === id)
+  if (idx === -1) return undefined
+
+  const customItems = normalizeCustomItems(input.customItems)
+  const eventIds = [...new Set(input.eventIds ?? lists[idx].eventIds)]
+
+  lists[idx] = {
+    ...lists[idx],
+    name: input.name.trim() || lists[idx].name,
+    description: input.description?.trim(),
+    coverImageUrl:
+      input.coverImageUrl?.trim() ||
+      customItems[0]?.image ||
+      customItems[0]?.videoUrl ||
+      lists[idx].coverImageUrl,
+    eventIds,
+    customItems,
+    isPrivate: input.isPrivate ?? lists[idx].isPrivate ?? false,
+    vibe: input.vibe ?? lists[idx].vibe,
+    region: input.region?.trim() ?? lists[idx].region,
+    spotifyUrl: input.spotifyUrl?.trim() || undefined,
+    appleMusicUrl: input.appleMusicUrl?.trim() || undefined,
+    ownerName: input.ownerName?.trim() || lists[idx].ownerName || 'TUDU',
+    ownerInitials: input.ownerInitials?.trim() || lists[idx].ownerInitials || 'TU',
+    ownerAvatarUrl: input.ownerAvatarUrl?.trim() || undefined,
+    ownerAvatarSecondaryUrl: input.ownerAvatarSecondaryUrl?.trim() || undefined,
+    seededByAdmin: true,
+    updatedAt: new Date().toISOString(),
+  }
+
+  writeLists(lists)
+  return lists[idx]
+}
+
+export function adminBucketListToForm(list: BucketList): AdminBucketListInput {
+  return {
+    name: list.name,
+    description: list.description ?? '',
+    coverImageUrl: list.coverImageUrl ?? getListCoverImage(list) ?? '',
+    customItems: list.customItems ?? [],
+    eventIds: list.eventIds,
+    isPrivate: list.isPrivate ?? false,
+    vibe: list.vibe ?? 'Adventurous',
+    region: list.region ?? '',
+    spotifyUrl: list.spotifyUrl ?? '',
+    appleMusicUrl: list.appleMusicUrl ?? '',
+    ownerName: list.ownerName ?? 'TUDU',
+    ownerInitials: list.ownerInitials ?? 'TU',
+    ownerAvatarUrl: list.ownerAvatarUrl ?? '',
+    ownerAvatarSecondaryUrl: list.ownerAvatarSecondaryUrl ?? '',
+  }
 }
 
 export function seedDemoBucketLists(): void {
@@ -348,17 +610,47 @@ export function getPublicBucketLists(): PublicBucketList[] {
   return DEFAULT_PUBLIC_LISTS
 }
 
-/** Full-screen album-cover discovery deck (Screen 2) */
+/** Public lists for the Explore tab (defaults, admin-seeded, and user-shared). */
 export function getDiscoveryFeedLists(): PublicBucketList[] {
-  return getPublicBucketLists().map((list) => ({
+  const defaults = getPublicBucketLists().map((list) => ({
     ...list,
     itemCount: list.itemCount ?? list.events.length,
     completedCount: list.completedCount ?? 0,
   }))
+
+  const userPublic = getBucketLists()
+    .filter((l) => !l.isPrivate)
+    .map(bucketListToPublic)
+    .filter((l): l is PublicBucketList => l != null)
+
+  const seen = new Set<string>()
+  const merged: PublicBucketList[] = []
+
+  for (const list of [...userPublic, ...defaults]) {
+    if (seen.has(list.id)) continue
+    seen.add(list.id)
+    merged.push(list)
+  }
+
+  return merged
 }
 
 export function getPublicBucketListById(id: string): PublicBucketList | undefined {
-  return getPublicBucketLists().find((l) => l.id === id)
+  const fromStore = getPublicBucketLists().find((l) => l.id === id)
+  if (fromStore) return fromStore
+
+  const adminList = getBucketListById(id)
+  if (adminList && !adminList.isPrivate) {
+    return bucketListToPublic(adminList) ?? undefined
+  }
+
+  return undefined
+}
+
+export function resolveEventsFromAnySource(eventIds: string[]): DiscoverEvent[] {
+  return eventIds
+    .map((id) => resolveEventFromAnySource(id))
+    .filter((e): e is DiscoverEvent => e != null)
 }
 
 export function resolveEventFromAnySource(eventId: string): DiscoverEvent | undefined {
@@ -369,11 +661,11 @@ export function resolveEventFromAnySource(eventId: string): DiscoverEvent | unde
     const found = list.events.find((e) => e.id === eventId)
     if (found) return found
   }
-  return undefined
-}
 
-export function resolveEventsFromAnySource(eventIds: string[]): DiscoverEvent[] {
-  return eventIds
-    .map((id) => resolveEventFromAnySource(id))
-    .filter((e): e is DiscoverEvent => e != null)
+  for (const list of readLists()) {
+    const custom = list.customItems?.find((item) => item.id === eventId)
+    if (custom) return customItemToDiscoverEvent(custom)
+  }
+
+  return undefined
 }

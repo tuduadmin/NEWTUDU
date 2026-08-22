@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import GradientButton from '../components/GradientButton'
+import { BackLink } from '../components/NavActionButtons'
 import { DEMO_CONTACTS } from '../data/demoContacts'
 import {
   contactsApiSupported,
@@ -46,7 +46,7 @@ function ContactCheckbox({
         {sublabel && <p className="truncate text-xs text-brown-muted">{sublabel}</p>}
       </div>
       {badge && (
-        <span className="shrink-0 rounded-full bg-gradient-tudu px-2.5 py-0.5 text-xs font-semibold text-white">
+        <span className="shrink-0 rounded-[14px] bg-gradient-tudu px-2.5 py-0.5 text-xs font-semibold text-white">
           {badge}
         </span>
       )}
@@ -67,7 +67,7 @@ function Toast({ message, onDismiss }: { message: string; onDismiss: () => void 
         className="text-white/70 hover:text-white"
         aria-label="Dismiss"
       >
-        ✕
+        âœ•
       </button>
     </div>
   )
@@ -192,9 +192,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
 
       <main className="px-4 pt-2">
         {!onboarding && (
-          <Link to="/" className="text-sm text-brown-muted no-underline hover:text-brown">
-            ← Back home
-          </Link>
+          <BackLink to="/">Back home</BackLink>
         )}
 
         {onboarding && (
@@ -210,14 +208,14 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
           Find Your Friends
         </h1>
         <p className={`mb-6 text-sm ${onboarding ? 'text-white/60' : 'text-brown-muted'}`}>
-          Connect with people you already know — see who&apos;s on TUDU and invite the rest.
+          Connect with people you already know - see who&apos;s on TUDU and invite the rest.
         </p>
 
         {view === 'find' && (
           <section className="space-y-6">
             <div className="rounded-tudu-lg bg-white p-6 shadow-md ring-1 ring-brown/5">
               <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-tudu text-3xl text-white">
-                👥
+                ðŸ‘¥
               </div>
               <h2 className="text-center text-lg font-bold text-brown">Find Your Friends</h2>
               <p className="mt-2 text-center text-sm text-brown-muted">
@@ -236,7 +234,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
                 disabled={loading}
                 onClick={handleFindFriends}
               >
-                {loading ? 'Loading contacts…' : 'Find Your Friends'}
+                {loading ? 'Loading contacts...' : 'Find Your Friends'}
               </GradientButton>
               {contactsApiSupported() && (
                 <GradientButton
@@ -274,7 +272,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
           <section className="space-y-5">
             {usedDemoData && (
               <p className="rounded-tudu bg-cream-dark px-3 py-2 text-xs text-brown-muted">
-                Showing demo contacts — enable the Contacts API on a supported mobile browser for
+                Showing demo contacts - enable the Contacts API on a supported mobile browser for
                 real data.
               </p>
             )}
@@ -291,7 +289,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
               >
                 Add Friends
                 {onTudu.length > 0 && (
-                  <span className="ml-1.5 rounded-full bg-white/25 px-1.5 text-xs">
+                  <span className="ml-1.5 rounded-[14px] bg-white/25 px-1.5 text-xs">
                     {onTudu.length}
                   </span>
                 )}
@@ -307,7 +305,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
               >
                 Invite Friends
                 {notOnTudu.length > 0 && (
-                  <span className="ml-1.5 rounded-full bg-white/25 px-1.5 text-xs">
+                  <span className="ml-1.5 rounded-[14px] bg-white/25 px-1.5 text-xs">
                     {notOnTudu.length}
                   </span>
                 )}
@@ -340,7 +338,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
                               checked={selectedAdd.has(contact.id)}
                               onChange={(checked) => toggleAdd(contact.id, checked)}
                               label={contact.tuduUser.name}
-                              sublabel={`@${contact.tuduUser.username} · ${contact.matchedPhone}`}
+                              sublabel={`@${contact.tuduUser.username} | ${contact.matchedPhone}`}
                               badge="On TUDU"
                             />
                           </div>
@@ -371,7 +369,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
 
                 {notOnTudu.length === 0 ? (
                   <p className="rounded-tudu border border-brown/10 bg-white px-4 py-8 text-center text-sm text-brown-muted">
-                    All your contacts are already on TUDU — nice!
+                    All your contacts are already on TUDU - nice!
                   </p>
                 ) : (
                   <>
@@ -427,7 +425,7 @@ export default function FriendsPage({ onboarding = false }: FriendsPageProps) {
               }}
               className="w-full text-center text-sm text-brown-muted hover:text-brown"
             >
-              ← Search contacts again
+              {'<- Search contacts again'}
             </button>
           </section>
         )}

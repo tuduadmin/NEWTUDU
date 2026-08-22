@@ -1,13 +1,21 @@
-import { ChevronLeft, Save } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { Save } from 'lucide-react'
+import type { KeyboardEventHandler } from 'react'
+import { BackButton, BackLink } from '../NavActionButtons'
+import type { CreateEventStep } from '../../lib/createEventDraft'
+import type { HostEventFormData } from '../../lib/account'
 import AppHeaderBar from '../locked/AppHeaderBar'
 import BottomNav from '../BottomNav'
+import { RequiredAsterisk } from '../RequiredAsterisk'
 import GradientButton from '../GradientButton'
 import CreateEventStepper from './CreateEventStepper'
+import CreateEventStepHint from './CreateEventStepHint'
+import { appFieldClass } from '../../lib/formFieldClasses'
 
 type CreateEventLayoutProps = {
-  step: number
-  completedSteps?: number[]
+  step: CreateEventStep
+  form: HostEventFormData
+  visitedSteps: ReadonlySet<CreateEventStep>
+  onStepClick: (step: CreateEventStep) => void
   children: React.ReactNode
   onBack: () => void
   onNext?: () => void
@@ -21,7 +29,9 @@ type CreateEventLayoutProps = {
 
 export default function CreateEventLayout({
   step,
-  completedSteps,
+  form,
+  visitedSteps,
+  onStepClick,
   children,
   onBack,
   onNext,
@@ -33,41 +43,36 @@ export default function CreateEventLayout({
   footerExtra,
 }: CreateEventLayoutProps) {
   return (
-    <div className="mx-auto min-h-svh max-w-lg bg-cream pb-36">
+    <div className="app-page-shell pb-36">
       <AppHeaderBar logoLinkTo="/host" />
 
       <main className="px-4 pt-1">
-        <Link
-          to="/host"
-          className="inline-flex items-center gap-1 text-sm font-semibold text-brown-muted no-underline transition hover:text-orange"
-        >
-          <ChevronLeft size={16} />
-          Back
-        </Link>
+        <BackLink to="/host" variant="chevron" />
 
         <div className="mt-2 flex items-baseline justify-between">
           <h1 className="font-display text-2xl font-extrabold tracking-tight text-brown">Create Event</h1>
           <span className="font-display text-sm font-bold text-orange">Step {step} / 5</span>
         </div>
 
-        <CreateEventStepper currentStep={step} completedSteps={completedSteps} />
+        <CreateEventStepper
+          currentStep={step}
+          form={form}
+          visitedSteps={visitedSteps}
+          onStepClick={onStepClick}
+        />
 
-        <div className="mt-5">{children}</div>
+        <div className="mt-8 pt-2">{children}</div>
+
+        <CreateEventStepHint step={step} form={form} visitedSteps={visitedSteps} />
 
         <div className="mt-8 space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              className="rounded-full border border-brown/15 bg-white py-3.5 font-display text-sm font-bold text-brown transition hover:border-orange/30"
-            >
-              Back
-            </button>
+            <BackButton variant="secondaryRounded" onClick={onBack} showIcon={false} />
             {showNext && onNext ? (
               <GradientButton
                 type="button"
                 fullWidth
-                className="rounded-full py-3.5"
+                className="rounded-[14px] py-3.5"
                 onClick={onNext}
                 disabled={nextDisabled}
               >
@@ -104,12 +109,61 @@ export default function CreateEventLayout({
   )
 }
 
-export function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+export function FieldLabel({
+  children,
+  required,
+  htmlFor,
+  className = '',
+}: {
+  children: React.ReactNode
+  required?: boolean
+  htmlFor?: string
+  className?: string
+}) {
   return (
-    <label className="mb-1.5 block text-xs font-semibold text-brown-muted">
+    <label htmlFor={htmlFor} className={`mb-1.5 block text-xs font-semibold text-brown-muted${className ? ` ${className}` : ''}`}>
       {children}
-      {required && <span className="text-maroon"> *</span>}
+      {required && (
+        <>
+          {' '}
+          <RequiredAsterisk />
+        </>
+      )}
     </label>
+  )
+}
+
+/** Muted helper / subtext below fields (10px, brown-muted). */
+export function FieldHelper({
+  children,
+  className = '',
+  italic = false,
+}: {
+  children: React.ReactNode
+  className?: string
+  italic?: boolean
+}) {
+  return (
+    <p
+      className={`text-[10px] leading-snug text-brown-muted${italic ? ' italic' : ''}${className ? ` ${className}` : ''}`}
+    >
+      {children}
+    </p>
+  )
+}
+
+/** Inline section heading within a step (matches ScheduleStep group labels). */
+export function SectionHeading({
+  children,
+  className = '',
+}: {
+  children: React.ReactNode
+  className?: string
+}) {
+  return (
+    <p className={`mb-2 text-xs font-semibold text-brown-muted${className ? ` ${className}` : ''}`}>
+      {children}
+    </p>
   )
 }
 
@@ -118,11 +172,15 @@ export function TextInput({
   onChange,
   placeholder,
   className = '',
+  disabled = false,
+  onKeyDown,
 }: {
   value: string
   onChange: (v: string) => void
   placeholder?: string
   className?: string
+  disabled?: boolean
+  onKeyDown?: KeyboardEventHandler<HTMLInputElement>
 }) {
   return (
     <input
@@ -130,7 +188,9 @@ export function TextInput({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
-      className={`w-full rounded-[var(--radius-lg)] border border-brown/15 bg-white px-3 py-2.5 text-sm text-brown outline-none placeholder:text-brown-muted/50 focus:border-purple focus:ring-2 focus:ring-purple/20 ${className}`}
+      disabled={disabled}
+      onKeyDown={onKeyDown}
+      className={`${appFieldClass} w-full px-3 py-2.5 placeholder:text-brown-muted/50 disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
     />
   )
 }
@@ -155,7 +215,7 @@ export function TextArea({
       placeholder={placeholder}
       rows={rows}
       maxLength={maxLength}
-      className="w-full resize-none rounded-[var(--radius-lg)] border border-brown/15 bg-white px-3 py-2.5 text-sm text-brown outline-none placeholder:text-brown-muted/50 focus:border-purple focus:ring-2 focus:ring-purple/20"
+      className={`${appFieldClass} w-full resize-none px-3 py-2.5 placeholder:text-brown-muted/50`}
     />
   )
 }

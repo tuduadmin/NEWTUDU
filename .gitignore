@@ -12,6 +12,15 @@ dist
 dist-ssr
 *.local
 
+# Secrets — never upload these
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+tsconfig.tsbuildinfo
+pw-out.txt
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

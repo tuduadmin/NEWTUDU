@@ -2,10 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Globe, Lock, X } from 'lucide-react'
 import GradientButton from './GradientButton'
+import HostAddSlotsLink from './host/HostAddSlotsLink'
+import { formatPrivateEventSlotLabel, formatPublicEventSlotLabel } from '../lib/eventSlots'
 import ShareEventModal from './ShareEventModal'
 import {
+  canCreatePrivateEvent,
   canCreatePublicEvent,
   createHostEvent,
+  privateEventBlockMessage,
   getCurrentAccount,
   getHostAccount,
   getPostingAs,
@@ -14,6 +18,8 @@ import {
   type HostEvent,
 } from '../lib/account'
 import { getCurrentUser } from '../lib/auth'
+import { getUnverifiedPrivateEventLimit } from '../lib/tierConfig'
+import { prefChoiceClasses, PREF_CHOICE_ACTIVE_TEXT } from '../lib/prefChoiceClasses'
 
 type CreateEventModalProps = {
   open: boolean
@@ -32,12 +38,19 @@ export default function CreateEventModal({
   const account = getCurrentAccount()
   const postingAs = postingAsProp ?? (account ? getPostingAs(account) : 'personal')
   const hostAccount = postingAs !== 'personal' ? getHostAccount(postingAs) : null
-  const publicCheck = account ? canCreatePublicEvent(account) : null
+  const isPersonal = postingAs === 'personal'
+  const publicCheck = account ? canCreatePublicEvent(account, isPersonal ? null : postingAs) : null
+  const isPhoneVerified = account?.verificationStatus === 'phone_verified'
+  const privateCheckRaw =
+    account && isPersonal ? canCreatePrivateEvent(account, null) : null
+  const privateCheck =
+    privateCheckRaw && privateCheckRaw.limit > 0 ? privateCheckRaw : null
 
   const [title, setTitle] = useState('')
   const [visibility, setVisibility] = useState<EventVisibility>('private')
   const [error, setError] = useState('')
   const [shareEvent, setShareEvent] = useState<HostEvent | null>(null)
+  const [sharePublishedJustNow, setSharePublishedJustNow] = useState(false)
 
   if (!open) return null
 
@@ -74,6 +87,7 @@ export default function CreateEventModal({
 
     if (visibility === 'private') {
       onClose()
+      setSharePublishedJustNow(true)
       setShareEvent(result.event)
       return
     }
@@ -81,6 +95,8 @@ export default function CreateEventModal({
     const published = publishHostEvent(result.event.id)
     if (published.ok) {
       onClose()
+      setSharePublishedJustNow(true)
+      setShareEvent(published.event ?? result.event)
       return
     }
 
@@ -88,12 +104,13 @@ export default function CreateEventModal({
   }
 
   const publicBlocked = visibility === 'public' && publicCheck && !publicCheck.allowed
+  const privateBlocked = visibility === 'private' && privateCheck && !privateCheck.allowed
 
   return (
     <>
       <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
         <div
-          className="w-full max-w-lg rounded-[var(--radius-xl)] bg-white p-5 shadow-xl"
+          className="w-full max-w-lg rounded-[14px] bg-white p-5 shadow-xl"
           role="dialog"
           aria-labelledby="create-event-title"
         >
@@ -127,7 +144,7 @@ export default function CreateEventModal({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={visibility === 'private' ? 'Jamie\'s House Party' : 'Community Garage Sale'}
-                className="w-full rounded-[var(--radius-lg)] border border-brown/15 bg-cream/40 px-3 py-2.5 text-sm text-brown outline-none focus:border-purple focus:ring-2 focus:ring-purple/20"
+                className="w-full rounded-[14px] border border-brown/15 bg-cream/40 px-3 py-2.5 text-sm text-brown outline-none focus:border-purple focus:ring-2 focus:ring-purple/20"
               />
             </div>
 
@@ -139,54 +156,117 @@ export default function CreateEventModal({
                   onSelect={() => setVisibility('private')}
                   icon={<Lock size={16} />}
                   label="Private"
-                  description="House party, invite-only — share link, won't appear in TUDU discover"
+                  description="House party, invite-only â€” share link, won't appear in TUDU discover"
                 />
                 <VisibilityOption
                   selected={visibility === 'public'}
                   onSelect={() => setVisibility('public')}
                   icon={<Globe size={16} />}
                   label="Public"
-                  description="Garage sale, community event — appears in card deck when live"
-                  disabled={publicCheck?.limit === 0}
+                  description="Garage sale, community event â€” appears in card deck when live"
+                  disabled={publicCheck ? !publicCheck.allowed : false}
                 />
               </div>
             </div>
 
-            {account && publicCheck && visibility === 'public' && (
+            {account && privateCheck && visibility === 'private' && (
               <p className="text-xs text-brown-muted">
-                Public events: {account.publicEventCount} / {publicCheck.limit} used
-                {publicCheck.remaining > 0 &&
-                  ` · ${publicCheck.remaining} slot${publicCheck.remaining === 1 ? '' : 's'} left`}
+                {formatPrivateEventSlotLabel(privateCheck.used, privateCheck.limit)}
+                {privateCheck.remaining > 0 &&
+                  ` | ${privateCheck.remaining} slot${privateCheck.remaining === 1 ? '' : 's'} left`}
               </p>
             )}
 
+            {account && publicCheck && visibility === 'public' && isPhoneVerified && (
+              <p className="text-xs text-brown-muted">
+                {formatPublicEventSlotLabel(
+                  account.publicEventCount,
+                  publicCheck.baseLimit,
+                  publicCheck.extraSlots,
+                )}
+                {publicCheck.remaining > 0 &&
+                  ` | ${publicCheck.remaining} slot${publicCheck.remaining === 1 ? '' : 's'} left`}
+                {' | '}
+                <HostAddSlotsLink remaining={publicCheck.remaining} />
+              </p>
+            )}
+
+            {publicBlocked && publicCheck?.reason === 'org_pending' && (
+              <div className="rounded-[14px] border border-brown/20 bg-brown/5 p-3 text-sm text-brown">
+                <p className="font-semibold">Host Account pending approval</p>
+                <p className="mt-1 text-xs text-brown-muted">
+                  Private events are always unlimited. Public events unlock after Control Room review.
+                </p>
+              </div>
+            )}
+
+            {publicBlocked && publicCheck?.reason === 'org_rejected' && (
+              <div className="rounded-[14px] border border-maroon/30 bg-maroon/10 p-3 text-sm text-brown">
+                <p className="font-semibold">Host Account not approved</p>
+                <p className="mt-1 text-xs text-brown-muted">
+                  Contact support if you believe this was a mistake.
+                </p>
+              </div>
+            )}
+
             {publicBlocked && publicCheck?.reason === 'verify' && (
-              <div className="rounded-[var(--radius-lg)] border border-orange/30 bg-orange/10 p-3 text-sm text-brown">
+              <div className="rounded-[14px] border border-orange/30 bg-orange/10 p-3 text-sm text-brown">
                 <p className="font-semibold">Verify phone to post public events</p>
                 <p className="mt-1 text-xs text-brown-muted">
-                  Private events are always unlimited. Public events need SMS verification.
+                  You can host up to {getUnverifiedPrivateEventLimit()} private events until you
+                  verify. Public events unlock after SMS verification.
                 </p>
                 <Link
                   to="/verify-phone"
                   className="mt-2 inline-block text-xs font-bold text-orange no-underline"
                 >
-                  Verify phone →
+                  Verify phone â†’
                 </Link>
               </div>
             )}
 
-            {publicBlocked && publicCheck?.reason === 'upgrade' && (
-              <div className="rounded-[var(--radius-lg)] border border-purple/30 bg-purple/10 p-3 text-sm text-brown">
-                <p className="font-semibold">Upgrade for more public events</p>
+            {privateBlocked && account && (
+              <div className="rounded-[14px] border border-orange/30 bg-orange/10 p-3 text-sm text-brown">
+                <p className="font-semibold">Private event limit reached</p>
                 <p className="mt-1 text-xs text-brown-muted">
-                  You&apos;ve used all {publicCheck.limit} public event slots on your current plan.
+                  {privateEventBlockMessage('limit', privateCheck?.limit, account)}
+                </p>
+                {!isPhoneVerified ? (
+                  <Link
+                    to="/verify-phone"
+                    className="mt-2 inline-block text-xs font-bold text-orange no-underline"
+                  >
+                    Verify phone →
+                  </Link>
+                ) : (
+                  <Link
+                    to="/host/subscription"
+                    className="mt-2 inline-block text-xs font-bold text-orange no-underline"
+                  >
+                    Upgrade to Explorer →
+                  </Link>
+                )}
+              </div>
+            )}
+
+            {publicBlocked && publicCheck?.reason === 'upgrade' && isPhoneVerified && (
+              <div className="rounded-[14px] border border-orange/30 bg-orange/10 p-3 text-sm text-brown">
+                <p className="font-semibold">You&apos;ve reached your public event limit</p>
+                <p className="mt-1 text-xs text-brown-muted">
+                  You&apos;ve used all {publicCheck.limit} public event slots
+                  {publicCheck.extraSlots > 0 &&
+                    ` (${publicCheck.baseLimit} from your plan + ${publicCheck.extraSlots} purchased)`}
+                  .
+                </p>
+                <p className="mt-2">
+                  <HostAddSlotsLink prominent />
                 </p>
               </div>
             )}
 
             {error && <p className="text-sm font-semibold text-maroon">{error}</p>}
 
-            <GradientButton type="submit" fullWidth disabled={!!publicBlocked}>
+            <GradientButton type="submit" fullWidth disabled={!!publicBlocked || !!privateBlocked}>
               {visibility === 'private' ? 'Create & Share' : 'Create Public Event'}
             </GradientButton>
           </form>
@@ -196,7 +276,11 @@ export default function CreateEventModal({
       <ShareEventModal
         open={!!shareEvent}
         event={shareEvent}
-        onClose={() => setShareEvent(null)}
+        publishedJustNow={sharePublishedJustNow}
+        onClose={() => {
+          setShareEvent(null)
+          setSharePublishedJustNow(false)
+        }}
       />
     </>
   )
@@ -230,14 +314,14 @@ function VisibilityOption({
       type="button"
       onClick={onSelect}
       disabled={disabled}
-      className={`rounded-[var(--radius-lg)] border-2 p-3 text-left transition ${
-        selected
-          ? 'border-orange bg-orange/10'
-          : 'border-brown/10 bg-white hover:border-orange/30'
-      } ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
+      className={`${prefChoiceClasses(selected, 'p-3 text-left')} ${disabled ? 'cursor-not-allowed opacity-50' : ''}`}
     >
-      <span className={`flex items-center gap-1.5 font-semibold ${selected ? 'text-orange' : 'text-brown'}`}>
-        {icon}
+      <span
+        className={`pref-choice-label flex items-center gap-1.5 ${
+          selected ? PREF_CHOICE_ACTIVE_TEXT : 'font-semibold text-brown'
+        }`}
+      >
+        <span className={`pref-choice-icon ${selected ? '' : 'text-brown-muted'}`}>{icon}</span>
         {label}
       </span>
       <span className="mt-1 block text-[11px] leading-snug text-brown-muted">{description}</span>

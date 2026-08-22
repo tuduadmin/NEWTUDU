@@ -38,7 +38,7 @@ export default function TuduLogo({
             style={{ width: height, height }}
           />
           <span className="font-display text-lg font-extrabold tracking-tight bg-gradient-to-r from-sunset-orange to-magenta bg-clip-text text-transparent sm:text-xl">
-            tudu.ca
+            Tudu.ca
           </span>
         </>
       ) : isIconOnly ? (

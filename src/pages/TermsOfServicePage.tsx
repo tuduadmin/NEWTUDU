@@ -1,7 +1,9 @@
 import { type ReactNode } from 'react'
-import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { LegalPublishedBody } from '../components/LegalPublishedBody'
+import { BackLink } from '../components/NavActionButtons'
+import { getPublishedLegalDoc } from '../lib/legalDocs'
 
 function LegalSection({
   id,
@@ -31,6 +33,8 @@ function LegalList({ items }: { items: string[] }) {
 }
 
 export default function TermsOfServicePage() {
+  const published = getPublishedLegalDoc('terms')
+
   return (
     <div className="min-h-svh bg-cream">
       <Header />
@@ -38,19 +42,19 @@ export default function TermsOfServicePage() {
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
         <article>
           <header className="mb-10 border-b border-brown/10 pb-8">
-            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-orange">
-              Legal
-            </p>
-            <h1 className="mb-4 text-3xl font-extrabold text-gradient sm:text-4xl">
-              Terms of Service
-            </h1>
+            <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-orange">Legal</p>
+            <h1 className="mb-4 text-3xl font-extrabold text-gradient sm:text-4xl">Terms of Service</h1>
             <p className="text-sm text-brown-muted">
               <strong className="font-semibold text-brown">TUDU Entertainment Inc.</strong>
             </p>
             <dl className="mt-4 grid gap-2 text-sm text-brown-muted sm:grid-cols-2">
               <div>
                 <dt className="font-semibold text-brown">Last Updated</dt>
-                <dd>January 1, 2026</dd>
+                <dd>
+                  {published
+                    ? new Date(published.updatedAt).toLocaleDateString()
+                    : 'January 1, 2026'}
+                </dd>
               </div>
               <div>
                 <dt className="font-semibold text-brown">Governing Law</dt>
@@ -59,7 +63,10 @@ export default function TermsOfServicePage() {
             </dl>
           </header>
 
-          <div className="space-y-10">
+          <LegalPublishedBody
+            published={published}
+            fallback={
+              <div className="space-y-10">
             <LegalSection id="introduction" title="1. Introduction">
               <p>
                 Welcome to TUDU, a digital platform that enables users to discover, create, share, and
@@ -251,12 +258,14 @@ export default function TermsOfServicePage() {
                 </a>
               </address>
             </LegalSection>
-          </div>
+              </div>
+            }
+          />
 
           <p className="mt-12 text-center text-sm text-brown-muted">
-            <Link to="/" className="font-semibold text-orange no-underline hover:underline">
-              ← Back to home
-            </Link>
+            <BackLink to="/" className="text-orange hover:text-orange hover:underline">
+              Back to home
+            </BackLink>
           </p>
         </article>
       </main>

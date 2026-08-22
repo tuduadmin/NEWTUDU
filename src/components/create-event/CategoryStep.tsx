@@ -1,227 +1,227 @@
-import { Hash, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { useState } from 'react'
 import type { HostEventFormData } from '../../lib/account'
-import { EVENT_CATEGORIES, getCategoryById, type EventCategoryId } from '../../data/eventCategories'
-import { FieldLabel, TextInput } from './CreateEventLayout'
+import {
+  EVENT_CATEGORIES,
+  MAX_EVENT_CATEGORIES,
+  MIN_EVENT_CATEGORIES,
+  countSelectedCategories,
+  type EventCategoryId,
+} from '../../data/eventCategories'
+import {
+  MAX_EVENT_KEYWORDS,
+  MIN_EVENT_KEYWORDS,
+  parseSearchWordInput,
+  SEARCH_WORD_EXAMPLES,
+} from '../../lib/eventKeywords'
+import EventDoorPaymentPicker from './EventDoorPaymentPicker'
+import EventAmenitiesPicker from './EventAmenitiesPicker'
+import { FieldHelper, FieldLabel, TextInput } from './CreateEventLayout'
+import { prefChoiceClasses, PREF_CHOICE_ACTIVE_TEXT } from '../../lib/prefChoiceClasses'
 
 type CategoryStepProps = {
   form: HostEventFormData
   updateForm: (partial: Partial<HostEventFormData>) => void
 }
 
-type SelectionMode = 'primary' | 'secondary' | 'done'
+function categoryTileIconClass(selected = false) {
+  return `pref-choice-icon h-5 w-5 shrink-0 ${selected ? '' : 'text-brown-muted'}`
+}
 
 export default function CategoryStep({ form, updateForm }: CategoryStepProps) {
-  const [tagInput, setTagInput] = useState('')
-  const primary = getCategoryById(form.primaryCategory as EventCategoryId)
-  const secondary = getCategoryById(form.secondaryCategory as EventCategoryId)
+  const [wordInput, setWordInput] = useState('')
+  const searchWords = form.customTags
+  const categoriesSelected = countSelectedCategories(form)
+  const categoriesAtMax = categoriesSelected >= MAX_EVENT_CATEGORIES
+  const categoriesNeeded = Math.max(0, MIN_EVENT_CATEGORIES - categoriesSelected)
 
-  const mode: SelectionMode = !form.primaryCategory
-    ? 'primary'
-    : !form.secondaryCategory
-      ? 'secondary'
-      : 'done'
+  function toggleCategory(id: EventCategoryId) {
+    if (form.primaryCategory === id) {
+      updateForm({
+        primaryCategory: form.secondaryCategory,
+        secondaryCategory: '',
+      })
+      return
+    }
 
-  function selectCategory(id: EventCategoryId) {
-    if (mode === 'primary') {
-      updateForm({ primaryCategory: id, secondaryCategory: '', subCategories: [] })
-    } else if (mode === 'secondary' && id !== form.primaryCategory) {
-      updateForm({ secondaryCategory: id, subCategories: [] })
+    if (form.secondaryCategory === id) {
+      updateForm({ secondaryCategory: '' })
+      return
+    }
+
+    if (!form.primaryCategory) {
+      updateForm({ primaryCategory: id })
+      return
+    }
+
+    if (!form.secondaryCategory) {
+      updateForm({ secondaryCategory: id })
     }
   }
 
-  function toggleSubCategory(tag: string) {
-    const current = form.subCategories
-    if (current.includes(tag)) {
-      updateForm({ subCategories: current.filter((t) => t !== tag) })
-    } else if (current.length < 3) {
-      updateForm({ subCategories: [...current, tag] })
+  function removeSearchWord(word: string) {
+    updateForm({ customTags: searchWords.filter((w) => w !== word) })
+  }
+
+  function addSearchWords() {
+    const incoming = parseSearchWordInput(wordInput)
+    if (incoming.length === 0) {
+      setWordInput('')
+      return
     }
+
+    const merged = [...searchWords]
+    for (const word of incoming) {
+      if (merged.includes(word)) continue
+      if (merged.length >= MAX_EVENT_KEYWORDS) break
+      merged.push(word)
+    }
+
+    updateForm({ customTags: merged })
+    setWordInput('')
   }
 
-  function addCustomTag() {
-    const trimmed = tagInput.trim().toLowerCase().replace(/\s+/g, '-')
-    if (!trimmed || form.customTags.includes(trimmed)) return
-    updateForm({ customTags: [...form.customTags, trimmed] })
-    setTagInput('')
+  function clearCategories() {
+    updateForm({
+      primaryCategory: '',
+      secondaryCategory: '',
+      subCategories: [],
+      customTags: [],
+    })
   }
 
-  function startOver() {
-    updateForm({ primaryCategory: '', secondaryCategory: '', subCategories: [], customTags: [] })
-  }
-
-  const allSubcategories = [
-    ...(primary?.subcategories ?? []),
-    ...(secondary?.subcategories ?? []),
-  ]
+  const wordsNeeded = Math.max(0, MIN_EVENT_KEYWORDS - searchWords.length)
+  const wordsAtMax = searchWords.length >= MAX_EVENT_KEYWORDS
+  const canAddWords = parseSearchWordInput(wordInput).length > 0
 
   return (
     <section>
       <h2 className="font-display text-xl font-extrabold text-brown">Categorization</h2>
-      <p className="mt-1 text-sm text-brown-muted">Choose your primary and secondary categories.</p>
+      <p className="mt-1 text-sm text-brown-muted">
+        Pick {MIN_EVENT_CATEGORIES} categories, then add search words so guests can find your event.
+      </p>
 
-      {mode === 'done' ? (
-        <>
-          <div className="mt-3 flex items-center justify-between">
-            <p className="text-xs text-brown-muted">Tap a category to change it</p>
-            <button type="button" onClick={startOver} className="text-xs font-bold text-purple">
-              START OVER
+      <div className="mt-4 flex items-center justify-between">
+        <FieldLabel>Categories</FieldLabel>
+        {categoriesSelected > 0 && (
+          <button type="button" onClick={clearCategories} className="text-xs font-bold text-purple">
+            CLEAR
+          </button>
+        )}
+      </div>
+
+      {categoriesNeeded > 0 && (
+        <p className="mt-1 text-xs font-semibold text-maroon">
+          {categoriesSelected}/{MIN_EVENT_CATEGORIES} selected — pick {categoriesNeeded} more
+        </p>
+      )}
+
+      <div className="mt-2 grid grid-cols-2 gap-2">
+        {EVENT_CATEGORIES.map((cat) => {
+          const Icon = cat.icon
+          const selected =
+            form.primaryCategory === cat.id || form.secondaryCategory === cat.id
+          const disabled = !selected && categoriesAtMax
+          return (
+            <button
+              key={cat.id}
+              type="button"
+              disabled={disabled}
+              aria-label={cat.label}
+              title={cat.label}
+              onClick={() => toggleCategory(cat.id)}
+              className={
+                disabled
+                  ? 'flex h-[4.25rem] w-full cursor-not-allowed flex-col items-center justify-center gap-1 rounded-[14px] border-2 border-brown/5 bg-cream-dark px-2 py-2 text-center opacity-40'
+                  : prefChoiceClasses(
+                      selected,
+                      'flex h-[4.25rem] w-full flex-col items-center justify-center gap-1 px-2 py-2 text-center',
+                    )
+              }
+            >
+              <Icon className={categoryTileIconClass(selected)} aria-hidden />
+              <span
+                className={`pref-choice-label line-clamp-2 text-[11px] leading-tight ${
+                  selected ? PREF_CHOICE_ACTIVE_TEXT : 'font-semibold text-brown'
+                }`}
+              >
+                {cat.shortLabel}
+              </span>
             </button>
-          </div>
+          )
+        })}
+      </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            {primary && (
-              <CategoryCard
-                label="PRIMARY"
-                category={primary}
-                onClick={() => updateForm({ primaryCategory: '', secondaryCategory: '', subCategories: [] })}
-              />
-            )}
-            {secondary && (
-              <CategoryCard
-                label="SECONDARY"
-                category={secondary}
-                onClick={() => updateForm({ secondaryCategory: '', subCategories: [] })}
-              />
-            )}
-          </div>
+      {categoriesSelected > 0 && (
+        <div className="mt-5">
+          <FieldLabel>Search words</FieldLabel>
+          <FieldHelper className="mb-2">
+            Short words guests might search — not categories. Add at least {MIN_EVENT_KEYWORDS}, up to{' '}
+            {MAX_EVENT_KEYWORDS}. Try: {SEARCH_WORD_EXAMPLES.join(', ')}.
+          </FieldHelper>
 
-          {allSubcategories.length > 0 && (
-            <div className="mt-5">
-              <FieldLabel>Sub-Categories (max 3)</FieldLabel>
-              <p className="mb-2 text-[10px] text-brown-muted">
-                Optional — helps match your event to the right audience
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {allSubcategories.map((sub) => {
-                  const selected = form.subCategories.includes(sub)
-                  return (
-                    <button
-                      key={sub}
-                      type="button"
-                      onClick={() => toggleSubCategory(sub)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
-                        selected
-                          ? 'border-orange bg-orange/10 text-orange'
-                          : 'border-brown/15 bg-white text-brown hover:border-orange/30'
-                      }`}
-                    >
-                      {sub}
-                    </button>
-                  )
-                })}
-              </div>
+          {wordsNeeded > 0 && (
+            <p className="mb-2 text-xs font-semibold text-maroon">
+              {searchWords.length}/{MIN_EVENT_KEYWORDS} added — add {wordsNeeded} more
+            </p>
+          )}
+
+          {searchWords.length > 0 && (
+            <div className="mb-3 flex flex-wrap gap-2">
+              {searchWords.map((word) => (
+                <span
+                  key={word}
+                  className="inline-flex items-center gap-1 rounded-[14px] bg-orange/10 px-2.5 py-1 text-xs font-medium text-orange"
+                >
+                  {word}
+                  <button
+                    type="button"
+                    onClick={() => removeSearchWord(word)}
+                    aria-label={`Remove ${word}`}
+                  >
+                    <X size={12} />
+                  </button>
+                </span>
+              ))}
             </div>
           )}
 
-          <div className="mt-5">
-            <div className="flex items-center gap-1.5">
-              <Hash size={14} className="text-orange" />
-              <FieldLabel>Custom Tags</FieldLabel>
-            </div>
-            <p className="mb-2 text-[10px] text-brown-muted">
-              Add custom hashtags so Tudu&apos;s algorithm can learn what makes your event unique. Press
-              Enter to add.
-            </p>
-            <div className="flex gap-2">
-              <TextInput
-                value={tagInput}
-                onChange={setTagInput}
-                placeholder="e.g. live-music, family-friendly, out..."
-                className="flex-1"
-              />
-              <button
-                type="button"
-                onClick={addCustomTag}
-                className="shrink-0 rounded-[var(--radius-lg)] bg-peach/30 px-4 py-2.5 text-sm font-bold text-brown"
-              >
-                Add
-              </button>
-            </div>
-            {form.customTags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {form.customTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="inline-flex items-center gap-1 rounded-full bg-orange/10 px-2.5 py-1 text-xs font-medium text-orange"
-                  >
-                    #{tag}
-                    <button
-                      type="button"
-                      onClick={() => updateForm({ customTags: form.customTags.filter((t) => t !== tag) })}
-                      aria-label={`Remove ${tag}`}
-                    >
-                      <X size={12} />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
+          <div className="flex gap-2">
+            <TextInput
+              value={wordInput}
+              onChange={setWordInput}
+              placeholder="wings, cheap, beer, patio"
+              className="flex-1"
+              disabled={wordsAtMax}
+              onKeyDown={(event) => {
+                if (event.key === 'Enter') {
+                  event.preventDefault()
+                  addSearchWords()
+                }
+              }}
+            />
+            <button
+              type="button"
+              onClick={addSearchWords}
+              disabled={wordsAtMax || !canAddWords}
+              className="shrink-0 rounded-[14px] bg-peach/30 px-4 py-2.5 text-sm font-bold text-brown disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Add
+            </button>
           </div>
-        </>
-      ) : (
-        <>
-          <p className="mt-3 text-sm text-brown-muted">
-            Select your{' '}
-            <span className="font-bold text-orange">{mode === 'primary' ? 'primary' : 'secondary'}</span>{' '}
-            category first.
-          </p>
-
-          <div className="mt-4 grid grid-cols-2 gap-2">
-            {EVENT_CATEGORIES.map((cat) => {
-              const Icon = cat.icon
-              const disabled = mode === 'secondary' && cat.id === form.primaryCategory
-              const selected =
-                form.primaryCategory === cat.id || form.secondaryCategory === cat.id
-              return (
-                <button
-                  key={cat.id}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => selectCategory(cat.id)}
-                  className={`flex items-center gap-2 rounded-[var(--radius-lg)] border-2 px-3 py-3 text-left transition ${
-                    selected
-                      ? 'border-orange bg-orange/10'
-                      : disabled
-                        ? 'cursor-not-allowed border-brown/5 bg-cream-dark opacity-40'
-                        : 'border-brown/10 bg-white hover:border-orange/30'
-                  }`}
-                >
-                  <Icon size={18} className={selected ? 'text-orange' : 'text-brown'} />
-                  <span className={`text-xs font-semibold leading-tight ${selected ? 'text-orange' : 'text-brown'}`}>
-                    {cat.label}
-                  </span>
-                </button>
-              )
-            })}
-          </div>
-        </>
+        </div>
       )}
-    </section>
-  )
-}
 
-function CategoryCard({
-  label,
-  category,
-  onClick,
-}: {
-  label: string
-  category: { label: string; icon: React.ComponentType<{ size?: number; className?: string }> }
-  onClick: () => void
-}) {
-  const Icon = category.icon
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="rounded-[var(--radius-lg)] border-2 border-orange bg-orange/5 p-4 text-left"
-    >
-      <span className="rounded bg-orange px-1.5 py-0.5 text-[9px] font-bold text-white">{label}</span>
-      <div className="mt-3 flex items-center gap-2">
-        <Icon size={22} className="text-brown" />
-        <span className="font-display text-sm font-bold text-brown">{category.label}</span>
-      </div>
-    </button>
+      <EventDoorPaymentPicker
+        doorPayment={form.doorPayment}
+        atmOnSite={form.atmOnSite}
+        onChange={(partial) => updateForm(partial)}
+      />
+
+      <EventAmenitiesPicker
+        amenities={form.amenities}
+        onChange={(amenities) => updateForm({ amenities })}
+      />
+    </section>
   )
 }

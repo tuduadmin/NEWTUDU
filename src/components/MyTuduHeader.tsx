@@ -18,7 +18,7 @@ export default function MyTuduHeader({
 
       <button
         type="button"
-        className="flex items-center gap-1.5 rounded-full border border-brown/10 bg-white px-3 py-1.5 text-xs font-medium text-brown shadow-sm"
+        className="flex items-center gap-1.5 rounded-[14px] border border-brown/10 bg-white px-3 py-1.5 text-xs font-medium text-brown shadow-sm"
       >
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden>
           <path
@@ -36,14 +36,14 @@ export default function MyTuduHeader({
           type="button"
           onClick={onHelpClick}
           aria-label="Help"
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-brown/10 bg-white text-sm font-semibold text-brown-muted shadow-sm transition hover:text-brown"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-brown/10 bg-white text-sm font-semibold text-brown-muted shadow-sm transition hover:text-brown"
         >
           ?
         </button>
         <Link
           to={settingsTo}
           aria-label="Settings"
-          className="flex h-9 w-9 items-center justify-center rounded-lg border border-brown/10 bg-white text-brown-muted shadow-sm no-underline transition hover:text-brown"
+          className="flex h-9 w-9 items-center justify-center rounded-full border border-brown/10 bg-white text-brown-muted shadow-sm no-underline transition hover:text-brown"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
             <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75" />

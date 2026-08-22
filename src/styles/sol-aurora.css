@@ -1,0 +1,524 @@
+/**
+ * AXIS consumer theme (persisted id: aurora).
+ * Clear Alaskan winter night — deep blues, ice highlights, aurora green + pink.
+ * Admin uses .admin-shell — untouched here.
+ */
+
+html[data-app-theme='aurora'] {
+  --color-brown: rgba(224, 242, 254, 0.94);
+  --color-brown-muted: rgba(186, 230, 253, 0.68);
+  --color-page-bg: #050b14;
+  --color-cream: #050b14;
+  --color-cream-dark: #0a1628;
+
+  --axis-night: #050b14;
+  --axis-night-elevated: #0c1829;
+  --axis-night-surface: #122238;
+  --axis-night-raised: #1a2d4a;
+  --axis-ice: #e0f2fe;
+  --axis-sky: #7dd3fc;
+  --axis-sky-bright: #38bdf8;
+  --axis-aurora-green: #34d399;
+  --axis-aurora-green-soft: #6ee7b7;
+  --axis-aurora-pink: #f472b6;
+  --axis-aurora-pink-soft: #f9a8d4;
+
+  --axis-surface: var(--axis-night-elevated);
+  --axis-surface-raised: var(--axis-night-surface);
+  --axis-border: rgba(125, 211, 252, 0.14);
+  --axis-border-subtle: rgba(125, 211, 252, 0.08);
+  --axis-field-bg: #0f1f38;
+  --axis-text: rgba(224, 242, 254, 0.94);
+  --axis-text-muted: rgba(186, 230, 253, 0.65);
+  --axis-placeholder: rgba(125, 211, 252, 0.42);
+  --axis-focus-ring: rgba(56, 189, 248, 0.32);
+  --axis-focus-border: rgba(125, 211, 252, 0.55);
+  --axis-card-shadow: var(--shadow-card), var(--shadow-inset-glass);
+  --gradient-axis: linear-gradient(
+    135deg,
+    var(--axis-aurora-green) 0%,
+    var(--axis-sky-bright) 42%,
+    var(--axis-aurora-pink) 100%
+  );
+  --axis-ambient-bg:
+    radial-gradient(ellipse 130% 50% at 50% -8%, rgba(52, 211, 153, 0.38), transparent 62%),
+    radial-gradient(ellipse 70% 45% at 12% 6%, rgba(244, 114, 182, 0.32), transparent 58%),
+    radial-gradient(ellipse 65% 40% at 88% 10%, rgba(56, 189, 248, 0.3), transparent 54%),
+    radial-gradient(ellipse 90% 55% at 50% 100%, rgba(15, 31, 56, 0.95), transparent 65%),
+    linear-gradient(180deg, #050b14 0%, #0a1628 42%, #071018 100%);
+
+  --color-glass-bg: rgba(12, 24, 41, 0.78);
+  --color-glass-border: rgba(125, 211, 252, 0.14);
+  --shadow-glow-warm: 0 0 28px rgba(52, 211, 153, 0.35);
+  --shadow-glow-magenta: 0 0 32px rgba(244, 114, 182, 0.32);
+
+  color-scheme: dark;
+}
+
+html[data-app-theme='aurora'] body {
+  background-color: var(--axis-night);
+  background-image: var(--axis-ambient-bg);
+  background-attachment: fixed;
+  color: var(--axis-text);
+}
+
+/* Every page shell + hardcoded midnight surfaces pick up the aurora sky */
+html[data-app-theme='aurora'] :is(
+    .bg-midnight,
+    .bg-midnight-elevated,
+    .bg-midnight-surface,
+    .app-page-shell,
+    .app-page-shell-flex
+  ):not([class*='bg-midnight/']) {
+  background-color: var(--axis-night);
+  background-image: var(--axis-ambient-bg);
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .bg-midnight-elevated:not([class*='/']) {
+  background-color: var(--axis-night-elevated);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% 0%, rgba(56, 189, 248, 0.12), transparent 60%),
+    linear-gradient(180deg, var(--axis-night-elevated), var(--axis-night-surface));
+}
+
+html[data-app-theme='aurora'] .bg-midnight-surface:not([class*='/']) {
+  background-color: var(--axis-night-surface);
+  background-image: linear-gradient(165deg, var(--axis-night-surface), var(--axis-night-raised));
+}
+
+html[data-app-theme='aurora'] .bg-gradient-dusk {
+  background: var(--gradient-dusk);
+}
+
+html[data-app-theme='aurora'] :is(.border-magenta\/30, .border-magenta\/40, .border-magenta\/50, .hover\:border-magenta\/30, .hover\:border-magenta\/40) {
+  border-color: color-mix(in srgb, var(--axis-aurora-pink) 45%, transparent) !important;
+}
+
+html[data-app-theme='aurora'] :is(.focus\:border-magenta\/50:focus, .focus\:ring-magenta\/30:focus) {
+  border-color: color-mix(in srgb, var(--axis-sky) 55%, transparent) !important;
+  --tw-ring-color: rgb(56 189 248 / 0.28) !important;
+}
+
+html[data-app-theme='aurora'] :is(.ring-magenta, .ring-magenta\/40) {
+  --tw-ring-color: rgb(52 211 153 / 0.35) !important;
+}
+
+html[data-app-theme='aurora'] :is(.text-magenta, .text-sunset-pink) {
+  color: var(--axis-aurora-green-soft) !important;
+}
+
+html[data-app-theme='aurora'] :is(.bg-midnight\/90, .bg-midnight\/95, .bg-midnight-surface\/90, .bg-midnight-elevated\/95) {
+  background-color: color-mix(in srgb, var(--axis-night-elevated) 92%, transparent) !important;
+}
+
+html[data-app-theme='aurora'] :is(.app-page-shell, .app-page-shell-flex) {
+  background-color: var(--color-page-bg);
+  background-image: var(--axis-ambient-bg);
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .glass-surface {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-inset-glass), 0 4px 24px rgba(0, 0, 0, 0.32);
+}
+
+html[data-app-theme='aurora'] .sol-bottom-nav {
+  box-shadow: var(--shadow-inset-glass), 0 -8px 32px rgba(0, 0, 0, 0.42);
+}
+
+html[data-app-theme='aurora'] .bg-app-elevated {
+  background-color: var(--axis-surface);
+  box-shadow: var(--axis-card-shadow);
+}
+
+html[data-app-theme='aurora'] .bg-app-surface {
+  background-color: var(--axis-surface-raised);
+}
+
+html[data-app-theme='aurora'] .border-app-subtle {
+  border-color: var(--axis-border);
+}
+
+html[data-app-theme='aurora'] .divide-app-subtle > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--axis-border);
+}
+
+html[data-app-theme='aurora'] .border-app-subtle.bg-app-elevated {
+  box-shadow: var(--axis-card-shadow);
+}
+
+html[data-app-theme='aurora'] :is(.border-app-subtle.bg-app-elevated, .app-surface-card):is(
+    button,
+    a,
+    [role='button']
+  ):hover {
+  border-color: rgba(110, 231, 183, 0.28);
+}
+
+html[data-app-theme='aurora'] .text-gradient {
+  background: linear-gradient(135deg, var(--axis-aurora-green-soft), var(--axis-sky), var(--axis-aurora-pink));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html[data-app-theme='aurora'] .bg-gradient-tudu {
+  background: var(--gradient-axis);
+  box-shadow:
+    0 4px 20px rgba(52, 211, 153, 0.22),
+    0 4px 24px rgba(244, 114, 182, 0.12),
+    var(--shadow-inset-glass);
+}
+
+html[data-app-theme='aurora'] .bg-gradient-tudu:hover {
+  box-shadow:
+    0 0 28px rgba(52, 211, 153, 0.38),
+    0 0 20px rgba(244, 114, 182, 0.22),
+    var(--shadow-inset-glass);
+}
+
+html[data-app-theme='aurora'] .my-tickets-wallet {
+  --ticket-wallet-bg: var(--axis-night-surface);
+  --ticket-notch-fill: var(--ticket-wallet-bg);
+  background:
+    radial-gradient(ellipse 100% 70% at 20% -15%, rgba(52, 211, 153, 0.18), transparent 55%),
+    radial-gradient(ellipse 80% 55% at 90% 0%, rgba(244, 114, 182, 0.14), transparent 50%),
+    linear-gradient(165deg, var(--axis-night-elevated) 0%, var(--axis-night-surface) 48%, var(--axis-night-elevated) 100%);
+  border-color: rgba(125, 211, 252, 0.28);
+  box-shadow: var(--axis-card-shadow);
+}
+
+html[data-app-theme='aurora'] .my-tickets-wallet__title-my {
+  color: var(--axis-aurora-green-soft);
+}
+
+html[data-app-theme='aurora'] .my-tickets-wallet__title-tickets,
+html[data-app-theme='aurora'] .my-tickets-wallet__count {
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .my-tickets-wallet__count {
+  background-color: var(--axis-surface);
+  border-color: rgba(125, 211, 252, 0.32);
+  color: var(--axis-sky);
+}
+
+html[data-app-theme='aurora'] .my-tickets-wallet__empty {
+  border-color: rgba(125, 211, 252, 0.24);
+  background: rgb(255 255 255 / 0.04);
+}
+
+html[data-app-theme='aurora'] .my-tickets-wallet__perforation {
+  background-image: radial-gradient(
+    circle at 6px 50%,
+    transparent 2.5px,
+    rgba(125, 211, 252, 0.16) 2.5px
+  );
+}
+
+html[data-app-theme='aurora'] :is(.animate-slide-up-panel, .shadow-float).bg-cream {
+  background-color: var(--axis-surface-raised);
+  border: 1px solid var(--axis-border);
+  box-shadow: var(--shadow-float), var(--shadow-inset-glass);
+}
+
+@layer components {
+  html[data-app-theme='aurora'] .app-surface-card {
+    background-color: var(--axis-surface);
+    border-color: var(--axis-border);
+    box-shadow: var(--axis-card-shadow);
+  }
+
+  html[data-app-theme='aurora'] .app-field {
+    background-color: var(--axis-field-bg);
+    border-color: var(--axis-border);
+    color: var(--axis-text);
+  }
+
+  html[data-app-theme='aurora'] .app-field::placeholder {
+    color: var(--axis-placeholder);
+  }
+
+  html[data-app-theme='aurora'] .app-field:focus {
+    border-color: var(--axis-focus-border);
+    box-shadow: 0 0 0 2px var(--axis-focus-ring);
+  }
+
+  html[data-app-theme='aurora'] select.app-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237dd3fc' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+
+  html[data-app-theme='aurora'] select.app-field option,
+  html[data-app-theme='aurora'] select.app-field optgroup {
+    background-color: var(--axis-surface);
+    color: var(--axis-text);
+  }
+}
+
+html[data-app-theme='aurora'] :is(section, article, li, details).bg-white:not([class*='bg-white/']) {
+  background-color: var(--axis-surface);
+}
+
+html[data-app-theme='aurora'] :is(.shadow-sm, .shadow-float, .shadow-xl, .shadow-2xl).bg-white:not(
+    [class*='bg-white/']
+  ) {
+  background-color: var(--axis-surface);
+}
+
+html[data-app-theme='aurora'] .auth-flow-page .auth-flow-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(52, 211, 153, 0.16),
+    rgba(56, 189, 248, 0.14),
+    rgba(244, 114, 182, 0.12),
+    rgba(5, 11, 20, 0.92)
+  );
+}
+
+html[data-app-theme='aurora'] .auth-flow-page .auth-flow-blur {
+  background: rgba(5, 11, 20, 0.58);
+}
+
+html[data-app-theme='aurora'] .auth-oauth-button {
+  background-color: var(--axis-surface-raised);
+  border-color: var(--axis-border);
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .auth-oauth-button:hover {
+  background-color: rgb(125 211 252 / 0.08);
+}
+
+html[data-app-theme='aurora'] .install-app-sheet {
+  background-color: var(--axis-surface);
+  color: var(--axis-text);
+  border-top: 1px solid var(--axis-border);
+}
+
+html[data-app-theme='aurora'] .install-app-sheet .install-step-row {
+  background-color: var(--axis-surface-raised);
+  border-color: var(--axis-border);
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .event-photo-slot {
+  border-color: var(--axis-border);
+  background-color: var(--axis-field-bg);
+}
+
+html[data-app-theme='aurora'] .rounded-tudu-lg.bg-white,
+html[data-app-theme='aurora'] .rounded-tudu.bg-white {
+  background-color: var(--axis-surface);
+  border-color: var(--axis-border-subtle);
+}
+
+html[data-app-theme='aurora'] .ring-brown\/5 {
+  --tw-ring-color: rgba(125, 211, 252, 0.1);
+}
+
+html[data-app-theme='aurora'] .ticket-perforation {
+  background-image: radial-gradient(
+    circle at 6px 50%,
+    transparent 3px,
+    var(--ticket-perforation-dot, var(--axis-night-elevated)) 3px
+  );
+}
+
+html[data-app-theme='aurora']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+        [type='hidden']
+      ):not([type='file']):not([type='submit']):not([type='button']):not([type='image']):not(
+        .admin-input
+      ),
+    input[type='search'],
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  ) {
+  background-color: var(--axis-field-bg) !important;
+  color: var(--axis-text) !important;
+  border-color: var(--axis-border) !important;
+}
+
+html[data-app-theme='aurora']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not(.admin-input),
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  )::placeholder {
+  color: var(--axis-placeholder) !important;
+}
+
+html[data-app-theme='aurora']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not(.admin-input),
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  ):focus {
+  border-color: var(--axis-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--axis-focus-ring) !important;
+  outline: none;
+}
+
+html[data-app-theme='aurora'] .app-field[class*='bg-cream'] {
+  background-color: var(--axis-surface-raised) !important;
+}
+
+html[data-app-theme='aurora'] select option,
+html[data-app-theme='aurora'] select optgroup {
+  background-color: var(--axis-surface);
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill,
+html[data-app-theme='aurora']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill:hover,
+html[data-app-theme='aurora']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--axis-field-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--axis-field-bg) inset !important;
+  -webkit-text-fill-color: var(--axis-text) !important;
+  caret-color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .bg-cream\/30 {
+  background-color: rgb(18 34 56 / 0.55);
+}
+
+html[data-app-theme='aurora'] .bg-cream\/40 {
+  background-color: var(--axis-surface-raised);
+}
+
+html[data-app-theme='aurora'] .hover\:bg-cream\/60:hover,
+html[data-app-theme='aurora'] .hover\:bg-cream\/80:hover {
+  background-color: rgb(125 211 252 / 0.06);
+}
+
+html[data-app-theme='aurora'] .bg-white\/80 {
+  background-color: var(--axis-surface-raised);
+}
+
+html[data-app-theme='aurora'] .bg-white\/95 {
+  background-color: rgb(12 24 41 / 0.92);
+}
+
+html[data-app-theme='aurora'] button.bg-white:not([class*='bg-white/']),
+html[data-app-theme='aurora'] label.bg-white:not([class*='bg-white/']) {
+  background-color: var(--axis-surface);
+}
+
+html[data-app-theme='aurora'] .app-toast.bg-brown {
+  background-color: var(--axis-surface);
+  color: var(--axis-text);
+  border: 1px solid var(--axis-border);
+  box-shadow: var(--axis-card-shadow);
+}
+
+html[data-app-theme='aurora'] :is(.bg-amber-50, .bg-emerald-50, [class*='bg-emerald-50/']) {
+  background-color: var(--axis-surface-raised) !important;
+}
+
+html[data-app-theme='aurora'] :is(.border-amber-200, .border-emerald-200) {
+  border-color: var(--axis-border) !important;
+}
+
+html[data-app-theme='aurora'] :is(.text-amber-800, .text-amber-900, .text-amber-950, .text-emerald-800) {
+  color: var(--axis-text) !important;
+}
+
+html[data-app-theme='aurora'] .app-notice-pending {
+  background-color: rgb(56 189 248 / 0.1);
+  border-color: rgb(125 211 252 / 0.28);
+  color: var(--axis-text);
+}
+
+html[data-app-theme='aurora'] .app-notice-success {
+  background-color: rgb(52 211 153 / 0.12);
+  border-color: rgb(52 211 153 / 0.3);
+  box-shadow: var(--axis-card-shadow);
+}
+
+/* Ticket stubs — icy navy with aurora accent edge */
+html[data-app-theme='aurora'] .ticket-surface {
+  --ticket-bg: var(--axis-night-elevated);
+  --ticket-bg-muted: var(--axis-night-surface);
+  --ticket-border: rgba(125, 211, 252, 0.14);
+  --ticket-text: var(--axis-text);
+  --ticket-text-muted: var(--axis-text-muted);
+}
+
+html[data-app-theme='aurora'] .ticket-surface-muted {
+  border-color: color-mix(in srgb, var(--axis-aurora-green) 28%, var(--ticket-border));
+}
+
+html[data-app-theme='aurora'] .ticket-stub-card,
+html[data-app-theme='aurora'] .ticket-detail-card {
+  box-shadow:
+    0 1px 0 color-mix(in srgb, white 8%, transparent) inset,
+    0 6px 18px rgba(5, 11, 20, 0.55);
+}
+
+html[data-app-theme='aurora'] .ticket-stub-card::before,
+html[data-app-theme='aurora'] .ticket-stub-card::after,
+html[data-app-theme='aurora'] .ticket-stub-card__tear::before,
+html[data-app-theme='aurora'] .ticket-stub-card__tear::after {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--axis-sky) 22%, transparent);
+}
+
+/* Map legacy warm accent utilities to aurora palette */
+html[data-app-theme='aurora'] :is(.text-orange, .text-orange-500) {
+  color: var(--axis-sky) !important;
+}
+
+html[data-app-theme='aurora'] :is(.border-orange, [class*='border-orange/']) {
+  border-color: color-mix(in srgb, var(--axis-sky) 55%, transparent) !important;
+}
+
+html[data-app-theme='aurora'] [class*='bg-orange/'] {
+  background-color: color-mix(in srgb, var(--axis-sky) 12%, transparent) !important;
+}
+
+html[data-app-theme='aurora'] .text-tagline {
+  color: var(--axis-aurora-pink-soft);
+}
+
+html[data-app-theme='aurora'] .text-purple {
+  color: var(--axis-aurora-pink) !important;
+}
+
+html[data-app-theme='aurora'] .border-purple {
+  border-color: color-mix(in srgb, var(--axis-aurora-pink) 45%, transparent) !important;
+}
+
+html[data-app-theme='aurora'] .focus\:ring-purple\/20:focus {
+  --tw-ring-color: rgb(56 189 248 / 0.25) !important;
+}
+
+html[data-app-theme='aurora'] .focus\:border-purple:focus {
+  border-color: var(--axis-sky) !important;
+}
+
+html[data-app-theme='aurora'] .accent-orange {
+  accent-color: var(--axis-sky-bright);
+}

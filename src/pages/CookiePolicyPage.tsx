@@ -1,12 +1,14 @@
-import { Link } from 'react-router-dom'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import { LegalPublishedBody } from '../components/LegalPublishedBody'
+import { BackLink } from '../components/NavActionButtons'
+import { getPublishedLegalDoc } from '../lib/legalDocs'
 
 const cookieTypes = [
   {
     category: 'Essential cookies',
     purpose:
-      'Required for the Site to function — for example, enabling core features, maintaining security, and remembering basic settings. The Site cannot operate properly without these, and they cannot be disabled through our cookie tools.',
+      'Required for the Site to function - for example, enabling core features, maintaining security, and remembering basic settings. The Site cannot operate properly without these, and they cannot be disabled through our cookie tools.',
   },
   {
     category: 'Functional cookies',
@@ -16,7 +18,7 @@ const cookieTypes = [
   {
     category: 'Analytics cookies',
     purpose:
-      'Help us understand how visitors interact with the Site — which pages are visited, how long visitors stay, and where visitors come from — so we can improve performance and content.',
+      'Help us understand how visitors interact with the Site - which pages are visited, how long visitors stay, and where visitors come from - so we can improve performance and content.',
   },
   {
     category: 'Advertising cookies',
@@ -31,26 +33,33 @@ const cookieTypes = [
 ]
 
 const browserInstructions = [
-  { browser: 'Google Chrome', path: 'Settings → Privacy and security → Cookies and other site data' },
-  { browser: 'Safari', path: 'Preferences → Privacy → Manage Website Data' },
-  { browser: 'Mozilla Firefox', path: 'Settings → Privacy & Security → Cookies and Site Data' },
-  { browser: 'Microsoft Edge', path: 'Settings → Cookies and site permissions → Manage and delete cookies' },
+  { browser: 'Google Chrome', path: 'Settings -> Privacy and security -> Cookies and other site data' },
+  { browser: 'Safari', path: 'Preferences -> Privacy -> Manage Website Data' },
+  { browser: 'Mozilla Firefox', path: 'Settings -> Privacy & Security -> Cookies and Site Data' },
+  { browser: 'Microsoft Edge', path: 'Settings -> Cookies and site permissions -> Manage and delete cookies' },
 ]
 
 export default function CookiePolicyPage() {
+  const published = getPublishedLegalDoc('cookie')
+
   return (
     <div className="min-h-svh bg-cream">
       <Header />
 
       <main className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-14">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-brown-muted">
-          Legal
-        </p>
+        <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-brown-muted">Legal</p>
         <h1 className="mb-2 text-3xl font-extrabold text-brown sm:text-4xl">Cookie Policy</h1>
         <p className="mb-1 text-sm text-brown-muted">TUDU Entertainment Inc.</p>
-        <p className="mb-10 text-sm text-brown-muted">Effective Date: January 1, 2026</p>
+        <p className="mb-10 text-sm text-brown-muted">
+          {published
+            ? `Effective Date: ${new Date(published.updatedAt).toLocaleDateString()}`
+            : 'Effective Date: January 1, 2026'}
+        </p>
 
-        <article className="space-y-10 text-brown">
+        <LegalPublishedBody
+          published={published}
+          fallback={
+            <article className="space-y-10 text-brown">
           <section>
             <h2 className="mb-3 text-xl font-bold text-brown">1. Introduction</h2>
             <p className="leading-relaxed text-brown-muted">
@@ -72,24 +81,24 @@ export default function CookiePolicyPage() {
               Cookies are small text files placed on your device (computer, phone, or tablet) when you visit
               a website. They allow the website to recognize your device, remember your preferences and past
               actions, and collect information about how the site is used. Without cookies, a site would have
-              no way of remembering that you were just there — every page you visit would treat you like a
+              no way of remembering that you were just there - every page you visit would treat you like a
               first-time stranger.
             </p>
             <p className="mt-4 leading-relaxed text-brown-muted">Cookies may be:</p>
             <ul className="mt-3 list-disc space-y-2 pl-6 text-brown-muted">
               <li>
-                <strong className="text-brown">First-party cookies</strong> — set directly by TUDU.
+                <strong className="text-brown">First-party cookies</strong> - set directly by TUDU.
               </li>
               <li>
-                <strong className="text-brown">Third-party cookies</strong> — set by services we work with,
+                <strong className="text-brown">Third-party cookies</strong> - set by services we work with,
                 such as Google Maps.
               </li>
               <li>
-                <strong className="text-brown">Session cookies</strong> — temporary cookies deleted when you
+                <strong className="text-brown">Session cookies</strong> - temporary cookies deleted when you
                 close your browser.
               </li>
               <li>
-                <strong className="text-brown">Persistent cookies</strong> — cookies that remain on your
+                <strong className="text-brown">Persistent cookies</strong> - cookies that remain on your
                 device for a set period or until you delete them.
               </li>
             </ul>
@@ -107,19 +116,19 @@ export default function CookiePolicyPage() {
             </p>
             <ul className="list-disc space-y-2 pl-6 text-brown-muted">
               <li>
-                <strong className="text-brown">Making the Site work</strong> — some cookies are required just
+                <strong className="text-brown">Making the Site work</strong> - some cookies are required just
                 to load pages correctly and keep the Site secure.
               </li>
               <li>
-                <strong className="text-brown">Remembering you</strong> — cookies let the Site recall choices
+                <strong className="text-brown">Remembering you</strong> - cookies let the Site recall choices
                 you&apos;ve already made, so you don&apos;t have to re-enter the same information every visit.
               </li>
               <li>
-                <strong className="text-brown">Understanding usage</strong> — cookies help us see which pages
+                <strong className="text-brown">Understanding usage</strong> - cookies help us see which pages
                 and features people actually use, so we can prioritize improvements that matter.
               </li>
               <li>
-                <strong className="text-brown">Supporting embedded features</strong> — some cookies come from
+                <strong className="text-brown">Supporting embedded features</strong> - some cookies come from
                 third-party tools we embed directly into the Site, like maps and sign-in options.
               </li>
             </ul>
@@ -130,7 +139,7 @@ export default function CookiePolicyPage() {
 
           <section>
             <h2 className="mb-3 text-xl font-bold text-brown">4. Types of Cookies We Use</h2>
-            <div className="overflow-x-auto rounded-[var(--radius-tudu)] border border-brown/10 bg-cream-dark/50">
+            <div className="overflow-x-auto rounded-[14px] border border-brown/10 bg-cream-dark/50">
               <table className="min-w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-brown/10">
@@ -162,18 +171,18 @@ export default function CookiePolicyPage() {
             </p>
             <ul className="list-disc space-y-2 pl-6 text-brown-muted">
               <li>
-                <strong className="text-brown">Google Maps</strong> — used to display maps and location-based
+                <strong className="text-brown">Google Maps</strong> - used to display maps and location-based
                 features. Google may collect information in accordance with its own privacy and cookie
                 policies.
               </li>
               <li>
-                <strong className="text-brown">Facebook / Google Sign-In</strong> — used to let you create an
+                <strong className="text-brown">Facebook / Google Sign-In</strong> - used to let you create an
                 account or log in using your existing Facebook or Google credentials. These providers may
                 place cookies to enable this functionality and may collect information governed by their own
                 policies.
               </li>
               <li>
-                <strong className="text-brown">AI-powered features</strong> — TUDU is developing AI-powered
+                <strong className="text-brown">AI-powered features</strong> - TUDU is developing AI-powered
                 functionality to enhance the Site experience. As these features are implemented, this policy
                 will be updated to describe any related data collection or cookie use.
               </li>
@@ -266,12 +275,14 @@ export default function CookiePolicyPage() {
               </a>
             </address>
           </section>
-        </article>
+            </article>
+          }
+        />
 
         <p className="mt-12 text-sm text-brown-muted">
-          <Link to="/" className="font-semibold text-orange no-underline hover:underline">
-            ← Back to home
-          </Link>
+          <BackLink to="/" className="text-orange hover:text-orange hover:underline">
+            Back to home
+          </BackLink>
         </p>
       </main>
 

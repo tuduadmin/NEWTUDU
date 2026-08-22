@@ -99,20 +99,37 @@ export type ShareCardConfig = {
   exportHeight: 1920
 }
 
+/** Admin- or user-authored item with its own imagery (not tied to discover events). */
+export type CustomBucketListItem = {
+  id: string
+  title: string
+  image: string
+  videoUrl?: string
+  mediaType?: 'image' | 'video'
+  caption?: string
+  link?: string
+}
+
 export type BucketList = {
   id: string
   name: string
   description?: string
   coverImageUrl?: string
   ownerId?: string
+  ownerName?: string
+  ownerInitials?: string
+  ownerAvatarUrl?: string
+  ownerAvatarSecondaryUrl?: string
   owner?: User
   vibe?: VibeTag
   region?: string
   eventIds: string[]
+  customItems?: CustomBucketListItem[]
   items?: BucketListItem[]
   createdAt: string
   updatedAt: string
   spotifyUrl?: string
+  appleMusicUrl?: string
   soundtrack?: SpotifyPlaylist
   instagramMedia?: InstagramMedia[]
   completedIds: string[]
@@ -120,6 +137,7 @@ export type BucketList = {
   completionPhotos?: Record<string, string>
   completedAt?: Record<string, string>
   isPrivate?: boolean
+  seededByAdmin?: boolean
   likeCount?: number
   saveCount?: number
 }
@@ -130,6 +148,7 @@ export type PublicBucketList = {
   ownerName: string
   ownerInitials: string
   ownerAvatarUrl?: string
+  ownerAvatarSecondaryUrl?: string
   ownerVerified?: boolean
   coverImage: string
   description: string
@@ -141,5 +160,8 @@ export type PublicBucketList = {
   saveCount?: number
   hasSoundtrack?: boolean
   soundtrack?: SpotifyPlaylist
+  spotifyUrl?: string
+  appleMusicUrl?: string
+  seededByAdmin?: boolean
   events: DiscoverEvent[]
 }

@@ -1,5 +1,6 @@
-import AvatarStoryRing from './AvatarStoryRing'
+import OwnerAvatarGroup from './OwnerAvatarGroup'
 import VibeBadge from './VibeBadge'
+import { ShareButton } from './NavActionButtons'
 import type { PublicBucketList } from '../types/bucketList'
 
 type BucketListCoverCardProps = {
@@ -19,7 +20,7 @@ export default function BucketListCoverCard({
 }: BucketListCoverCardProps) {
   return (
     <article
-      className="relative mx-auto h-[min(72vh,620px)] w-full max-w-[390px] overflow-hidden rounded-[var(--radius-cover)] shadow-float ring-1 ring-white/10"
+      className="relative mx-auto h-[min(72vh,620px)] w-full max-w-[390px] overflow-hidden rounded-[14px] shadow-float ring-1 ring-white/10"
       style={style}
     >
       <button
@@ -32,32 +33,30 @@ export default function BucketListCoverCard({
         <div className="overlay-readability absolute inset-0" />
 
         <div className="absolute inset-x-0 top-0 flex items-start justify-between p-4">
-          <AvatarStoryRing
+          <OwnerAvatarGroup
             initials={list.ownerInitials}
-            imageUrl={list.ownerAvatarUrl}
+            primaryUrl={list.ownerAvatarUrl}
+            secondaryUrl={list.ownerAvatarSecondaryUrl}
             size={44}
             verified={list.ownerVerified}
             alt={list.ownerName}
           />
           <div className="flex gap-2">
             {list.hasSoundtrack && (
-              <span className="glass-surface flex h-11 min-w-[44px] items-center justify-center gap-1 rounded-full px-3 text-[11px] font-semibold text-white">
-                <span aria-hidden>🎵</span>
+              <span className="glass-surface flex h-11 min-w-[44px] items-center justify-center gap-1 rounded-[14px] px-3 text-[11px] font-semibold text-white">
+                <span aria-hidden>ðŸŽµ</span>
                 <span className="sr-only">Has soundtrack</span>
               </span>
             )}
             {onShare && (
-              <button
-                type="button"
+              <ShareButton
+                variant="iconGlass"
                 onClick={(e) => {
                   e.stopPropagation()
                   onShare()
                 }}
-                className="glass-surface flex h-11 w-11 items-center justify-center rounded-full text-white/90"
-                aria-label="Share list"
-              >
-                ↗
-              </button>
+                className="relative z-20"
+              />
             )}
           </div>
         </div>
@@ -74,7 +73,7 @@ export default function BucketListCoverCard({
           <p className="mt-2 text-sm font-medium text-white/75">by {list.ownerName}</p>
           {list.region && (
             <p className="mt-1 inline-flex items-center gap-1 text-xs text-white/55">
-              <span aria-hidden>📍</span>
+              <span aria-hidden>ðŸ“</span>
               {list.region}
             </p>
           )}
@@ -82,12 +81,12 @@ export default function BucketListCoverCard({
             <span>
               {list.itemCount} {list.itemCount === 1 ? 'item' : 'items'}
             </span>
-            <span aria-hidden>·</span>
+            <span aria-hidden>|</span>
             <span>{list.completedCount} completed</span>
             {list.likeCount != null && list.likeCount > 0 && (
               <>
-                <span aria-hidden>·</span>
-                <span>❤️ {list.likeCount}</span>
+                <span aria-hidden>|</span>
+                <span>{list.likeCount} likes</span>
               </>
             )}
           </div>
@@ -101,7 +100,7 @@ export default function BucketListCoverCard({
             e.stopPropagation()
             onSaveList()
           }}
-          className="absolute bottom-5 right-5 z-20 flex h-12 min-w-[44px] items-center justify-center rounded-full bg-gradient-tudu px-4 font-display text-sm font-bold text-white glow-warm"
+          className="absolute bottom-5 right-5 z-20 flex h-12 min-w-[44px] items-center justify-center rounded-[14px] bg-gradient-tudu px-4 font-display text-sm font-bold text-white glow-warm"
         >
           Save List
         </button>

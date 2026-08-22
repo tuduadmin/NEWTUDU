@@ -7,7 +7,7 @@ interface TuduanBadgeProps {
 }
 
 /**
- * Minimal Tuduan placeholder — use sparingly for milestones and special moments.
+ * Minimal Tuduan placeholder â€” use sparingly for milestones and special moments.
  * Replace with illustrated assets when available.
  */
 export default function TuduanBadge({ tuduanId, size = 'md', className = '' }: TuduanBadgeProps) {
@@ -16,9 +16,9 @@ export default function TuduanBadge({ tuduanId, size = 'md', className = '' }: T
 
   return (
     <span
-      className={`inline-flex shrink-0 items-center justify-center rounded-full ${dim} ${className}`}
+      className={`inline-flex shrink-0 items-center justify-center rounded-[14px] ${dim} ${className}`}
       style={{ backgroundColor: `${tuduan.color}22`, color: tuduan.color }}
-      title={`${tuduan.name} — ${tuduan.title}`}
+      title={`${tuduan.name} â€” ${tuduan.title}`}
       aria-label={`${tuduan.name}, ${tuduan.title}`}
     >
       {tuduan.motifEmoji}

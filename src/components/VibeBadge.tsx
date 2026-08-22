@@ -21,7 +21,7 @@ type VibeBadgeProps = {
 export default function VibeBadge({ vibe, size = 'sm' }: VibeBadgeProps) {
   return (
     <span
-      className={`inline-flex items-center rounded-full font-display font-bold uppercase tracking-wide ring-1 ${
+      className={`inline-flex items-center rounded-[14px] font-display font-bold uppercase tracking-wide ring-1 ${
         size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-3 py-1 text-[11px]'
       } ${vibeStyles[vibe]}`}
     >

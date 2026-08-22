@@ -1,39 +1,31 @@
 import {
-  Accessibility,
-  Baby,
-  Banknote,
-  Bath,
-  Bus,
-  Car,
   ChevronDown,
   ChevronUp,
-  Coffee,
-  Dog,
-  Droplets,
-  Home,
-  ParkingCircle,
+  ExternalLink,
   Plus,
-  Shield,
-  Stethoscope,
-  Tent,
   Trash2,
-  TreePine,
-  UtensilsCrossed,
-  Wifi,
-  Wine,
-  Zap,
 } from 'lucide-react'
 import { useState } from 'react'
-import type { HostEventFormData, TicketTier } from '../../lib/account'
-import { ADDITIONAL_AMENITIES, PRIMARY_AMENITIES } from '../../data/eventCategories'
-import { FieldLabel, TextInput } from './CreateEventLayout'
+import type { HostEventFormData, TicketTier, TicketingMode } from '../../lib/account'
+import { getEffectiveOccurrences } from '../../lib/eventSchedule'
+import {
+  formatSessionAccordionSummary,
+  getSyncedTicketSessions,
+  hasMultipleTicketSessions,
+  isSessionTicketConfigLocked,
+  sessionTiersForMode,
+} from '../../lib/ticketSessions'
+import ChecklistBuilder from './ChecklistBuilder'
+import { FieldLabel, FieldHelper, TextInput } from './CreateEventLayout'
 
 type FinalStepProps = {
   form: HostEventFormData
   updateForm: (partial: Partial<HostEventFormData>) => void
-  updateTicketTier: (tierId: string, partial: Partial<TicketTier>) => void
-  addTicketTier: () => void
-  removeTicketTier: (tierId: string) => void
+  updateSessionCapacity: (sessionIndex: number, capacity: number | null) => void
+  updateSessionTier: (sessionIndex: number, tierId: string, partial: Partial<TicketTier>) => void
+  addSessionTier: (sessionIndex: number) => void
+  removeSessionTier: (sessionIndex: number, tierId: string) => void
+  setSessionTiersLocked: (sessionIndex: number, locked: boolean) => void
 }
 
 const AGE_OPTIONS = [
@@ -42,88 +34,154 @@ const AGE_OPTIONS = [
   { id: '18+' as const, label: '18+' },
 ]
 
-const AMENITY_ICONS: Record<string, React.ReactNode> = {
-  'food-drink': <UtensilsCrossed size={16} className="text-orange" />,
-  alcohol: <Wine size={16} className="text-orange" />,
-  bathrooms: <Bath size={16} className="text-orange" />,
-  parking: <ParkingCircle size={16} className="text-orange" />,
-  wheelchair: <Accessibility size={16} className="text-orange" />,
-  wifi: <Wifi size={16} className="text-orange" />,
-  'kid-friendly': <Baby size={16} className="text-orange" />,
-  'baby-changing': <Baby size={16} className="text-orange" />,
-  'pet-friendly': <Dog size={16} className="text-orange" />,
-  power: <Zap size={16} className="text-orange" />,
-  water: <Droplets size={16} className="text-orange" />,
-  atm: <Banknote size={16} className="text-orange" />,
-  'ev-charging': <Zap size={16} className="text-orange" />,
-  security: <Shield size={16} className="text-orange" />,
-  medical: <Stethoscope size={16} className="text-orange" />,
-  lodging: <Home size={16} className="text-orange" />,
-  camping: <Tent size={16} className="text-orange" />,
-  'camper-trailers': <Car size={16} className="text-orange" />,
-  'outdoor-seating': <TreePine size={16} className="text-orange" />,
-  transit: <Bus size={16} className="text-orange" />,
-}
+const TICKETING_MODES: { id: TicketingMode; label: string; description: string }[] = [
+  { id: 'free_rsvp', label: 'Free & RSVP only', description: 'Capacity and optional waitlist.' },
+  {
+    id: 'free_donation',
+    label: 'Free + suggested donation',
+    description: 'RSVP with optional donation tiers.',
+  },
+  { id: 'sell', label: 'Sell tickets', description: 'Multi-tier paid ticketing.' },
+  { id: 'external', label: 'External tickets (link only)', description: 'Link out to your ticket vendor.' },
+]
+
+/** Raised panels on the cream page shell — not stark white. */
+const TICKET_PANEL =
+  'rounded-[14px] border border-app-subtle bg-cream-dark'
+
+const TICKET_TILE_IDLE =
+  'border-brown/10 bg-cream-dark text-brown hover:border-orange/30'
 
 export default function FinalStep({
   form,
   updateForm,
-  updateTicketTier,
-  addTicketTier,
-  removeTicketTier,
+  updateSessionCapacity,
+  updateSessionTier,
+  addSessionTier,
+  removeSessionTier,
+  setSessionTiersLocked,
 }: FinalStepProps) {
-  const [showAdditional, setShowAdditional] = useState(false)
+  const [expandedSessions, setExpandedSessions] = useState<Set<number>>(() => new Set([0]))
+  const sessions = getSyncedTicketSessions(form)
+  const occurrences = getEffectiveOccurrences(form)
+  const multiSession = hasMultipleTicketSessions(form)
 
-  function toggleAmenity(id: string) {
-    const current = form.amenities
-    if (current.includes(id)) {
-      updateForm({ amenities: current.filter((a) => a !== id) })
-    } else {
-      updateForm({ amenities: [...current, id] })
+  function toggleSessionExpanded(index: number) {
+    setExpandedSessions((prev) => {
+      const next = new Set(prev)
+      if (next.has(index)) next.delete(index)
+      else next.add(index)
+      return next
+    })
+  }
+
+  function setTicketingMode(mode: TicketingMode) {
+    const nextSessions = sessions.map((session) => ({
+      ...session,
+      tiers: sessionTiersForMode(mode, session.tiers),
+    }))
+    updateForm({
+      ticketingMode: mode,
+      ticketSessions: nextSessions,
+      ticketTiers: nextSessions[0]?.tiers ?? form.ticketTiers,
+      sellTicketsPerDay: nextSessions.length > 1,
+      advancedTicketSales: nextSessions.length > 1,
+    })
+  }
+
+  const showTierBuilder =
+    form.ticketingMode === 'sell' || form.ticketingMode === 'free_donation'
+  const showFreeRsvpFields = form.ticketingMode === 'free_rsvp'
+  const multiSlotLabel = form.scheduleTimeSlots ? 'time slot' : 'schedule slot'
+
+  function handleSessionCapacityChange(sessionIndex: number, raw: string) {
+    if (isSessionTicketConfigLocked(sessions[sessionIndex], sessionIndex)) return
+    if (raw === '') {
+      updateSessionCapacity(sessionIndex, null)
+      return
     }
+    const num = parseInt(raw.replace(/\D/g, ''), 10)
+    if (!Number.isNaN(num)) {
+      updateSessionCapacity(sessionIndex, Math.min(5000, Math.max(1, num)))
+    }
+  }
+
+  function renderMultiSessionTickets(showTiers: boolean) {
+    return (
+      <>
+        <p className="text-[11px] leading-relaxed text-brown-muted">
+          Fill out the <span className="font-semibold text-brown">first slot</span> — the others copy
+          automatically while locked. Uncheck Locked to customize a slot.
+        </p>
+        <p className="text-[11px] text-brown-muted">
+          {showTiers ? `Capacity and tiers per ${multiSlotLabel}` : `Capacity per ${multiSlotLabel}`}
+        </p>
+        {sessions.map((session, index) => {
+          const locked = isSessionTicketConfigLocked(session, index)
+          const isTemplate = index === 0
+          return (
+            <SessionAccordion
+              key={`ticket-session-${index}`}
+              expanded={expandedSessions.has(index)}
+              summary={formatSessionAccordionSummary(session, occurrences[index], form.ticketingMode)}
+              onToggle={() => toggleSessionExpanded(index)}
+              isTemplate={isTemplate}
+              showLockToggle={!isTemplate}
+              locked={locked}
+              onLockedChange={(nextLocked) => setSessionTiersLocked(index, nextLocked)}
+            >
+              <CapacityRow
+                value={session.capacity}
+                onChange={(raw) => handleSessionCapacityChange(index, raw)}
+                disabled={locked}
+              />
+              {showTiers && (
+                <>
+                  <div className="space-y-3">
+                    {session.tiers.map((tier, tierIndex) => (
+                      <TierEditor
+                        key={tier.id}
+                        tier={tier}
+                        index={tierIndex}
+                        canRemove={session.tiers.length > 1}
+                        donationMode={form.ticketingMode === 'free_donation'}
+                        disabled={locked}
+                        onUpdate={(partial) => updateSessionTier(index, tier.id, partial)}
+                        onRemove={() => removeSessionTier(index, tier.id)}
+                      />
+                    ))}
+                  </div>
+                  {!locked && (
+                    <button
+                      type="button"
+                      onClick={() => addSessionTier(index)}
+                      className="inline-flex min-h-11 items-center gap-1 rounded-[14px] px-1 text-xs font-bold text-orange"
+                    >
+                      <Plus size={14} />
+                      Add tier
+                    </button>
+                  )}
+                </>
+              )}
+            </SessionAccordion>
+          )
+        })}
+      </>
+    )
   }
 
   return (
     <section>
-      <h2 className="font-display text-xl font-extrabold text-brown">Final Details</h2>
-      <p className="mt-1 text-sm text-brown-muted">Ticketing, rules, and what to expect.</p>
+      <h2 className="font-display text-xl font-extrabold text-brown">Ticketing</h2>
+      <p className="mt-1 text-sm text-brown-muted">Age policy, ticket type, and optional checklists.</p>
 
-      <div className="mt-5 space-y-6">
-        <div>
-          <h3 className="font-display text-sm font-bold text-brown">Ticketing</h3>
-          <p className="mt-0.5 text-xs text-brown-muted">
-            Set your price tiers. If your event is free, simply leave the price as $0.
-          </p>
-
-          <div className="mt-3 space-y-4">
-            {form.ticketTiers.map((tier, index) => (
-              <TierEditor
-                key={tier.id}
-                tier={tier}
-                index={index}
-                canRemove={form.ticketTiers.length > 1}
-                onUpdate={(partial) => updateTicketTier(tier.id, partial)}
-                onRemove={() => removeTicketTier(tier.id)}
-              />
-            ))}
-          </div>
-
-          <button
-            type="button"
-            onClick={addTicketTier}
-            className="mt-3 flex items-center gap-1 text-sm font-bold text-orange"
-          >
-            <Plus size={16} />
-            Add Another Price Tier
-          </button>
-        </div>
-
+      <div className="mt-5 space-y-5">
         <div>
           <h3 className="font-display text-sm font-bold text-brown">Age Restriction</h3>
-          <p className="mt-0.5 text-xs text-brown-muted">
-            Who is this event for? Setting this accurately helps recommend it to the right demographic.
-          </p>
-          <div className="mt-3 grid grid-cols-3 gap-2">
+          {!form.ageRestriction && (
+            <p className="mt-1 text-xs font-semibold text-maroon">Required — pick one</p>
+          )}
+          <div className="mt-2 grid grid-cols-3 gap-2">
             {AGE_OPTIONS.map((opt) => {
               const selected = form.ageRestriction === opt.id
               return (
@@ -131,10 +189,10 @@ export default function FinalStep({
                   key={opt.id}
                   type="button"
                   onClick={() => updateForm({ ageRestriction: opt.id })}
-                  className={`rounded-[var(--radius-lg)] border-2 px-2 py-3 text-xs font-bold transition ${
+                  className={`rounded-[14px] border-2 px-2 py-3 text-xs font-bold transition ${
                     selected
                       ? 'border-orange bg-orange/10 text-orange'
-                      : 'border-brown/10 bg-white text-brown hover:border-orange/30'
+                      : `border-brown/10 ${TICKET_TILE_IDLE}`
                   }`}
                 >
                   {opt.label}
@@ -142,63 +200,141 @@ export default function FinalStep({
               )
             })}
           </div>
-          <p className="mt-2 text-[10px] text-brown-muted">
-            Please select one — this helps Tudu show your event to the right audience.
-          </p>
         </div>
 
         <div>
-          <h3 className="font-display text-sm font-bold text-brown">Amenities</h3>
-          <p className="mt-0.5 text-xs text-brown-muted">
-            What can your guests expect? Help them prepare for an amazing time by listing out the on-site
-            facilities.
-          </p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            {PRIMARY_AMENITIES.map((amenity) => (
-              <AmenityCheckbox
-                key={amenity.id}
-                label={amenity.label}
-                icon={AMENITY_ICONS[amenity.id] ?? <Coffee size={16} className="text-orange" />}
-                checked={form.amenities.includes(amenity.id)}
-                onChange={() => toggleAmenity(amenity.id)}
-              />
-            ))}
+          <h3 className="font-display text-sm font-bold text-brown">How are people getting in?</h3>
+          <div className="mt-2 space-y-2">
+            {TICKETING_MODES.map((mode) => {
+              const selected = form.ticketingMode === mode.id
+              return (
+                <label
+                  key={mode.id}
+                  className={`flex min-h-11 cursor-pointer items-start gap-3 rounded-[14px] border-2 px-3 py-2.5 transition ${
+                    selected
+                      ? 'border-orange bg-orange/10'
+                      : TICKET_TILE_IDLE
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="ticketing-mode"
+                    checked={selected}
+                    onChange={() => setTicketingMode(mode.id)}
+                    className="mt-1 accent-orange"
+                  />
+                  <span>
+                    <span className={`block text-sm font-bold ${selected ? 'text-orange' : 'text-brown'}`}>
+                      {mode.label}
+                    </span>
+                    <span className="block text-[10px] text-brown-muted">{mode.description}</span>
+                  </span>
+                </label>
+              )
+            })}
           </div>
 
-          <div className="mt-3 rounded-[var(--radius-lg)] border border-brown/10 bg-cream-dark/50">
-            <button
-              type="button"
-              onClick={() => setShowAdditional((v) => !v)}
-              className="flex w-full items-center justify-between px-4 py-3 text-left"
-            >
-              <div>
-                <p className="text-sm font-bold text-brown">Additional Amenities</p>
-                <p className="text-[10px] text-brown-muted">
-                  The more you add, the better Tudu can match your event.
+          {form.ticketingMode === 'external' && (
+            <div className="relative mt-3 h-11 w-full">
+              <ExternalLink
+                size={14}
+                className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-brown-muted"
+              />
+              <TextInput
+                value={form.externalTicketUrl}
+                onChange={(externalTicketUrl) => updateForm({ externalTicketUrl })}
+                placeholder="https://tickets.example.com/your-event"
+                className="pl-9"
+              />
+            </div>
+          )}
+
+          {showFreeRsvpFields && (
+            <div className="mt-3 space-y-2">
+              {multiSession && (
+                <p className="text-[11px] leading-relaxed text-brown-muted">
+                  Each {multiSlotLabel} has its own capacity pool — selling out 11–1 does not affect 2–4.
                 </p>
-              </div>
-              {showAdditional ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-            </button>
-            {showAdditional && (
-              <div className="space-y-4 border-t border-brown/10 px-4 pb-4 pt-3">
-                {Object.entries(ADDITIONAL_AMENITIES).map(([group, items]) => (
-                  <div key={group}>
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-brown-muted">{group}</p>
-                    <div className="grid grid-cols-2 gap-2">
-                      {items.map((amenity) => (
-                        <AmenityCheckbox
-                          key={amenity.id}
-                          label={amenity.label}
-                          icon={AMENITY_ICONS[amenity.id] ?? <Coffee size={16} className="text-orange" />}
-                          checked={form.amenities.includes(amenity.id)}
-                          onChange={() => toggleAmenity(amenity.id)}
-                        />
-                      ))}
-                    </div>
+              )}
+              {!multiSession ? (
+                <>
+                  <CapacityRow
+                    value={sessions[0]?.capacity ?? null}
+                    onChange={(raw) => handleSessionCapacityChange(0, raw)}
+                  />
+                  <WaitlistToggle
+                    checked={form.waitlistEnabled}
+                    onChange={(waitlistEnabled) => updateForm({ waitlistEnabled })}
+                  />
+                </>
+              ) : (
+                <>
+                  {renderMultiSessionTickets(false)}
+                  <WaitlistToggle
+                    checked={form.waitlistEnabled}
+                    onChange={(waitlistEnabled) => updateForm({ waitlistEnabled })}
+                  />
+                </>
+              )}
+            </div>
+          )}
+
+          {showTierBuilder && (
+            <div className="mt-3 space-y-3">
+              {multiSession && (
+                <p className="text-[11px] leading-relaxed text-brown-muted">
+                  Set capacity and tiers for each {multiSlotLabel}. Adult and Child share seats within a slot —
+                  e.g. 12 Adult + 8 Child = 20 for that seating only.
+                </p>
+              )}
+              {!multiSession ? (
+                <>
+                  <CapacityRow
+                    value={sessions[0]?.capacity ?? null}
+                    onChange={(raw) => handleSessionCapacityChange(0, raw)}
+                  />
+                  <div className="space-y-3">
+                    {(sessions[0]?.tiers ?? []).map((tier, tierIndex) => (
+                      <TierEditor
+                        key={tier.id}
+                        tier={tier}
+                        index={tierIndex}
+                        canRemove={(sessions[0]?.tiers.length ?? 0) > 1}
+                        donationMode={form.ticketingMode === 'free_donation'}
+                        onUpdate={(partial) => updateSessionTier(0, tier.id, partial)}
+                        onRemove={() => removeSessionTier(0, tier.id)}
+                      />
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                  <button
+                    type="button"
+                    onClick={() => addSessionTier(0)}
+                    className="flex items-center gap-1 text-sm font-bold text-orange"
+                  >
+                    <Plus size={16} />
+                    Add Another Price Tier
+                  </button>
+                </>
+              ) : (
+                renderMultiSessionTickets(true)
+              )}
+              {form.ticketingMode === 'free_donation' && (
+                <ZeffyUrlField
+                  value={form.externalTicketUrl}
+                  onChange={(externalTicketUrl) => updateForm({ externalTicketUrl })}
+                />
+              )}
+            </div>
+          )}
+        </div>
+
+        <div>
+          <h3 className="font-display text-sm font-bold text-brown">Attendee Checklist</h3>
+          <div className="mt-2">
+            <ChecklistBuilder
+              checklist={form.checklist}
+              onChange={(checklist) => updateForm({ checklist })}
+            />
           </div>
         </div>
       </div>
@@ -206,16 +342,131 @@ export default function FinalStep({
   )
 }
 
+function SessionAccordion({
+  expanded,
+  summary,
+  onToggle,
+  children,
+  isTemplate,
+  showLockToggle,
+  locked,
+  onLockedChange,
+}: {
+  expanded: boolean
+  summary: string
+  onToggle: () => void
+  children: React.ReactNode
+  isTemplate?: boolean
+  showLockToggle?: boolean
+  locked?: boolean
+  onLockedChange?: (locked: boolean) => void
+}) {
+  return (
+    <div className={`overflow-hidden ${TICKET_PANEL}`}>
+      <div className="flex min-h-11 items-center gap-1 pr-1">
+        <button
+          type="button"
+          onClick={onToggle}
+          className="flex min-w-0 flex-1 items-center justify-between gap-2 px-3 py-2 text-left"
+        >
+          <span className="flex min-w-0 flex-1 items-center gap-2">
+            {isTemplate && (
+              <span className="shrink-0 rounded-full bg-orange/15 px-2 py-0.5 text-[9px] font-bold uppercase tracking-wide text-orange">
+                Template
+              </span>
+            )}
+            <span
+              className={`min-w-0 truncate text-xs ${expanded ? 'font-bold text-brown' : 'text-brown-muted'}`}
+            >
+              {summary}
+            </span>
+          </span>
+          {expanded ? (
+            <ChevronUp size={16} className="shrink-0 text-brown-muted" />
+          ) : (
+            <ChevronDown size={16} className="shrink-0 text-brown-muted" />
+          )}
+        </button>
+        {showLockToggle && (
+          <label
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 pr-2 text-xs font-medium text-brown"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <input
+              type="checkbox"
+              checked={locked}
+              onChange={(e) => onLockedChange?.(e.target.checked)}
+              className="h-4 w-4 rounded accent-orange"
+            />
+            Locked
+          </label>
+        )}
+      </div>
+      {expanded && <div className="space-y-3 border-t border-brown/10 px-3 pb-3 pt-2">{children}</div>}
+    </div>
+  )
+}
+
+function CapacityRow({
+  value,
+  onChange,
+  disabled,
+}: {
+  value: number | null
+  onChange: (raw: string) => void
+  disabled?: boolean
+}) {
+  const missing = value == null || value <= 0
+  return (
+    <div className={`flex items-center gap-2 ${disabled ? 'opacity-60' : ''}`}>
+      <span className="w-16 shrink-0 text-xs font-semibold text-brown-muted">
+        Capacity{missing && !disabled && <span className="text-maroon">*</span>}
+      </span>
+      <TextInput
+        value={value == null ? '' : value.toString()}
+        onChange={onChange}
+        placeholder="20"
+        className="max-w-[88px]"
+        disabled={disabled}
+      />
+    </div>
+  )
+}
+
+function WaitlistToggle({
+  checked,
+  onChange,
+}: {
+  checked: boolean
+  onChange: (checked: boolean) => void
+}) {
+  return (
+    <label className="flex min-h-11 items-center gap-2 text-xs font-medium text-brown">
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="h-4 w-4 rounded accent-orange"
+      />
+      Waitlist when full
+    </label>
+  )
+}
+
 function TierEditor({
   tier,
   index,
   canRemove,
+  donationMode,
+  disabled,
   onUpdate,
   onRemove,
 }: {
   tier: TicketTier
   index: number
   canRemove: boolean
+  donationMode?: boolean
+  disabled?: boolean
   onUpdate: (partial: Partial<TicketTier>) => void
   onRemove: () => void
 }) {
@@ -233,74 +484,66 @@ function TierEditor({
     }
   }
 
-  function handleQuantityChange(raw: string) {
-    if (raw === '' || raw === '∞') {
-      onUpdate({ quantity: null })
-      return
-    }
-    const num = parseInt(raw.replace(/\D/g, ''), 10)
-    if (!Number.isNaN(num)) {
-      onUpdate({ quantity: Math.min(2000, Math.max(0, num)) })
-    }
-  }
-
   return (
-    <div className="rounded-[var(--radius-lg)] border border-brown/10 bg-white p-3">
-      {index > 0 && (
+    <div className={`${TICKET_PANEL} p-3 ${disabled ? 'opacity-60' : ''}`}>
+      {index > 0 && !disabled && (
         <div className="mb-2 flex justify-end">
-          <button type="button" onClick={onRemove} disabled={!canRemove} className="text-brown-muted disabled:opacity-30">
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={!canRemove}
+            className="text-brown-muted disabled:opacity-30"
+            aria-label="Remove tier"
+          >
             <Trash2 size={14} />
           </button>
         </div>
       )}
-      <div className="grid grid-cols-[1fr_72px_56px] gap-2">
-        <div>
-          <FieldLabel required>Tier Name</FieldLabel>
-          <TextInput
-            value={tier.name}
-            onChange={(name) => onUpdate({ name })}
-            placeholder="e.g. General Admis"
-          />
-        </div>
-        <div>
-          <FieldLabel required>Price</FieldLabel>
-          <input
-            type="text"
-            value={tier.priceCents === 0 ? 'FREE' : (tier.priceCents / 100).toString()}
-            onChange={(e) => handlePriceChange(e.target.value)}
-            placeholder="FREE"
-            className="w-full rounded-[var(--radius-lg)] border border-brown/15 bg-white px-2 py-2.5 text-center text-sm font-bold text-brown outline-none focus:border-purple"
-          />
-        </div>
-        <div>
-          <FieldLabel>Qty</FieldLabel>
-          <input
-            type="text"
-            value={tier.quantity == null ? '∞' : tier.quantity.toString()}
-            onChange={(e) => handleQuantityChange(e.target.value)}
-            placeholder="∞"
-            className="w-full rounded-[var(--radius-lg)] border border-brown/15 bg-white px-1 py-2.5 text-center text-sm text-brown outline-none focus:border-purple"
-          />
-        </div>
+      <div className="grid grid-cols-[1fr_5.75rem] grid-rows-[auto_auto] gap-x-2 gap-y-1.5">
+        <FieldLabel required className="mb-0">
+          Tier Name
+        </FieldLabel>
+        <FieldLabel required className="mb-0 whitespace-nowrap">
+          {donationMode ? 'Suggested' : 'Price'}
+        </FieldLabel>
+        <TextInput
+          value={tier.name}
+          onChange={(name) => onUpdate({ name })}
+          placeholder={donationMode ? 'Supporter' : 'e.g. General Admission'}
+          disabled={disabled}
+        />
+        <TextInput
+          value={tier.priceCents === 0 ? 'FREE' : (tier.priceCents / 100).toString()}
+          onChange={handlePriceChange}
+          placeholder={donationMode ? '5' : 'FREE'}
+          disabled={disabled}
+          className="px-2 text-center font-bold"
+        />
       </div>
       <div className="mt-2">
         <TextInput
           value={tier.description}
           onChange={(description) => onUpdate({ description })}
           placeholder="Description (e.g. Includes 1 drink ticket)"
+          disabled={disabled}
         />
       </div>
-      <label className="mt-2 flex items-center gap-2 text-xs font-medium text-brown">
-        <input
-          type="checkbox"
-          checked={tier.availableAtDoor}
-          onChange={(e) => onUpdate({ availableAtDoor: e.target.checked })}
-          className="h-4 w-4 rounded accent-orange"
-        />
-        Available at Door
-      </label>
+      {!donationMode && (
+        <label className={`mt-2 flex items-center gap-2 text-xs font-medium text-brown ${disabled ? 'pointer-events-none' : ''}`}>
+          <input
+            type="checkbox"
+            checked={tier.availableAtDoor}
+            onChange={(e) => onUpdate({ availableAtDoor: e.target.checked })}
+            disabled={disabled}
+            className="h-4 w-4 rounded accent-orange"
+          />
+          Available at Door
+        </label>
+      )}
       {tier.priceCents === 0 && (
-        <p className="mt-1 text-[10px] text-success-deep">Free tier — attendees will RSVP on the event card</p>
+        <p className="mt-1 text-[10px] text-success-deep">
+          Free tier — attendees will RSVP on the event card
+        </p>
       )}
       {tier.priceCents > 0 && (
         <p className="mt-1 text-[10px] text-brown-muted">Current price: {priceDisplay}</p>
@@ -309,28 +552,33 @@ function TierEditor({
   )
 }
 
-function AmenityCheckbox({
-  label,
-  icon,
-  checked,
+function ZeffyUrlField({
+  value,
   onChange,
 }: {
-  label: string
-  icon: React.ReactNode
-  checked: boolean
-  onChange: () => void
+  value: string
+  onChange: (url: string) => void
 }) {
   return (
-    <label
-      className={`flex cursor-pointer items-center justify-between rounded-[var(--radius-lg)] border px-3 py-2.5 transition ${
-        checked ? 'border-orange/40 bg-orange/5' : 'border-brown/10 bg-white'
-      }`}
-    >
-      <span className="flex items-center gap-2 text-xs font-medium text-brown">
-        {icon}
-        {label}
-      </span>
-      <input type="checkbox" checked={checked} onChange={onChange} className="h-4 w-4 rounded accent-orange" />
-    </label>
+    <div className={`${TICKET_PANEL} p-3`}>
+      <FieldLabel htmlFor="zeffy-donation-url">Zeffy donation page</FieldLabel>
+      <FieldHelper className="mb-2">
+        Optional — paste your Zeffy campaign link. Guests will see an RSVP &amp; donate button on
+        Discover.
+      </FieldHelper>
+      <div className="relative">
+        <ExternalLink
+          size={14}
+          className="absolute left-3 top-1/2 z-10 -translate-y-1/2 text-brown-muted"
+          aria-hidden
+        />
+        <TextInput
+          value={value}
+          onChange={onChange}
+          placeholder="https://www.zeffy.com/en-CA/your-event"
+          className="pl-9"
+        />
+      </div>
+    </div>
   )
 }

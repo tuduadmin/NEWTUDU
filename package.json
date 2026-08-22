@@ -4,7 +4,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --host --strictPort",
+    "dev:https": "vite --host --mode https",
     "build": "tsc && vite build",
     "preview": "vite preview"
   },
@@ -12,15 +13,20 @@
     "@tailwindcss/vite": "^4.3.3",
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.0.3",
     "tailwindcss": "^4.3.3",
     "typescript": "~6.0.2",
     "vite": "^8.1.1"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^1.25.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
+    "react-icons": "^5.7.0",
     "react-router-dom": "^7.18.1"
   }
 }

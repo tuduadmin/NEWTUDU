@@ -1,0 +1,476 @@
+/**
+ * SOL consumer theme (persisted id: dusk).
+ * Admin uses .admin-shell — untouched here.
+ */
+
+html[data-app-theme='dusk'] {
+  --color-brown: rgba(248, 250, 252, 0.92);
+  --color-brown-muted: rgba(248, 250, 252, 0.65);
+  --color-page-bg: #0b0f1a;
+
+  --sol-surface: #121828;
+  --sol-surface-raised: #1a2236;
+  --sol-border: rgba(255, 255, 255, 0.1);
+  --sol-border-subtle: rgba(255, 255, 255, 0.07);
+  --sol-field-bg: var(--color-midnight-elevated);
+  --sol-text: rgba(255, 255, 255, 0.92);
+  --sol-text-muted: rgba(255, 255, 255, 0.65);
+  --sol-placeholder: rgba(255, 255, 255, 0.42);
+  --sol-focus-ring: rgba(249, 115, 22, 0.3);
+  --sol-focus-border: rgba(249, 115, 22, 0.45);
+  --sol-card-shadow: var(--shadow-card), var(--shadow-inset-glass);
+  --sol-ambient-bg:
+    radial-gradient(ellipse 120% 80% at 0% -10%, rgba(92, 45, 110, 0.14), transparent 52%),
+    radial-gradient(ellipse 90% 70% at 100% 0%, rgba(192, 38, 160, 0.1), transparent 48%),
+    radial-gradient(ellipse 100% 80% at 50% 110%, rgba(249, 115, 22, 0.08), transparent 55%);
+
+  color-scheme: dark;
+}
+
+html[data-app-theme='dusk'] body {
+  background-color: var(--color-midnight);
+  background-image: var(--sol-ambient-bg);
+  color: var(--sol-text);
+}
+
+/* Unified page shells — same ambient wash on every consumer route */
+html[data-app-theme='dusk'] :is(.app-page-shell, .app-page-shell-flex) {
+  background-color: var(--color-page-bg);
+  background-image: var(--sol-ambient-bg);
+  color: var(--sol-text);
+}
+
+/* Glass chrome — header bar, bottom nav, floating controls */
+html[data-app-theme='dusk'] .glass-surface {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-inset-glass), 0 4px 24px rgba(0, 0, 0, 0.28);
+}
+
+html[data-app-theme='dusk'] .sol-bottom-nav {
+  box-shadow: var(--shadow-inset-glass), 0 -8px 32px rgba(0, 0, 0, 0.38);
+}
+
+/* Elevated panels — depth on every card/panel surface */
+html[data-app-theme='dusk'] .bg-app-elevated {
+  box-shadow: var(--sol-card-shadow);
+}
+
+html[data-app-theme='dusk'] .border-app-subtle.bg-app-elevated {
+  box-shadow: var(--sol-card-shadow);
+}
+
+html[data-app-theme='dusk'] :is(.border-app-subtle.bg-app-elevated, .app-surface-card):is(
+    button,
+    a,
+    [role='button']
+  ):hover {
+  border-color: rgba(249, 115, 22, 0.22);
+}
+
+/* Primary CTA — subtle warm glow at rest (same on every screen) */
+html[data-app-theme='dusk'] .bg-gradient-tudu {
+  box-shadow:
+    0 4px 18px rgba(249, 115, 22, 0.28),
+    var(--shadow-inset-glass);
+}
+
+html[data-app-theme='dusk'] .bg-gradient-tudu:hover {
+  box-shadow:
+    var(--shadow-glow-warm),
+    var(--shadow-inset-glass);
+}
+
+/* Ticket wallet — SOL dusk treatment (not light cream) */
+html[data-app-theme='dusk'] .my-tickets-wallet {
+  --ticket-wallet-bg: #1a2236;
+  --ticket-notch-fill: var(--ticket-wallet-bg);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -20%, rgba(192, 38, 160, 0.14), transparent 55%),
+    radial-gradient(ellipse 80% 60% at 100% 100%, rgba(249, 115, 22, 0.1), transparent 50%),
+    linear-gradient(165deg, #121828 0%, #1a2236 48%, #121828 100%);
+  border-color: rgba(249, 115, 22, 0.28);
+  box-shadow: var(--sol-card-shadow);
+}
+
+html[data-app-theme='dusk'] .my-tickets-wallet__title-my {
+  color: var(--color-sunset-pink);
+}
+
+html[data-app-theme='dusk'] .my-tickets-wallet__title-tickets,
+html[data-app-theme='dusk'] .my-tickets-wallet__count {
+  color: var(--sol-text);
+}
+
+html[data-app-theme='dusk'] .my-tickets-wallet__count {
+  background-color: var(--sol-surface);
+  border-color: rgba(249, 115, 22, 0.32);
+  color: var(--color-sunset-orange);
+}
+
+html[data-app-theme='dusk'] .my-tickets-wallet__empty {
+  border-color: rgba(249, 115, 22, 0.28);
+  background: rgb(255 255 255 / 0.04);
+}
+
+html[data-app-theme='dusk'] .my-tickets-wallet__perforation {
+  background-image: radial-gradient(
+    circle at 6px 50%,
+    transparent 2.5px,
+    rgba(255, 255, 255, 0.14) 2.5px
+  );
+}
+
+/* Modals / sheets that still use cream shell token */
+html[data-app-theme='dusk'] :is(.animate-slide-up-panel, .shadow-float).bg-cream {
+  background-color: var(--sol-surface-raised);
+  border: 1px solid var(--sol-border);
+  box-shadow: var(--shadow-float), var(--shadow-inset-glass);
+}
+
+@layer components {
+  .app-surface-card {
+    @apply rounded-[14px] border border-brown/10 bg-white shadow-sm;
+  }
+
+  html[data-app-theme='dusk'] .app-surface-card {
+    background-color: var(--sol-surface);
+    border-color: var(--sol-border);
+    box-shadow: var(--sol-card-shadow);
+  }
+
+  .app-field {
+    @apply w-full rounded-[14px] border border-brown/15 bg-white text-sm text-brown outline-none transition placeholder:text-brown-muted/60 focus:border-purple focus:ring-2 focus:ring-purple/20;
+  }
+
+  html[data-app-theme='dusk'] .app-field {
+    background-color: var(--sol-field-bg);
+    border-color: var(--sol-border);
+    color: var(--sol-text);
+  }
+
+  html[data-app-theme='dusk'] .app-field::placeholder {
+    color: var(--sol-placeholder);
+  }
+
+  html[data-app-theme='dusk'] .app-field:focus {
+    border-color: var(--sol-focus-border);
+    box-shadow: 0 0 0 2px var(--sol-focus-ring);
+  }
+
+  html[data-app-theme='dusk'] select.app-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+
+  html[data-app-theme='dusk'] select.app-field option,
+  html[data-app-theme='dusk'] select.app-field optgroup {
+    background-color: var(--sol-surface);
+    color: var(--sol-text);
+  }
+}
+
+/* Elevated panels — avoid large pure-white surfaces (keep bg-white/xx overlays & dots) */
+html[data-app-theme='dusk'] :is(section, article, li, details).bg-white:not([class*='bg-white/']) {
+  background-color: var(--sol-surface);
+}
+
+html[data-app-theme='dusk'] :is(.shadow-sm, .shadow-float, .shadow-xl, .shadow-2xl).bg-white:not(
+    [class*='bg-white/']
+  ) {
+  background-color: var(--sol-surface);
+}
+
+/* Sign-in / sign-up auth card */
+html[data-app-theme='dusk'] .auth-flow-page .auth-flow-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(249, 115, 22, 0.18),
+    rgba(192, 46, 141, 0.14),
+    rgba(11, 15, 26, 0.9)
+  );
+}
+
+html[data-app-theme='dusk'] .auth-flow-page .auth-flow-blur {
+  background: rgba(11, 15, 26, 0.55);
+}
+
+html[data-app-theme='dusk'] .auth-oauth-button {
+  background-color: var(--sol-surface-raised);
+  border-color: var(--sol-border);
+  color: var(--sol-text);
+}
+
+html[data-app-theme='dusk'] .auth-oauth-button:hover {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+html[data-app-theme='dusk'] .install-app-sheet {
+  background-color: var(--sol-surface);
+  color: var(--sol-text);
+  border-top: 1px solid var(--sol-border);
+}
+
+html[data-app-theme='dusk'] .install-app-sheet .install-step-row {
+  background-color: var(--sol-surface-raised);
+  border-color: var(--sol-border);
+  color: var(--sol-text);
+}
+
+html[data-app-theme='dusk'] .event-photo-slot {
+  border-color: var(--sol-border);
+  background-color: var(--sol-field-bg);
+}
+
+html[data-app-theme='dusk'] .rounded-tudu-lg.bg-white,
+html[data-app-theme='dusk'] .rounded-tudu.bg-white {
+  background-color: var(--sol-surface);
+  border-color: var(--sol-border-subtle);
+}
+
+html[data-app-theme='dusk'] .ring-brown\/5 {
+  --tw-ring-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-app-theme='dusk'] .ticket-perforation {
+  background-image: radial-gradient(
+    circle at 6px 50%,
+    transparent 3px,
+    var(--ticket-perforation-dot, var(--color-midnight-elevated)) 3px
+  );
+}
+
+/* Form controls — catch inline Tailwind field classes (consumer only; admin excluded above) */
+html[data-app-theme='dusk']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+        [type='hidden']
+      ):not([type='file']):not([type='submit']):not([type='button']):not([type='image']):not(
+        .admin-input
+      ),
+    input[type='search'],
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  ) {
+  background-color: var(--sol-field-bg) !important;
+  color: var(--sol-text) !important;
+  border-color: var(--sol-border) !important;
+}
+
+html[data-app-theme='dusk']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not(.admin-input),
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  )::placeholder {
+  color: var(--sol-placeholder) !important;
+}
+
+html[data-app-theme='dusk']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not(.admin-input),
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  ):focus {
+  border-color: var(--sol-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--sol-focus-ring) !important;
+  outline: none;
+}
+
+html[data-app-theme='dusk'] .app-field[class*='bg-cream'] {
+  background-color: var(--sol-surface-raised) !important;
+}
+
+html[data-app-theme='dusk'] select option,
+html[data-app-theme='dusk'] select optgroup {
+  background-color: var(--sol-surface);
+  color: var(--sol-text);
+}
+
+/* Autofill / browser defaults — address fields often flash white in dark mode */
+html[data-app-theme='dusk']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill,
+html[data-app-theme='dusk']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill:hover,
+html[data-app-theme='dusk']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--sol-field-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--sol-field-bg) inset !important;
+  -webkit-text-fill-color: var(--sol-text) !important;
+  caret-color: var(--sol-text);
+}
+
+html[data-app-theme='dusk'] .admin-shell :is(.admin-input, .admin-select, textarea.admin-input) {
+  background-color: var(--admin-surface-raised) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+html[data-app-theme='dusk'] .admin-shell :is(.admin-input, .admin-select, textarea.admin-input):focus {
+  border-color: var(--admin-accent) !important;
+  box-shadow: 0 0 0 2px var(--admin-focus-ring) !important;
+}
+
+html[data-app-theme='dusk'] .admin-shell :is(.admin-input, .admin-select)::placeholder {
+  color: var(--admin-text-muted) !important;
+}
+
+/* Softer list / row fills (settings, My Tudu) */
+html[data-app-theme='dusk'] .bg-cream\/30 {
+  background-color: rgb(26 34 54 / 0.55);
+}
+
+html[data-app-theme='dusk'] .bg-cream\/40 {
+  background-color: var(--sol-surface-raised);
+}
+
+html[data-app-theme='dusk'] .hover\:bg-cream\/60:hover,
+html[data-app-theme='dusk'] .hover\:bg-cream\/80:hover {
+  background-color: rgb(255 255 255 / 0.06);
+}
+
+html[data-app-theme='dusk'] .bg-white\/80 {
+  background-color: var(--sol-surface-raised);
+}
+
+html[data-app-theme='dusk'] .bg-white\/95 {
+  background-color: rgb(18 24 40 / 0.92);
+}
+
+html[data-app-theme='dusk'] button.bg-white:not([class*='bg-white/']),
+html[data-app-theme='dusk'] label.bg-white:not([class*='bg-white/']) {
+  background-color: var(--sol-surface);
+}
+
+/* Save / action toasts — default uses bg-brown, which maps to light text on dusk */
+html[data-app-theme='dusk'] .app-toast.bg-brown {
+  background-color: var(--sol-surface);
+  color: var(--sol-text);
+  border: 1px solid var(--sol-border);
+  box-shadow: var(--sol-card-shadow);
+}
+
+/* Legacy light status chips — map to dark surfaces when dusk theme is active */
+html[data-app-theme='dusk'] :is(.bg-amber-50, .bg-emerald-50, [class*='bg-emerald-50/']) {
+  background-color: var(--sol-surface-raised) !important;
+}
+
+html[data-app-theme='dusk'] :is(.border-amber-200, .border-emerald-200) {
+  border-color: var(--sol-border) !important;
+}
+
+html[data-app-theme='dusk'] :is(.text-amber-800, .text-amber-900, .text-amber-950, .text-emerald-800) {
+  color: var(--sol-text) !important;
+}
+
+/* Discover event detail — SOL panel wash + glass footer */
+html[data-app-theme='dusk'] .discover-detail-panel {
+  background-color: var(--sol-surface-raised);
+  background-image:
+    radial-gradient(ellipse 100% 55% at 50% -8%, rgba(192, 38, 160, 0.14), transparent 58%),
+    radial-gradient(ellipse 75% 45% at 100% 100%, rgba(249, 115, 22, 0.1), transparent 52%);
+  box-shadow: var(--shadow-float), var(--shadow-inset-glass);
+}
+
+html[data-app-theme='dusk'] .discover-detail-hero-frame {
+  background-color: var(--sol-surface);
+  border-color: var(--sol-border);
+  box-shadow: var(--shadow-inset-glass);
+}
+
+html[data-app-theme='dusk'] .discover-detail-footer {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--shadow-inset-glass), 0 -8px 32px rgba(0, 0, 0, 0.28);
+}
+
+/* Event Manager — SOL action grid + profile card */
+html[data-app-theme='dusk'] .host-event-manager .pref-choice:not(.pref-choice--active) {
+  border-color: var(--sol-border);
+  background-color: var(--sol-surface-raised);
+}
+
+html[data-app-theme='dusk'] .host-event-manager .pref-choice:not(.pref-choice--active):hover {
+  border-color: rgba(249, 115, 22, 0.22);
+  background-color: rgba(249, 115, 22, 0.06);
+}
+
+html[data-app-theme='dusk'] .host-analytics-panel {
+  border-color: var(--sol-border);
+  box-shadow: var(--sol-card-shadow);
+}
+
+/* Edit Profile — SOL form shell */
+html[data-app-theme='dusk'] .host-edit-profile .app-surface-card,
+html[data-app-theme='dusk'] .host-profile-preview .app-surface-card {
+  background-color: var(--sol-surface);
+  border-color: var(--sol-border);
+  box-shadow: var(--sol-card-shadow);
+}
+
+html[data-app-theme='dusk'] .host-profile-preview {
+  background-color: var(--color-page-bg);
+  background-image: var(--sol-ambient-bg);
+  color: var(--sol-text);
+}
+
+html[data-app-theme='dusk'] .host-profile-preview .glass-surface {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+}
+
+html[data-app-theme='dusk'] .host-edit-profile-panel {
+  background-color: var(--sol-surface);
+  background-image:
+    radial-gradient(ellipse 100% 55% at 50% -8%, rgba(192, 38, 160, 0.12), transparent 58%),
+    radial-gradient(ellipse 75% 45% at 100% 100%, rgba(249, 115, 22, 0.08), transparent 52%);
+  border-color: var(--sol-border);
+  box-shadow: var(--sol-card-shadow);
+}
+
+html[data-app-theme='dusk'] .host-edit-profile .app-field {
+  background-color: var(--sol-field-bg);
+  border-color: var(--sol-border);
+  color: var(--sol-text);
+}
+
+html[data-app-theme='dusk'] .host-edit-profile .app-field:focus {
+  border-color: var(--sol-focus-border);
+  box-shadow: 0 0 0 2px var(--sol-focus-ring);
+}
+
+html[data-app-theme='dusk'] .my-settings-shell .app-surface-card,
+html[data-app-theme='dusk'] .my-settings-shell .host-edit-profile-panel {
+  background-color: var(--sol-surface);
+  background-image:
+    radial-gradient(ellipse 100% 55% at 50% -8%, rgba(192, 38, 160, 0.12), transparent 58%),
+    radial-gradient(ellipse 75% 45% at 100% 100%, rgba(249, 115, 22, 0.08), transparent 52%);
+  border-color: var(--sol-border);
+  box-shadow: var(--sol-card-shadow);
+}
+
+html[data-app-theme='dusk'] .my-settings-shell .app-field {
+  background-color: var(--sol-field-bg);
+  border-color: var(--sol-border);
+  color: var(--sol-text);
+}

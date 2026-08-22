@@ -40,7 +40,7 @@ export default function GradientButton({
   ...rest
 }: GradientButtonProps) {
   const classes = [
-    'inline-flex items-center justify-center rounded-full px-6 py-3 font-display text-sm font-bold tracking-wide transition duration-[var(--duration-fast)]',
+    'inline-flex items-center justify-center rounded-[14px] px-6 py-3 font-display text-sm font-bold tracking-wide transition duration-[var(--duration-fast)]',
     variantClasses[variant],
     fullWidth ? 'w-full' : '',
     className,

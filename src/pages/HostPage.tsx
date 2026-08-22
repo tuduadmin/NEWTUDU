@@ -13,7 +13,7 @@ export default function HostPage() {
       <AppHeader />
 
       <main>
-        <div className="relative mx-4 mt-2 h-48 overflow-hidden rounded-[var(--radius-xl)]">
+        <div className="relative mx-4 mt-2 h-48 overflow-hidden rounded-[14px]">
           <img src={HERO_IMAGE} alt="" className="absolute inset-0 h-full w-full object-cover" />
           <div className="overlay-readability absolute inset-0" />
           <div className="relative flex h-full flex-col justify-end p-5">
@@ -28,7 +28,7 @@ export default function HostPage() {
         </div>
 
         <div className="space-y-4 px-4 py-6">
-          <div className="rounded-[var(--radius-xl)] glass-surface p-5">
+          <div className="rounded-[14px] glass-surface p-5">
             <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-magenta/20">
               <Ticket size={24} className="text-sunset-orange" />
             </div>
@@ -38,8 +38,8 @@ export default function HostPage() {
             </p>
             <ul className="mt-4 space-y-2 text-sm text-white/72">
               {[
-                'Low flat-fees — keep more of what you earn',
-                'No listing fees — publish events for free',
+                'Low flat-fees - keep more of what you earn',
+                'No listing fees - publish events for free',
                 'Instant payouts when attendees RSVP',
               ].map((item) => (
                 <li key={item} className="flex items-start gap-2">
@@ -57,7 +57,7 @@ export default function HostPage() {
             to="/discover"
             className="block text-center text-sm font-semibold text-white/48 no-underline transition hover:text-sunset-orange"
           >
-            Browse events instead →
+            {'Browse events instead ->'}
           </Link>
         </div>
       </main>

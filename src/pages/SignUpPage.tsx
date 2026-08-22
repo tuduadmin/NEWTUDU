@@ -4,6 +4,9 @@ import { signUp } from '../lib/auth'
 import Header from '../components/Header'
 import GradientButton from '../components/GradientButton'
 import Footer from '../components/Footer'
+import AddToHomeScreenButton from '../components/AddToHomeScreenButton'
+import InstallAppOverlay from '../components/settings/InstallAppOverlay'
+import { usePwaInstall } from '../hooks/usePwaInstall'
 import {
   CakeIcon,
   CalendarIcon,
@@ -89,6 +92,7 @@ function splitName(fullName: string): { firstName: string; lastName: string } {
 
 export default function SignUpPage() {
   const navigate = useNavigate()
+  const pwaInstall = usePwaInstall()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -133,7 +137,7 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-svh bg-cream">
+    <div className="app-page-shell min-h-svh">
       <Header variant="light" />
 
       <main className="mx-auto max-w-lg px-4 py-8 sm:px-6">
@@ -291,6 +295,24 @@ export default function SignUpPage() {
           </GradientButton>
         </form>
 
+        {!pwaInstall.isInstalled && (
+          <div className="mt-8">
+            <AddToHomeScreenButton
+              busy={pwaInstall.installBusy}
+              onClick={() => void pwaInstall.requestInstall()}
+            />
+            {pwaInstall.installHint ? (
+              <p className="mt-2 text-center text-xs text-red-400" role="status">
+                {pwaInstall.installHint}
+              </p>
+            ) : (
+              <p className="mt-2 text-center text-xs text-brown-muted">
+                One tap installs Tudu on this device when your browser supports it.
+              </p>
+            )}
+          </div>
+        )}
+
         <p className="mt-8 text-center text-sm text-brown-muted">
           Already have an account?{' '}
           <Link to="/signin" className="font-semibold text-orange no-underline hover:underline">
@@ -298,6 +320,8 @@ export default function SignUpPage() {
           </Link>
         </p>
       </main>
+
+      <InstallAppOverlay open={pwaInstall.instructionsOpen} onClose={pwaInstall.closeInstructions} />
 
       <Footer variant="marketing" />
     </div>

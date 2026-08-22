@@ -39,7 +39,7 @@ export default function AvatarStoryRing({
           className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-electric-blue text-[8px] text-white ring-2 ring-midnight"
           aria-label="Verified"
         >
-          ✓
+          âœ“
         </span>
       )}
     </div>
