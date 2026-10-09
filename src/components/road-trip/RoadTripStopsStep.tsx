@@ -9,7 +9,11 @@ import { appFieldClass } from '../../lib/formFieldClasses'
 import type { DiscoverEvent } from '../../data/discoverEvents'
 import { resolveEventFromAnySource } from '../../lib/bucketLists'
 import { projectTripRouteToMapPins, getRoadTripMapViewFromPoints } from '../../lib/roadTripGeo'
-import { getTripPlannedCities, getTripRoutePoints } from '../../lib/roadTripRoute'
+import {
+  getTripGoogleMapsDirectionsUrl,
+  getTripPlannedCities,
+  getTripRoutePoints,
+} from '../../lib/roadTripRoute'
 import { getSavedEventIdsForUser } from '../../lib/savedEvents'
 import type { RoadTrip } from '../../lib/roadTrips'
 import {
@@ -38,6 +42,10 @@ export default function RoadTripStopsStep({ trip, userEmail, onRefresh }: RoadTr
   const mapView = useMemo(
     () => getRoadTripMapViewFromPoints(routePoints),
     [routePoints],
+  )
+  const directionsUrl = useMemo(
+    () => getTripGoogleMapsDirectionsUrl(trip, stops),
+    [trip, stops],
   )
 
   const savedEvents = useMemo(() => {
@@ -71,6 +79,7 @@ export default function RoadTripStopsStep({ trip, userEmail, onRefresh }: RoadTr
         pins={mapPins}
         stopCount={mapPins.length || stops.length}
         mapView={mapView}
+        directionsUrl={directionsUrl}
       />
 
       <div>

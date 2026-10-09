@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Minus, Plus, ShoppingBag } from 'lucide-react'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
@@ -8,11 +8,9 @@ import { BackLink } from '../components/NavActionButtons'
 import { getHostEventById } from '../lib/account'
 import { getCurrentUser } from '../lib/auth'
 import {
-  MERCH_PLATFORM_FEE_CENTS,
-  calcMerchPlatformFee,
-  createMerchOrderWithValidation,
   firstAvailableMerchSize,
   formatMerchMoney,
+  MERCH_PLATFORM_FEE_CENTS,
   getMerchProductsForEvent,
   getMerchSizeAvailable,
   isMerchSizeSoldOut,
@@ -20,6 +18,10 @@ import {
   type MerchOrderLine,
   type MerchSize,
 } from '../lib/eventMerch'
+import { summarizeMerchCheckout } from '../lib/merchCheckout'
+import { getEventMerchFeeMode } from '../lib/merchFeeMode'
+import { beginPaidCheckout, fulfillPayment, isStripeCheckoutConfigured } from '../lib/payments'
+import { consumePendingMerchFulfillment } from '../lib/payments/pendingMerchCheckout'
 import { resolveTicketHolderName } from '../lib/ticketHolderName'
 
 type CartLine = {
@@ -47,12 +49,28 @@ export default function EventMarketplacePage() {
   const [cart, setCart] = useState<Record<string, CartLine>>({})
   const [selectedSizes, setSelectedSizes] = useState<Record<string, MerchSize>>({})
   const [checkoutError, setCheckoutError] = useState('')
+  const [checkingOut, setCheckingOut] = useState(false)
+  const stripeLive = isStripeCheckoutConfigured()
+  const checkoutSuccess = searchParams.get('checkout') === 'success'
+
+  useEffect(() => {
+    if (!checkoutSuccess || !user) return
+    const pending = consumePendingMerchFulfillment()
+    if (!pending || pending.eventId !== eventId) return
+    const result = fulfillPayment(pending)
+    if (result.ok && result.merchOrderId) {
+      navigate(`/my-tudu/pickups/${result.merchOrderId}`, { replace: true })
+    }
+  }, [checkoutSuccess, user, eventId, navigate])
 
   const cartLines = Object.values(cart)
-  const itemCount = cartLines.reduce((sum, l) => sum + l.quantity, 0)
-  const subtotalCents = cartLines.reduce((sum, l) => sum + l.unitPriceCents * l.quantity, 0)
-  const platformFeeCents = calcMerchPlatformFee(itemCount)
-  const totalCents = subtotalCents + platformFeeCents
+  const merchFeeMode = getEventMerchFeeMode(event)
+  const checkoutSummary = summarizeMerchCheckout(
+    cartLines.map((l) => ({ unitPriceCents: l.unitPriceCents, quantity: l.quantity })),
+    merchFeeMode,
+  )
+  const { itemCount, subtotalCents, platformFeeCents, stripeFeeCents, totalCents, feeMode } =
+    checkoutSummary
 
   function getSelectedSize(productId: string, product: (typeof products)[number]): MerchSize | undefined {
     const picked = selectedSizes[productId]
@@ -109,7 +127,7 @@ export default function EventMarketplacePage() {
     })
   }
 
-  function handleCheckout() {
+  async function handleCheckout() {
     setCheckoutError('')
     if (!user) {
       setCheckoutError('Sign in to pre-order merch.')
@@ -128,20 +146,28 @@ export default function EventMarketplacePage() {
       unitPriceCents: l.unitPriceCents,
     }))
 
-    const result = createMerchOrderWithValidation({
-      userEmail: user.email,
-      eventId,
-      ticketId,
-      lines,
-      holderName: resolveTicketHolderName(user.email),
-    })
-
-    if (!result.ok) {
-      setCheckoutError(result.error)
-      return
+    setCheckingOut(true)
+    try {
+      const paid = await beginPaidCheckout({
+        kind: 'merch_order',
+        eventId,
+        userEmail: user.email,
+        ticketId,
+        holderName: resolveTicketHolderName(user.email),
+        lines,
+      })
+      if (paid.outcome === 'redirect') return
+      if (paid.outcome === 'error') {
+        setCheckoutError(paid.error)
+        return
+      }
+      if (paid.merchOrderId) {
+        setCart({})
+        navigate(`/my-tudu/pickups/${paid.merchOrderId}`)
+      }
+    } finally {
+      setCheckingOut(false)
     }
-
-    navigate(`/my-tudu/pickups/${result.order.id}`)
   }
 
   if (!event) {
@@ -308,23 +334,44 @@ export default function EventMarketplacePage() {
             </ul>
 
             <div className="mt-3 space-y-1 border-t border-brown/10 pt-3 text-xs text-brown-muted">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatMerchMoney(subtotalCents)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>TUDU fee ({itemCount} × {formatMerchMoney(MERCH_PLATFORM_FEE_CENTS)})</span>
-                <span>{formatMerchMoney(platformFeeCents)}</span>
-              </div>
-              <div className="flex justify-between font-display text-sm font-bold text-brown">
-                <span>Total</span>
-                <span>{formatMerchMoney(totalCents)}</span>
-              </div>
+              {feeMode === 'fees_included' ? (
+                <>
+                  <div className="flex justify-between font-display text-sm font-bold text-brown">
+                    <span>Total</span>
+                    <span>{formatMerchMoney(totalCents)}</span>
+                  </div>
+                  <p className="pt-1 text-[10px]">Processing and platform fees are included in item prices.</p>
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between">
+                    <span>Subtotal</span>
+                    <span>{formatMerchMoney(subtotalCents)}</span>
+                  </div>
+                  {platformFeeCents > 0 && (
+                    <div className="flex justify-between">
+                      <span>TUDU fee ({itemCount} item{itemCount === 1 ? '' : 's'})</span>
+                      <span>{formatMerchMoney(platformFeeCents)}</span>
+                    </div>
+                  )}
+                  {stripeFeeCents > 0 && (
+                    <div className="flex justify-between">
+                      <span>Stripe processing</span>
+                      <span>{formatMerchMoney(stripeFeeCents)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between font-display text-sm font-bold text-brown">
+                    <span>Total</span>
+                    <span>{formatMerchMoney(totalCents)}</span>
+                  </div>
+                </>
+              )}
             </div>
 
             <p className="mt-2 text-[10px] text-brown-muted">
-              Demo checkout — no payment collected. TUDU charges {formatMerchMoney(MERCH_PLATFORM_FEE_CENTS)}{' '}
-              per item, not per transaction.
+              {stripeLive
+                ? 'Secure checkout via Stripe. Order confirmation email sends after payment succeeds.'
+                : `Demo checkout — no payment collected until Stripe is connected. TUDU fee ${formatMerchMoney(MERCH_PLATFORM_FEE_CENTS)} per item.`}
             </p>
 
             {!user && (
@@ -344,10 +391,14 @@ export default function EventMarketplacePage() {
               type="button"
               fullWidth
               className="mt-3 py-3"
-              onClick={handleCheckout}
-              disabled={!user}
+              onClick={() => void handleCheckout()}
+              disabled={!user || checkingOut}
             >
-              Place pre-order · get pickup QR
+              {checkingOut
+                ? 'Processing…'
+                : stripeLive
+                  ? `Pay ${formatMerchMoney(totalCents)} · place order`
+                  : 'Place pre-order · get pickup QR'}
             </GradientButton>
           </section>
         )}

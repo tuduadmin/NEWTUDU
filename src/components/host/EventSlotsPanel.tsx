@@ -4,7 +4,6 @@ import { CalendarPlus } from 'lucide-react'
 import {
   canCreatePublicEvent,
   getCurrentAccount,
-  purchaseExtraEventSlots,
 } from '../../lib/account'
 import { formatPublicEventSlotCapacity } from '../../lib/eventSlots'
 import { getVerifyPhoneUrl } from '../../lib/verifyPhoneNav'
@@ -63,13 +62,8 @@ export default function EventSlotsPanel({ className = '' }: EventSlotsPanelProps
     setCheckoutOpen(true)
   }
 
-  function handleCompleteDemo() {
-    if (!account || !selectedPack) return
-    const result = purchaseExtraEventSlots(account.email, selectedPack.slots)
-    if (!result.ok) {
-      setToast(result.error ?? 'Purchase could not be completed.')
-      return
-    }
+  function handlePurchaseSuccess() {
+    if (!selectedPack) return
     setRefresh((r) => r + 1)
     claimFoundingSlot('extraEvent')
     setToast(`Added ${selectedPack.slots} public event slot${selectedPack.slots === 1 ? '' : 's'} to your account.`)
@@ -156,7 +150,13 @@ export default function EventSlotsPanel({ className = '' }: EventSlotsPanelProps
           lineItems={[{ label: slotPackLineItemLabel(selectedPack), amount: selectedPrice }]}
           totalAmount={selectedPrice}
           demoEnabled={shopEnabled}
-          onCompleteDemo={handleCompleteDemo}
+          fulfillment={
+            account && selectedPack
+              ? { kind: 'extra_event_slots', email: account.email, slots: selectedPack.slots }
+              : undefined
+          }
+          onCompleteDemo={handlePurchaseSuccess}
+          onCheckoutError={(message) => setToast(message)}
         />
       )}
 

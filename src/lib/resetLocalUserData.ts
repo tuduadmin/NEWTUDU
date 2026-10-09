@@ -50,6 +50,8 @@ const CONSUMER_EXACT_KEYS = new Set([
   'tudu_travel_pass',
   'tudu_travel_city',
   'tudu_gps_city',
+  'tudu-date-night-city',
+  'tudu-date-night-plan',
   'tudu-host-context',
   'tudu_personal_host_profiles',
   'tudu_org_host_profiles',

@@ -3,14 +3,17 @@ import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { Lock, Moon, Shield, Sun } from 'lucide-react'
 import { PasswordInput } from '../../components/FormFields'
 import {
+  getCurrentUser,
   getPostAuthPath,
+  hasControlRoomAccess,
   isAuthenticated,
-  isPlatformAdmin,
   seedAdminUser,
   signIn,
   signOut,
 } from '../../lib/auth'
 import { PLATFORM_ADMIN } from '../../lib/demoAccounts'
+import { useNoIndexPage } from '../../hooks/useNoIndexPage'
+import { isDevControlRoomDiscoveryEnabled } from '../../lib/controlRoomRoutes'
 import { AdminButton, AdminInput, AdminPanel } from '../../components/admin/AdminUI'
 import {
   getAdminThemeModeLabel,
@@ -25,30 +28,33 @@ type AdminSignInState = {
 }
 
 export default function AdminSignInPage() {
+  const devDiscovery = isDevControlRoomDiscoveryEnabled()
+  useNoIndexPage(devDiscovery ? 'TUDU Control — Sign in' : 'Sign in')
   const { theme, toggleTheme } = useAdminTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const redirectState = (location.state as AdminSignInState | null) ?? null
-  const [email, setEmail] = useState(PLATFORM_ADMIN.email)
-  const [password, setPassword] = useState(PLATFORM_ADMIN.password)
+  const [email, setEmail] = useState<string>(devDiscovery ? PLATFORM_ADMIN.email : '')
+  const [password, setPassword] = useState<string>(devDiscovery ? PLATFORM_ADMIN.password : '')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
 
   useEffect(() => {
-    seedAdminUser()
-    if (isAuthenticated() && !isPlatformAdmin()) {
+    if (devDiscovery) seedAdminUser()
+    const sessionEmail = getCurrentUser()?.email
+    if (isAuthenticated() && !hasControlRoomAccess(sessionEmail)) {
       signOut()
     }
-  }, [])
+  }, [devDiscovery])
 
   const infoMessage =
     redirectState?.reason === 'not_admin'
-      ? `You're signed in as ${redirectState.signedInAs ?? 'another user'}. Use platform admin credentials to open the control board.`
+      ? `You're signed in as ${redirectState.signedInAs ?? 'another user'}. Sign in with a Control Room staff account.`
       : redirectState?.reason === 'auth_required'
-        ? 'Sign in to access the TUDU Control board.'
+        ? 'Sign in to continue.'
         : null
 
-  if (isPlatformAdmin()) {
+  if (hasControlRoomAccess(getCurrentUser()?.email)) {
     return <Navigate to="/admin" replace />
   }
 
@@ -59,24 +65,27 @@ export default function AdminSignInPage() {
     e.preventDefault()
     setError('')
 
-    seedAdminUser()
+    if (devDiscovery) seedAdminUser()
 
     const trimmedEmail = email.trim()
     const trimmedPassword = password.trim()
     if (!trimmedEmail || !trimmedPassword) {
-      setError('Enter your platform admin email and password.')
+      setError('Enter your work email and password.')
       return
     }
 
     const result = signIn(trimmedEmail, trimmedPassword)
     if (!result.ok) {
-      setError(result.error ?? 'Invalid credentials. Demo: admin@tudu.ca / admin123')
+      setError(
+        result.error ??
+          (devDiscovery ? 'Invalid credentials. Demo: admin@tudu.ca / admin123' : 'Invalid credentials.'),
+      )
       return
     }
 
-    if (!isPlatformAdmin(trimmedEmail)) {
+    if (!hasControlRoomAccess(trimmedEmail)) {
       signOut()
-      setError('This account is not a platform admin.')
+      setError('This account does not have Control Room access.')
       return
     }
 
@@ -98,8 +107,8 @@ export default function AdminSignInPage() {
             <Shield size={20} />
           </span>
           <div className="min-w-0 flex-1">
-            <p className="admin-label admin-brand-label">TUDU Control</p>
-            <h1 className="text-base font-semibold">Platform Admin Sign In</h1>
+            {devDiscovery && <p className="admin-label admin-brand-label">TUDU Control</p>}
+            <h1 className="text-base font-semibold">{devDiscovery ? 'Control Room sign in' : 'Sign in'}</h1>
           </div>
           <button
             type="button"
@@ -126,7 +135,7 @@ export default function AdminSignInPage() {
               id="admin-email"
               type="email"
               autoComplete="email"
-              placeholder={PLATFORM_ADMIN.email}
+              placeholder={devDiscovery ? PLATFORM_ADMIN.email : 'Work email'}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -164,13 +173,15 @@ export default function AdminSignInPage() {
           )}
 
           <AdminButton type="submit" variant="primary" className="mt-2 w-full py-2">
-            Enter control room
+            {devDiscovery ? 'Enter control room' : 'Continue'}
           </AdminButton>
         </form>
 
-        <p className="mt-4 text-center text-[10px] text-[var(--admin-text-dim)]">
-          Demo: admin@tudu.ca / admin123
-        </p>
+        {devDiscovery && (
+          <p className="mt-4 text-center text-[10px] leading-relaxed text-[var(--admin-text-dim)]">
+            Dev only: admin@tudu.ca / admin123
+          </p>
+        )}
       </AdminPanel>
     </div>
   )

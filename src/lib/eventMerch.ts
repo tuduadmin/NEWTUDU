@@ -4,6 +4,7 @@
  */
 
 import { getHostEventById, getHostEvents, type HostEvent } from './account'
+import { notifyMerchOrderShipped } from './merchOrderNotifications'
 import { resolveTicketHolderName } from './ticketHolderName'
 
 export const MERCH_PLATFORM_FEE_CENTS = 49
@@ -20,6 +21,46 @@ export function sortMerchSizes(sizes: MerchSize[]): MerchSize[] {
   )
 }
 
+export type MerchProductFulfillment = 'event_pickup' | 'ship_ahead'
+
+/** Saved on the create-event wizard until the event is published. */
+export type EventMerchDraftProduct = {
+  id: string
+  name: string
+  priceCents: number
+  sizes: MerchSize[]
+  sizeStock: Partial<Record<MerchSize, number>>
+  fulfillment: MerchProductFulfillment
+  imageUrl?: string
+}
+
+export function applyMerchDraftToEvent(
+  eventId: string,
+  hostAccountId: string | null | undefined,
+  enabled: boolean,
+  drafts: EventMerchDraftProduct[],
+): void {
+  if (!enabled || drafts.length === 0) return
+  for (const draft of drafts) {
+    if (!draft.name.trim()) continue
+    saveMerchProduct({
+      eventId,
+      hostAccountId: hostAccountId ?? null,
+      name: draft.name.trim(),
+      priceCents: draft.priceCents,
+      sizes: draft.sizes.length > 0 ? draft.sizes : ['One Size'],
+      sizeStock: buildSizeStockForSizes(
+        draft.sizes.length > 0 ? draft.sizes : ['One Size'],
+        draft.sizeStock,
+        10,
+      ),
+      fulfillment: draft.fulfillment,
+      imageUrl: draft.imageUrl,
+      active: true,
+    })
+  }
+}
+
 export type EventMerchProduct = {
   id: string
   eventId: string
@@ -31,6 +72,8 @@ export type EventMerchProduct = {
   sizes: MerchSize[]
   /** Total units available per size (pre-order cap). */
   sizeStock?: Partial<Record<MerchSize, number>>
+  /** Pre-order ships before the event (tracking email when host marks shipped). */
+  fulfillment?: MerchProductFulfillment
   active: boolean
   createdAt: string
 }
@@ -55,10 +98,16 @@ export type MerchOrder = {
   totalCents: number
   pickupNumber: string
   holderName: string
-  status: 'pending_pickup' | 'picked_up'
+  status: 'pending_pickup' | 'shipped' | 'picked_up'
+  /** True when any line item is ship-ahead pre-order. */
+  requiresShipping: boolean
+  trackingNumber?: string
+  shippedAt?: string
   purchasedAt: string
   pickedUpAt?: string
 }
+
+export const MERCH_ORDERS_CHANGED_EVENT = 'tudu-merch-orders-changed'
 
 export type MerchStockLine = {
   productId: string
@@ -78,11 +127,14 @@ export type MerchFulfillmentRow = {
   size: MerchSize
   quantity: number
   status: MerchOrder['status']
+  requiresShipping: boolean
+  trackingNumber?: string
   purchasedAt: string
   pickedUpAt?: string
+  shippedAt?: string
 }
 
-export type MerchFulfillmentStatusFilter = 'all' | 'pending_pickup' | 'picked_up'
+export type MerchFulfillmentStatusFilter = 'all' | 'pending_pickup' | 'shipped' | 'picked_up'
 
 const PRODUCTS_KEY = 'tudu_event_merch_products'
 const ORDERS_KEY = 'tudu_merch_orders'
@@ -119,14 +171,36 @@ function writeProducts(
 function readOrders(): MerchOrder[] {
   try {
     const raw = localStorage.getItem(ORDERS_KEY)
-    return raw ? (JSON.parse(raw) as MerchOrder[]) : []
+    return raw ? (JSON.parse(raw) as MerchOrder[]).map(normalizeMerchOrder) : []
   } catch {
     return []
   }
 }
 
+function orderRequiresShipping(lines: MerchOrderLine[]): boolean {
+  for (const line of lines) {
+    const product = getMerchProduct(line.productId)
+    if (product?.fulfillment === 'ship_ahead') return true
+  }
+  return false
+}
+
+function normalizeMerchOrder(order: MerchOrder): MerchOrder {
+  return {
+    ...order,
+    requiresShipping: order.requiresShipping === true,
+    status:
+      order.status === 'picked_up' || order.status === 'shipped'
+        ? order.status
+        : 'pending_pickup',
+  }
+}
+
 function writeOrders(orders: MerchOrder[]): void {
   localStorage.setItem(ORDERS_KEY, JSON.stringify(orders))
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(MERCH_ORDERS_CHANGED_EVENT))
+  }
 }
 
 function generateId(prefix: string): string {
@@ -159,7 +233,12 @@ export function normalizeMerchProduct(product: EventMerchProduct): EventMerchPro
     sizeStock[size] =
       raw == null || !Number.isFinite(raw) || raw < 0 ? DEFAULT_SIZE_STOCK : Math.floor(raw)
   }
-  return { ...product, sizes, sizeStock }
+  return {
+    ...product,
+    sizes,
+    sizeStock,
+    fulfillment: product.fulfillment === 'ship_ahead' ? 'ship_ahead' : 'event_pickup',
+  }
 }
 
 export function buildSizeStockForSizes(
@@ -324,6 +403,8 @@ export function createMerchOrder(input: CreateMerchOrderInput): MerchOrder | nul
   const email = normalizeEmail(input.userEmail)
   const holderName = input.holderName?.trim() || resolveTicketHolderName(email)
 
+  const requiresShipping = orderRequiresShipping(input.lines)
+
   const order: MerchOrder = {
     id: generateId('mord'),
     userEmail: email,
@@ -337,6 +418,7 @@ export function createMerchOrder(input: CreateMerchOrderInput): MerchOrder | nul
     pickupNumber: '',
     holderName,
     status: 'pending_pickup',
+    requiresShipping,
     purchasedAt: new Date().toISOString(),
   }
   order.pickupNumber = formatPickupNumber(order.id)
@@ -345,6 +427,40 @@ export function createMerchOrder(input: CreateMerchOrderInput): MerchOrder | nul
   orders.unshift(order)
   writeOrders(orders.slice(0, 2000))
   return order
+}
+
+export function markMerchOrderShipped(
+  orderId: string,
+  trackingNumber: string,
+): { ok: true; order: MerchOrder } | { ok: false; error: string } {
+  const trimmed = trackingNumber.trim()
+  if (!trimmed) return { ok: false, error: 'Enter a tracking or confirmation number.' }
+
+  const orders = readOrders()
+  const idx = orders.findIndex((o) => o.id === orderId)
+  if (idx < 0) return { ok: false, error: 'Order not found.' }
+
+  const order = orders[idx]
+  if (!order.requiresShipping) {
+    return { ok: false, error: 'This order is event pickup only — use Mark picked up.' }
+  }
+  if (order.status === 'picked_up') {
+    return { ok: false, error: 'Order is already closed.' }
+  }
+
+  order.status = 'shipped'
+  order.trackingNumber = trimmed
+  order.shippedAt = new Date().toISOString()
+  orders[idx] = order
+  writeOrders(orders)
+  notifyMerchOrderShipped(order, trimmed)
+  return { ok: true, order }
+}
+
+export function getMerchOrdersAwaitingShipment(eventId: string): MerchOrder[] {
+  return getMerchOrdersForEvent(eventId).filter(
+    (o) => o.requiresShipping && o.status === 'pending_pickup',
+  )
 }
 
 export function createMerchOrderWithValidation(
@@ -436,8 +552,11 @@ export function getMerchFulfillmentRows(eventId: string): MerchFulfillmentRow[] 
         size: line.size,
         quantity: line.quantity,
         status: order.status,
+        requiresShipping: order.requiresShipping,
+        trackingNumber: order.trackingNumber,
         purchasedAt: order.purchasedAt,
         pickedUpAt: order.pickedUpAt,
+        shippedAt: order.shippedAt,
       })
     }
   }
@@ -489,7 +608,13 @@ export function exportMerchFulfillmentCsv(eventTitle: string, rows: MerchFulfill
     row.productName,
     row.size,
     String(row.quantity),
-    row.status === 'picked_up' ? 'Picked up' : 'Waiting',
+    row.status === 'picked_up'
+      ? 'Picked up'
+      : row.status === 'shipped'
+        ? `Shipped${row.trackingNumber ? ` (${row.trackingNumber})` : ''}`
+        : row.requiresShipping
+          ? 'Awaiting shipment'
+          : 'Waiting pickup',
     row.purchasedAt,
     row.pickedUpAt ?? '',
     row.orderId,
@@ -514,7 +639,7 @@ export function getMerchStockReport(eventId: string): MerchStockLine[] {
   const byKey = new Map<string, MerchStockLine>()
 
   for (const order of getMerchOrdersForEvent(eventId)) {
-    if (order.status === 'picked_up') continue
+    if (order.status === 'picked_up' || order.status === 'shipped') continue
     for (const line of order.lines) {
       const key = `${line.productId}:${line.size}`
       const existing = byKey.get(key)
@@ -623,7 +748,7 @@ export function getPrimaryMarketplaceEventId(
   return products[0]?.eventId ?? null
 }
 
-function getEventsForHostProfile(hostKind: 'personal' | 'org', hostId: string): HostEvent[] {
+export function getEventsForHostProfile(hostKind: 'personal' | 'org', hostId: string): HostEvent[] {
   const events = getHostEvents()
   if (hostKind === 'org') {
     return events.filter((e) => e.hostAccountId === hostId)
@@ -686,4 +811,106 @@ export function openHostMarketplace(
   }
   window.open(target.url, '_blank', 'noopener,noreferrer')
   return true
+}
+
+export type HostMarketplaceEventRow = {
+  eventId: string
+  eventTitle: string
+  eventStatus: HostEvent['status']
+  productCount: number
+  openStockUnits: number
+  ordersCount: number
+  itemsSold: number
+  grossSalesCents: number
+  pendingPickup: number
+  awaitingShipment: number
+}
+
+export type HostMarketplaceSummary = {
+  totalOrders: number
+  totalItems: number
+  grossSalesCents: number
+  platformFeeCents: number
+  pendingPickup: number
+  awaitingShipment: number
+  events: HostMarketplaceEventRow[]
+}
+
+export function getHostMarketplaceSummary(
+  hostKind: 'personal' | 'org',
+  hostId: string,
+): HostMarketplaceSummary {
+  seedDemoMerchIfNeeded()
+  const events = getEventsForHostProfile(hostKind, hostId).filter((e) => e.status !== 'draft')
+  const eventIds = new Set(events.map((e) => e.id))
+  const orders = readOrders().filter((o) => eventIds.has(o.eventId))
+
+  let totalItems = 0
+  let grossSalesCents = 0
+  let platformFeeCents = 0
+  let pendingPickup = 0
+  let awaitingShipment = 0
+
+  for (const order of orders) {
+    totalItems += order.itemCount
+    grossSalesCents += order.subtotalCents
+    platformFeeCents += order.platformFeeCents
+    if (order.status === 'pending_pickup') {
+      if (order.requiresShipping) awaitingShipment += 1
+      else pendingPickup += 1
+    }
+  }
+
+  const eventRows: HostMarketplaceEventRow[] = events.map((event) => {
+    const eventOrders = orders.filter((o) => o.eventId === event.id)
+    const products = getMerchProductsForEvent(event.id)
+    let openStockUnits = 0
+    for (const product of products) {
+      for (const size of product.sizes) {
+        openStockUnits += getMerchSizeAvailable(product, size)
+      }
+    }
+    let itemsSold = 0
+    let eventGross = 0
+    let eventPendingPickup = 0
+    let eventAwaitingShip = 0
+    for (const order of eventOrders) {
+      itemsSold += order.itemCount
+      eventGross += order.subtotalCents
+      if (order.status === 'pending_pickup') {
+        if (order.requiresShipping) eventAwaitingShip += 1
+        else eventPendingPickup += 1
+      }
+    }
+    return {
+      eventId: event.id,
+      eventTitle: event.title,
+      eventStatus: event.status,
+      productCount: products.length,
+      openStockUnits,
+      ordersCount: eventOrders.length,
+      itemsSold,
+      grossSalesCents: eventGross,
+      pendingPickup: eventPendingPickup,
+      awaitingShipment: eventAwaitingShip,
+    }
+  })
+
+  eventRows.sort((a, b) => {
+    const rank = (s: HostEvent['status']) =>
+      s === 'live' ? 0 : s === 'upcoming' ? 1 : s === 'past' ? 2 : 3
+    const byStatus = rank(a.eventStatus) - rank(b.eventStatus)
+    if (byStatus !== 0) return byStatus
+    return b.grossSalesCents - a.grossSalesCents
+  })
+
+  return {
+    totalOrders: orders.length,
+    totalItems,
+    grossSalesCents,
+    platformFeeCents,
+    pendingPickup,
+    awaitingShipment,
+    events: eventRows,
+  }
 }

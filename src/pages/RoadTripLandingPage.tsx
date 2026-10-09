@@ -1,14 +1,24 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Bookmark, Car, MapPin, Plus, Settings, Sparkles } from 'lucide-react'
+import { Bookmark, MapPin, Plus, Send, Sparkles, Car } from 'lucide-react'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
 import GradientButton from '../components/GradientButton'
 import RoadTripMapHero from '../components/road-trip/RoadTripMapHero'
 import RoadTripListCard from '../components/road-trip/RoadTripListCard'
+import RoadTripLandingHero from '../components/road-trip/RoadTripLandingHero'
+import RoadTripMoodChips from '../components/road-trip/RoadTripMoodChips'
+import RoadTripEmptyIllustration, {
+  ROAD_TRIP_EMPTY_FADE_TO,
+} from '../components/road-trip/RoadTripEmptyIllustration'
+import { useRoadTripHero } from '../hooks/useRoadTripHero'
 import { getCurrentUser } from '../lib/auth'
 import { projectTripRouteToMapPins, getRoadTripMapViewFromPoints } from '../lib/roadTripGeo'
-import { getTripPlannedCities, getTripRoutePoints } from '../lib/roadTripRoute'
+import {
+  getTripGoogleMapsDirectionsUrl,
+  getTripPlannedCities,
+  getTripRoutePoints,
+} from '../lib/roadTripRoute'
 import {
   deleteRoadTrip,
   filterRoadTripsByTab,
@@ -23,7 +33,8 @@ import { resolveTaggedFollowers } from '../lib/userFollows'
 import { getBucketLists } from '../lib/bucketLists'
 import { startRoadTripCreate } from '../lib/roadTrips'
 
-const ROAD_TRIP_PANEL = 'rounded-[14px] border border-app-subtle bg-app-elevated'
+const ROAD_TRIP_PANEL =
+  'rounded-[14px] border border-white/10 bg-midnight-elevated shadow-[0_0_24px_rgba(249,115,22,0.08)]'
 
 const TAB_ORDER: RoadTripListTab[] = ['planned', 'drafts', 'past']
 
@@ -35,6 +46,7 @@ export default function RoadTripLandingPage() {
   const [tab, setTab] = useState<RoadTripListTab>('planned')
   const [toast, setToast] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
+  const { url: heroUrl, revision: heroRevision } = useRoadTripHero()
 
   const trips = useMemo(() => {
     void refresh
@@ -96,6 +108,10 @@ export default function RoadTripLandingPage() {
     () => getRoadTripMapViewFromPoints(routePoints),
     [routePoints],
   )
+  const directionsUrl = useMemo(
+    () => (previewTrip ? getTripGoogleMapsDirectionsUrl(previewTrip, stops) : null),
+    [previewTrip, stops],
+  )
   const readOnly = tab === 'past'
 
   function reload() {
@@ -148,54 +164,38 @@ export default function RoadTripLandingPage() {
   }
 
   return (
-    <div className="app-page-shell pb-28">
+    <div className="relative app-page-shell bg-midnight pb-[calc(var(--app-bottom-nav-h)+env(safe-area-inset-bottom))] text-white">
       <AppHeaderBar logoLinkTo="/road-trip" />
 
-      <div className="flex items-start justify-between gap-3 px-4 pb-2 pt-2">
-        <div>
-          <p className="text-tagline">Road Trip</p>
-          <h1 className="font-display text-xl font-extrabold tracking-tight text-brown">Your routes</h1>
-        </div>
-        <Link
-          to="/my-tudu/settings/road-trip"
-          className="mt-1 flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-app-subtle bg-app-elevated text-brown-muted no-underline transition hover:border-orange/30 hover:text-orange"
-          aria-label="Road trip settings"
-        >
-          <Settings size={18} />
-        </Link>
-      </div>
-      <div className="px-4 pb-2">
-        <GradientButton
-          type="button"
-          fullWidth
-          className="px-4 py-2 text-sm"
-          onClick={handleCreateRoadTrip}
-        >
-          <Plus size={16} className="mr-1 inline" />
-          Create road trip
-        </GradientButton>
-      </div>
+      <RoadTripLandingHero
+        heroUrl={heroUrl}
+        heroRevision={heroRevision}
+        onCreate={handleCreateRoadTrip}
+      />
+      <RoadTripMoodChips />
 
-      <div className="space-y-4">
-        <RoadTripMapHero
-          tripName={previewTrip?.name}
-          destination={previewTrip?.destination}
-          pins={mapPins}
-          stopCount={mapPins.length || stops.length}
-          mapView={mapView}
-        />
+      <div className="mt-3 space-y-4">
+        <section className="px-4">
+          <div className="mb-3 flex items-start gap-2">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sunset-orange/15 text-sunset-orange">
+              <Send size={18} />
+            </span>
+            <div>
+              <h2 className="font-display text-base font-extrabold text-white">Road Trip</h2>
+              <p className="text-xs text-white/65">Pick a trip below or start a new adventure.</p>
+            </div>
+          </div>
 
-        <section className="mt-2 px-4">
-          <div className="flex border-b border-brown/10">
+          <div className="flex border-b border-white/10">
             {TAB_ORDER.map((tabId) => (
               <button
                 key={tabId}
                 type="button"
                 onClick={() => handleTabChange(tabId)}
-                className={`flex-1 border-b-2 pb-2.5 text-center text-sm font-semibold capitalize transition ${
+                className={`flex-1 border-b-2 pb-2.5 text-center text-sm font-bold capitalize transition ${
                   tab === tabId
-                    ? 'border-orange text-orange'
-                    : 'border-transparent text-brown-muted'
+                    ? 'border-sunset-orange text-sunset-orange shadow-[0_6px_12px_-8px_rgba(249,115,22,0.9)]'
+                    : 'border-transparent text-white/45'
                 }`}
               >
                 {tabId} ({tabCounts[tabId]})
@@ -209,23 +209,25 @@ export default function RoadTripLandingPage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder={`Search ${tab} trips...`}
-              className="app-field py-3 pl-10 pr-4"
+              className="w-full rounded-[14px] border border-white/12 bg-midnight-surface py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-sunset-orange/50 focus:ring-2 focus:ring-sunset-orange/20"
             />
             <MapPin
               size={16}
-              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-brown-muted"
+              className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40"
             />
           </div>
 
           {filteredTrips.length === 0 ? (
-            <div className={`mt-6 ${ROAD_TRIP_PANEL} p-8 text-center`}>
-              <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-cream-dark">
-                <Car size={28} className="text-brown-muted" />
-              </div>
-              <p className="font-display text-sm font-bold text-brown">
+            <div
+              className="mt-6 overflow-hidden rounded-[14px] border border-white/10 shadow-[0_0_24px_rgba(249,115,22,0.08)]"
+              style={{ backgroundColor: ROAD_TRIP_EMPTY_FADE_TO }}
+            >
+              <RoadTripEmptyIllustration />
+              <div className="px-6 pb-6 pt-3 text-center">
+              <p className="font-display text-sm font-bold text-white">
                 No {tab} trips found.
               </p>
-              <p className="mt-1 text-xs text-brown-muted">
+              <p className="mt-1 text-xs text-white/65">
                 {tab === 'drafts'
                   ? 'Start a draft or import stops from a bucket list.'
                   : tab === 'past'
@@ -238,19 +240,20 @@ export default function RoadTripLandingPage() {
                     type="button"
                     onClick={handleCreateRoadTrip}
                     fullWidth
-                    className="px-4 py-2 text-sm"
+                    className="road-trip-cta-glow px-4 py-3 text-sm font-extrabold"
                   >
                     <Plus size={16} className="mr-1 inline" />
                     Create road trip
                   </GradientButton>
                   <Link
                     to="/road-trip/from-bucket-list"
-                    className="rounded-[14px] border border-app-subtle bg-app-elevated py-2.5 text-sm font-semibold text-brown no-underline transition hover:border-orange/30"
+                    className="rounded-[14px] border-2 border-sunset-orange/45 bg-midnight-surface py-2.5 text-sm font-bold text-sunset-orange no-underline shadow-[0_0_16px_rgba(249,115,22,0.2)] transition hover:border-sunset-orange/70"
                   >
                     From Bucket List
                   </Link>
                 </div>
               )}
+              </div>
             </div>
           ) : (
             <>
@@ -271,23 +274,51 @@ export default function RoadTripLandingPage() {
           )}
         </section>
 
+        {previewTrip && (mapPins.length > 0 || stops.length > 0) && (
+          <div>
+            <p className="mb-2 px-4 text-xs font-bold uppercase tracking-wide text-white/50">
+              Route preview
+            </p>
+            <RoadTripMapHero
+              variant="dark"
+              tripName={previewTrip.name}
+              destination={previewTrip.destination}
+              pins={mapPins}
+              stopCount={mapPins.length || stops.length}
+              mapView={mapView}
+              directionsUrl={directionsUrl}
+            />
+          </div>
+        )}
+
         <div className="mt-6 px-4 pb-2">
-          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brown-muted">
-            Start something new
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-white/50">
+            Start something new ✨
           </p>
           <div className="grid gap-2 sm:grid-cols-3">
-            <QuickLink to="/road-trip/plan" icon={<Car size={16} />} label="Plan route" />
-            <QuickLink to="/road-trip/surprise" icon={<Sparkles size={16} />} label="Surprise me" />
+            <QuickLink
+              to="/road-trip/plan"
+              icon={<Car size={16} />}
+              label="Plan route"
+              pillClass="road-trip-pill-orange text-sunset-orange"
+            />
+            <QuickLink
+              to="/road-trip/surprise"
+              icon={<Sparkles size={16} />}
+              label="Surprise me"
+              pillClass="road-trip-pill-pink text-sunset-pink"
+            />
             <QuickLink
               to="/road-trip/from-bucket-list"
               icon={<Bookmark size={16} />}
               label="From bucket list"
+              pillClass="road-trip-pill-purple text-magenta"
             />
           </div>
           {getBucketLists().length === 0 && (
-            <p className="mt-2 text-center text-[11px] text-brown-muted">
+            <p className="mt-2 text-center text-[11px] text-white/50">
               Create a{' '}
-              <Link to="/bucket-list?create=true" className="font-semibold text-orange no-underline">
+              <Link to="/bucket-list?create=true" className="font-semibold text-peach no-underline">
                 bucket list
               </Link>{' '}
               first to pull events into a trip.
@@ -297,7 +328,7 @@ export default function RoadTripLandingPage() {
 
         {invitedTrips.length > 0 && (
           <section className="mt-6 px-4">
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-brown-muted">
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-white/50">
               Shared with you
             </p>
             <ul className="space-y-3">
@@ -306,10 +337,10 @@ export default function RoadTripLandingPage() {
                 return (
                   <li
                     key={trip.id}
-                    className="overflow-hidden rounded-[14px] border border-orange/25 bg-orange/5 p-3"
+                    className="overflow-hidden rounded-[14px] border border-orange/35 bg-orange/10 p-3"
                   >
-                    <p className="font-display text-sm font-bold text-brown">{trip.name}</p>
-                    <p className="mt-0.5 text-xs text-brown-muted">
+                    <p className="font-display text-sm font-bold text-white">{trip.name}</p>
+                    <p className="mt-0.5 text-xs text-white/65">
                       {trip.destination ?? 'Route TBD'}
                       {tagged.length > 0
                         ? ` · tagged: ${tagged.map((p) => p.name).join(', ')}`
@@ -346,17 +377,19 @@ function QuickLink({
   to,
   icon,
   label,
+  pillClass,
 }: {
   to: string
   icon: ReactNode
   label: string
+  pillClass: string
 }) {
   return (
     <Link
       to={to}
-      className="flex items-center justify-center gap-2 rounded-[14px] border border-app-subtle bg-app-elevated py-2.5 text-xs font-semibold text-brown no-underline transition hover:border-orange/25"
+      className={`flex items-center justify-center gap-2 rounded-[14px] border-2 bg-midnight-surface/90 py-2.5 text-xs font-bold text-white no-underline transition active:scale-[0.98] ${pillClass}`}
     >
-      <span className="text-orange">{icon}</span>
+      {icon}
       {label}
     </Link>
   )

@@ -10,6 +10,9 @@ import type { DoorPaymentMode } from './eventDoorPayment'
 import { doorPaymentAcceptsCash } from './eventDoorPayment'
 import { normalizeWebsiteUrl } from './websiteUrl'
 import { normalizeLatLng, validateLatLng } from './geoCoordinates'
+import { DEFAULT_HIDDEN_GEM_IMAGE } from './hiddenGemDefaults'
+
+export { DEFAULT_HIDDEN_GEM_IMAGE } from './hiddenGemDefaults'
 
 const HIDDEN_GEMS_KEY = 'tudu-hidden-gems'
 
@@ -1313,6 +1316,3 @@ export function setOrgHiddenGemFeatured(
   writeJson(HIDDEN_GEMS_KEY, gems)
   return { ok: true, gem: gems[idx] }
 }
-
-export const DEFAULT_HIDDEN_GEM_IMAGE =
-  'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&q=80'

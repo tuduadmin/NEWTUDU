@@ -212,16 +212,26 @@ export default function CategoryStep({ form, updateForm }: CategoryStepProps) {
         </div>
       )}
 
-      <EventDoorPaymentPicker
-        doorPayment={form.doorPayment}
-        atmOnSite={form.atmOnSite}
-        onChange={(partial) => updateForm(partial)}
-      />
-
-      <EventAmenitiesPicker
-        amenities={form.amenities}
-        onChange={(amenities) => updateForm({ amenities })}
-      />
+      <div className="mt-8">
+        <h2 className="font-display text-xl font-extrabold text-brown">Amenities</h2>
+        <p className="mt-1 text-sm text-brown-muted">
+          Pick all amenities that apply to your event — on-site payment, access, food, and anything else
+          guests should know.
+        </p>
+        <div className="mt-4">
+        <EventDoorPaymentPicker
+          embedded
+          doorPayment={form.doorPayment}
+          atmOnSite={form.atmOnSite}
+          onChange={(partial) => updateForm(partial)}
+        />
+        <EventAmenitiesPicker
+          embedded
+          amenities={form.amenities}
+          onChange={(amenities) => updateForm({ amenities })}
+        />
+        </div>
+      </div>
     </section>
   )
 }

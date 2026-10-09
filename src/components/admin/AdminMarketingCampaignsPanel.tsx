@@ -8,6 +8,7 @@ import {
   AdminPanel,
   AdminSelect,
 } from './AdminUI'
+import AdminDatePicker from './AdminDatePicker'
 import type { ChartPoint } from '../../lib/adminAnalytics'
 import {
   addMarketingCampaign,
@@ -155,13 +156,15 @@ export default function AdminMarketingCampaignsPanel({
               </AdminSelect>
             </div>
             <div>
-              <label className="admin-label">Date posted</label>
-              <AdminInput
+              <label className="admin-label" id="marketing-pin-date-label">
+                Date posted
+              </label>
+              <AdminDatePicker
                 className="mt-1"
-                type="date"
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
                 required
+                aria-labelledby="marketing-pin-date-label"
               />
             </div>
             <div>

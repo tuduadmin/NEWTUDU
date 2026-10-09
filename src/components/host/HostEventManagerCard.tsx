@@ -33,6 +33,9 @@ import {
 import { ShareButton } from '../NavActionButtons'
 import HostEventPromotionTools, { type PromotionToolAction } from './HostEventPromotionTools'
 
+/** Event row — high contrast vs analytics gradient panel (solid card + strong shadow). */
+const HOST_EVENT_CARD =
+  'host-event-manager-card overflow-hidden rounded-[14px] border-2 border-brown/25 bg-white shadow-[0_10px_32px_-8px_rgba(61,44,41,0.22)] transition-[box-shadow,border-color,transform] hover:-translate-y-0.5 hover:border-orange/45 hover:shadow-[0_16px_40px_-10px_rgba(249,115,22,0.28)]'
 const HOST_PANEL = 'rounded-[14px] border border-app-subtle bg-app-elevated'
 const HOST_OUTLINE_BTN =
   'inline-flex items-center justify-center rounded-[14px] border border-app-subtle bg-app-elevated px-3 py-2 text-xs font-semibold text-brown transition hover:border-orange/30 hover:bg-orange/5'
@@ -85,7 +88,7 @@ export default function HostEventManagerCard({
 
   if (!showActions) {
     return (
-      <li className={`${HOST_PANEL} px-4 py-3`}>
+      <li className={`${HOST_EVENT_CARD} px-4 py-3`}>
         <EventHeader
           event={event}
           seedStatus={seedStatus}
@@ -182,7 +185,7 @@ export default function HostEventManagerCard({
   }
 
   return (
-    <li className={`overflow-hidden ${HOST_PANEL}`}>
+    <li className={HOST_EVENT_CARD}>
       <div className="bg-gradient-to-br from-rose-600 via-orange to-amber-500 px-4 py-4 text-white">
         <div className="flex items-start justify-between gap-2">
           {datePill ? (
@@ -295,6 +298,13 @@ export default function HostEventManagerCard({
 
         {!isDraft && showMarketplace && (
           <div className="mt-2 flex flex-wrap items-center gap-3">
+            <Link
+              to={`/host/event/${event.id}/operations`}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-orange no-underline"
+            >
+              <Users size={12} aria-hidden />
+              Pick list & contacts
+            </Link>
             <Link
               to={`/host/event/${event.id}/merch`}
               className="inline-flex items-center gap-1 text-xs font-semibold text-orange no-underline"

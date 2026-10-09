@@ -2,13 +2,21 @@ import type { DiscoverEvent } from '../data/discoverEvents'
 
 export type VibeTag =
   | 'Adventurous'
+  | 'Exploring'
+  | 'Outdoors'
   | 'Chill'
   | 'Romantic'
   | 'Family'
   | 'Foodie'
+  | 'Culture'
+  | 'Nightlife'
   | 'Wild'
   | 'Local'
+  | 'Hidden Gems'
+  | 'Wellness'
+  | 'Historic'
   | 'Luxury'
+  | 'Budget'
   | 'Weekend'
   | 'Road Trip'
 
@@ -106,6 +114,8 @@ export type CustomBucketListItem = {
   image: string
   videoUrl?: string
   mediaType?: 'image' | 'video'
+  /** City, region, or place name shown on the list grid. */
+  location?: string
   caption?: string
   link?: string
 }
@@ -134,9 +144,14 @@ export type BucketList = {
   instagramMedia?: InstagramMedia[]
   completedIds: string[]
   completionNotes?: Record<string, string>
+  /** @deprecated Use completionPhotoUrls — single legacy photo per item. */
   completionPhotos?: Record<string, string>
+  completionPhotoUrls?: Record<string, string[]>
+  completionTaggedUserIds?: Record<string, string[]>
   completedAt?: Record<string, string>
   isPrivate?: boolean
+  /** Wizard-only until user saves; hidden from My lists / Explore. */
+  isDraft?: boolean
   seededByAdmin?: boolean
   likeCount?: number
   saveCount?: number
@@ -156,6 +171,12 @@ export type PublicBucketList = {
   vibe?: VibeTag
   itemCount: number
   completedCount: number
+  /** Which items the list owner marked done (for public progress checklist). */
+  completedEventIds?: string[]
+  completionPhotos?: Record<string, string>
+  completionPhotoUrls?: Record<string, string[]>
+  completionTaggedUserIds?: Record<string, string[]>
+  completionNotes?: Record<string, string>
   likeCount?: number
   saveCount?: number
   hasSoundtrack?: boolean

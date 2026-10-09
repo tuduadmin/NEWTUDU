@@ -40,6 +40,8 @@ export type RoadTrip = {
   completedAt?: string
   /** @deprecated Legacy minutes-based detour — use detourKm. */
   detourMinutes?: number
+  /** Card / detail header image (not the mode hero on the hub). */
+  coverImageUrl?: string
 }
 
 export type RoadTripProgress = {
@@ -79,8 +81,13 @@ function migrateRoadTrip(trip: RoadTrip): RoadTrip {
   return migrated
 }
 
-function writeAll(trips: RoadTrip[]): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(trips))
+function writeAll(trips: RoadTrip[]): boolean {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(trips))
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function getRoadTrips(): RoadTrip[] {
@@ -353,7 +360,10 @@ export function updateRoadTrip(
       trips[idx].destination = summarizeTripDestination(trips[idx].stopEventIds)
     }
   }
-  writeAll(trips)
+  if (partial.coverImageUrl !== undefined) {
+    trips[idx].coverImageUrl = partial.coverImageUrl.trim() || undefined
+  }
+  if (!writeAll(trips)) return undefined
   return trips[idx]
 }
 

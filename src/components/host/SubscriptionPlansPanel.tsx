@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Check, CalendarPlus, MapPin, Rocket } from 'lucide-react'
-import {
-  applyDemoSubscriptionUpgrade,
-  type UserTier,
-  type VerificationStatus,
-} from '../../lib/account'
+import type { UserTier, VerificationStatus } from '../../lib/account'
+import { beginPaidCheckout } from '../../lib/payments'
 import { useCurrentAccount } from '../../hooks/useCurrentAccount'
 import {
   formatMoney,
@@ -131,13 +128,21 @@ export default function SubscriptionPlansPanel({
       navigate('/verify-phone?returnTo=/host/subscription')
       return
     }
-    const result = applyDemoSubscriptionUpgrade(planId, 'user')
-    if (!result.ok) {
-      setToast(result.error ?? 'Unable to upgrade.')
-      return
-    }
-    setToast(`You're on ${config.badges[planId].label} — plan benefits are active.`)
-    onPlanUpgraded?.(planId, 'user')
+    if (planId !== 'explorer') return
+    void (async () => {
+      const result = await beginPaidCheckout({
+        kind: 'subscription_user',
+        planId: 'explorer',
+        billingCycle,
+      })
+      if (result.outcome === 'redirect') return
+      if (result.outcome === 'error') {
+        setToast(result.error)
+        return
+      }
+      setToast(`You're on ${config.badges[planId].label} — plan benefits are active.`)
+      onPlanUpgraded?.(planId, 'user')
+    })()
   }
 
   function handleChooseOrgPlan(planId: OrgPlanId, isActive: boolean) {
@@ -150,13 +155,21 @@ export default function SubscriptionPlansPanel({
       navigate('/host/create-org')
       return
     }
-    const result = applyDemoSubscriptionUpgrade(planId, 'org')
-    if (!result.ok) {
-      setToast(result.error ?? 'Unable to upgrade.')
-      return
-    }
-    setToast(`You're on ${config.badges[planId].label} — plan benefits are active.`)
-    onPlanUpgraded?.(planId, 'org')
+    if (planId !== 'pioneer' && planId !== 'trusted') return
+    void (async () => {
+      const result = await beginPaidCheckout({
+        kind: 'subscription_org',
+        planId,
+        billingCycle,
+      })
+      if (result.outcome === 'redirect') return
+      if (result.outcome === 'error') {
+        setToast(result.error)
+        return
+      }
+      setToast(`You're on ${config.badges[planId].label} — plan benefits are active.`)
+      onPlanUpgraded?.(planId, 'org')
+    })()
   }
 
   const displayActiveOrgPlanId =

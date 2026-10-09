@@ -1,5 +1,6 @@
 import { getCurrentUser } from './auth'
 import { MOCK_FOLLOWABLE_USERS, type FollowableUser } from '../data/mockUsers'
+import { getOrgPublicProfileUrl, getPersonalPublicProfileUrl } from './publicHostProfile'
 
 const STORAGE_KEY = 'tudu_user_follows'
 
@@ -78,4 +79,10 @@ export function resolveTaggedFollowers(ids: string[]): FollowableUser[] {
   return ids
     .map((id) => getFollowableUserById(id))
     .filter((u): u is FollowableUser => u != null)
+}
+
+export function getFollowableUserProfileUrl(user: FollowableUser): string {
+  return user.profileKind === 'org'
+    ? getOrgPublicProfileUrl(user.profileId)
+    : getPersonalPublicProfileUrl(user.profileId)
 }

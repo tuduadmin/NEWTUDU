@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { CreditCard, Lock, X } from 'lucide-react'
 import GradientButton from '../GradientButton'
 import { formatMoney } from '../../lib/tierPricing'
+import {
+  isStripeCheckoutConfigured,
+  runCheckoutFlow,
+  startCheckoutSession,
+  type PaymentFulfillment,
+} from '../../lib/payments'
 
 export type HostCheckoutLineItem = {
   label: string
@@ -17,7 +23,10 @@ type HostCheckoutPlaceholderProps = {
   totalAmount: number
   /** When true, "Complete purchase (demo)" applies the purchase locally. */
   demoEnabled?: boolean
-  onCompleteDemo: () => void
+  /** Preferred: single fulfillment path for demo + Stripe metadata. */
+  fulfillment?: PaymentFulfillment
+  onCompleteDemo?: () => void
+  onCheckoutError?: (message: string) => void
 }
 
 type CheckoutStep = 'confirm' | 'payment'
@@ -30,9 +39,13 @@ export default function HostCheckoutPlaceholder({
   lineItems,
   totalAmount,
   demoEnabled = false,
+  fulfillment,
   onCompleteDemo,
+  onCheckoutError,
 }: HostCheckoutPlaceholderProps) {
   const [step, setStep] = useState<CheckoutStep>('confirm')
+  const [paying, setPaying] = useState(false)
+  const stripeLive = isStripeCheckoutConfigured()
 
   useEffect(() => {
     if (open) setStep('confirm')
@@ -45,9 +58,38 @@ export default function HostCheckoutPlaceholder({
     onClose()
   }
 
-  function handleCompleteDemo() {
-    onCompleteDemo()
+  async function handleCompleteDemo() {
+    if (fulfillment) {
+      setPaying(true)
+      const result = await runCheckoutFlow(fulfillment)
+      setPaying(false)
+      if (result.mode === 'error') {
+        onCheckoutError?.(result.error)
+        return
+      }
+      onCompleteDemo?.()
+      handleClose()
+      return
+    }
+    onCompleteDemo?.()
     handleClose()
+  }
+
+  async function handlePayWithStripe() {
+    if (!fulfillment) {
+      onCheckoutError?.('Checkout is not configured for this product yet.')
+      return
+    }
+    setPaying(true)
+    const result = await startCheckoutSession(fulfillment)
+    setPaying(false)
+    if (result.mode === 'redirect') {
+      window.location.href = result.url
+      return
+    }
+    if (result.mode === 'error') {
+      onCheckoutError?.(result.error)
+    }
   }
 
   const titleId = step === 'confirm' ? 'host-checkout-confirm-title' : 'host-checkout-payment-title'
@@ -91,7 +133,9 @@ export default function HostCheckoutPlaceholder({
                     </h2>
                   </div>
                   <p className="mt-1 text-xs text-brown-muted">
-                    Stripe - Phase 2. Demo checkout applies your purchase in this browser only.
+                    {stripeLive
+                      ? 'You will complete payment on Stripe’s secure checkout page.'
+                      : 'Beta: demo checkout applies your purchase in this browser only until Stripe is connected.'}
                   </p>
                 </>
               )}
@@ -118,14 +162,15 @@ export default function HostCheckoutPlaceholder({
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="rounded-[14px] border border-purple/20 bg-purple/5 px-3 py-2">
-                  <p className="text-[10px] font-bold uppercase tracking-wide text-purple">
-                    Stripe - Phase 2
-                  </p>
-                  <p className="mt-0.5 text-xs text-brown-muted">
-                    Live card payments are not enabled yet. Use demo checkout to test slot purchases during beta.
-                  </p>
-                </div>
+                {!stripeLive && (
+                  <div className="rounded-[14px] border border-purple/20 bg-purple/5 px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-purple">Beta checkout</p>
+                    <p className="mt-0.5 text-xs text-brown-muted">
+                      Set <code className="text-[10px]">VITE_STRIPE_PUBLISHABLE_KEY</code> and{' '}
+                      <code className="text-[10px]">VITE_PAYMENTS_API_URL</code> to enable live payments.
+                    </p>
+                  </div>
+                )}
 
                 <div className="rounded-[14px] border border-brown/10 bg-cream/40 p-4">
                   <p className="text-[10px] font-bold uppercase tracking-wide text-brown-muted">Order summary</p>
@@ -163,27 +208,36 @@ export default function HostCheckoutPlaceholder({
               </GradientButton>
             ) : (
               <>
-                <span
-                  className="relative inline-flex sm:order-3"
-                  title="Coming soon"
-                >
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] border border-brown/15 bg-brown/5 px-5 py-2.5 text-sm font-semibold text-brown-muted sm:w-auto"
-                  >
-                    <CreditCard size={16} aria-hidden />
-                    Pay with Stripe
-                  </button>
-                </span>
-                {demoEnabled && (
+                {stripeLive && fulfillment && (
                   <GradientButton
                     type="button"
-                    onClick={handleCompleteDemo}
+                    disabled={paying}
+                    onClick={() => void handlePayWithStripe()}
+                    className="inline-flex items-center justify-center gap-2 px-5 py-2.5 sm:order-3"
+                  >
+                    <CreditCard size={16} aria-hidden />
+                    {paying ? 'Opening Stripe…' : 'Pay with Stripe'}
+                  </GradientButton>
+                )}
+                {demoEnabled && !stripeLive && (
+                  <GradientButton
+                    type="button"
+                    disabled={paying}
+                    onClick={() => void handleCompleteDemo()}
                     className="px-5 py-2.5 sm:order-2"
                   >
-                    Complete purchase (demo)
+                    {paying ? 'Processing…' : stripeLive ? 'Complete purchase' : 'Complete purchase (demo)'}
                   </GradientButton>
+                )}
+                {demoEnabled && stripeLive && fulfillment && (
+                  <button
+                    type="button"
+                    disabled={paying}
+                    onClick={() => void handleCompleteDemo()}
+                    className="rounded-[14px] border border-brown/15 px-5 py-2.5 text-sm font-semibold text-brown-muted transition hover:bg-brown/5 sm:order-2"
+                  >
+                    Demo fulfill (dev)
+                  </button>
                 )}
               </>
             )}

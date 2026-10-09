@@ -1,5 +1,16 @@
 /// <reference types="vite/client" />
 
+interface ImportMetaEnv {
+  readonly VITE_STRIPE_PUBLISHABLE_KEY?: string
+  readonly VITE_PAYMENTS_API_URL?: string
+  /** Unlisted staff sign-in path, e.g. /staff/access-8f3k2 (production). */
+  readonly VITE_CONTROL_ROOM_SIGN_IN_PATH?: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+
 interface ContactAddress {
   addressLine?: string[]
   country?: string

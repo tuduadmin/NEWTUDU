@@ -17,7 +17,7 @@ import {
 import PersonalProfilePhotoEditor from '../../components/host/PersonalProfilePhotoEditor'
 import { formatStoredPhone } from '../../lib/phoneFormat'
 import { getVerifyPhoneUrl } from '../../lib/verifyPhoneNav'
-import { GENDER_OPTIONS, birthYearFromDob, type GenderOption } from '../../lib/demographics'
+import { formatUsernameLabel } from '../../lib/username'
 
 const PROFILE_CARD = 'app-surface-card host-edit-profile-panel p-4 mt-5'
 
@@ -140,6 +140,17 @@ export default function MyTuduEditProfilePage() {
               }}
             />
           </FormField>
+
+          {user?.username && (
+            <FormField id="username" label="Username">
+              <p className="rounded-[14px] border border-app-subtle bg-app-elevated px-4 py-3.5 text-sm font-medium text-brown">
+                {formatUsernameLabel(user.username)}
+              </p>
+              <p className="mt-1 text-xs text-brown-muted">
+                Usernames are unique and cannot be changed yet.
+              </p>
+            </FormField>
+          )}
 
           <FormField id="legal-name" label="Name on tickets">
             <p className="mb-2 text-xs text-brown-muted">

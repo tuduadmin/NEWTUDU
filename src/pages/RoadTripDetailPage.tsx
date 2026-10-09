@@ -19,7 +19,12 @@ import { BackIconButton } from '../components/NavActionButtons'
 import type { DiscoverEvent } from '../data/discoverEvents'
 import { getCurrentUser } from '../lib/auth'
 import { projectTripRouteToMapPins, getRoadTripMapViewFromPoints } from '../lib/roadTripGeo'
-import { formatPlannedCitiesDestination, getTripPlannedCities, getTripRoutePoints } from '../lib/roadTripRoute'
+import {
+  formatPlannedCitiesDestination,
+  getTripGoogleMapsDirectionsUrl,
+  getTripPlannedCities,
+  getTripRoutePoints,
+} from '../lib/roadTripRoute'
 import {
   completeRoadTrip,
   getRoadTripById,
@@ -59,6 +64,10 @@ export default function RoadTripDetailPage() {
   const mapView = useMemo(
     () => getRoadTripMapViewFromPoints(routePoints),
     [routePoints],
+  )
+  const directionsUrl = useMemo(
+    () => (trip ? getTripGoogleMapsDirectionsUrl(trip, stops) : null),
+    [trip, stops],
   )
 
   const cover = trip ? getTripCoverImage(trip) : ''
@@ -257,6 +266,7 @@ export default function RoadTripDetailPage() {
           pins={mapPins}
           stopCount={mapPins.length || stops.length}
           mapView={mapView}
+          directionsUrl={directionsUrl}
         />
 
         {plannedCities.length > 0 && (

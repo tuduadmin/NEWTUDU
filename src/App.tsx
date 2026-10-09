@@ -5,6 +5,7 @@ import SignUpPage from './pages/SignUpPage'
 import SignInPage from './pages/SignInPage'
 import ForgotPasswordPage from './pages/ForgotPasswordPage'
 import DiscoverPage from './pages/DiscoverPage'
+import DateNightPage from './pages/DateNightPage'
 import EventManagerPage from './pages/host/EventManagerPage'
 import TicketScannerPage from './pages/host/TicketScannerPage'
 import EditPublicProfilePage from './pages/host/EditPublicProfilePage'
@@ -20,7 +21,10 @@ import RoadTripDetailPage from './pages/RoadTripDetailPage'
 import BucketListMinePage from './pages/BucketListMinePage'
 import BucketListDetailPage from './pages/BucketListDetailPage'
 import BucketListStoryPage from './pages/BucketListStoryPage'
+import BucketListCompletionRecapPage from './pages/BucketListCompletionRecapPage'
 import BucketListDiscoveryPage from './pages/BucketListDiscoveryPage'
+import BucketListCreateWizardPage from './pages/BucketListCreateWizardPage'
+import BucketListItemPage from './pages/BucketListItemPage'
 import MyTuduPage from './pages/MyTuduPage'
 import MyTuduTicketDetailPage from './pages/MyTuduTicketDetailPage'
 import MyTuduEventTicketsPage from './pages/MyTuduEventTicketsPage'
@@ -57,12 +61,17 @@ import EventRsvpPage from './pages/EventRsvpPage'
 import EventMarketplacePage from './pages/EventMarketplacePage'
 import MyTuduMerchPickupPage from './pages/MyTuduMerchPickupPage'
 import HostEventMerchManagePage from './pages/host/HostEventMerchManagePage'
+import HostEventOperationsPage from './pages/host/HostEventOperationsPage'
+import HostMarketplaceManagerPage from './pages/host/HostMarketplaceManagerPage'
 import HostEventPosterPage from './pages/host/HostEventPosterPage'
 import HostEventViewPage from './pages/host/HostEventViewPage'
 import HostSubscriptionPage from './pages/host/HostSubscriptionPage'
 import FinanceHubPage from './pages/host/FinanceHubPage'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminSignInPage from './pages/admin/AdminSignInPage'
+import { getControlRoomSignInRoutePattern } from './lib/controlRoomRoutes'
+
+const controlRoomSignInRoute = getControlRoomSignInRoutePattern()
 import AdminDashboardPage from './pages/admin/AdminDashboardPage'
 import AdminAnalyticsPage from './pages/admin/AdminAnalyticsPage'
 import AdminGrowthPage from './pages/admin/AdminGrowthPage'
@@ -75,6 +84,7 @@ import AdminMessagesLegacyRedirect from './pages/admin/AdminMessagesLegacyRedire
 import AdminContentPage from './pages/admin/AdminContentPage'
 import AdminContentLegacyRedirect from './pages/admin/AdminContentLegacyRedirect'
 import AdminRolloutPage from './pages/admin/AdminRolloutPage'
+import AdminHeroBannersPage from './pages/admin/AdminHeroBannersPage'
 import AdminOrgLayout from './pages/admin/AdminOrgLayout'
 import AdminOrgOverviewPage from './pages/admin/AdminOrgOverviewPage'
 import AdminOrgTeamPage from './pages/admin/AdminOrgTeamPage'
@@ -106,6 +116,7 @@ import NavIconPickerPage from './pages/dev/NavIconPickerPage'
 import RadiusPickerPage from './pages/dev/RadiusPickerPage'
 import DevResetPage from './pages/dev/DevResetPage'
 import HealthPage from './pages/dev/HealthPage'
+import DevLinksPage from './pages/dev/DevLinksPage'
 import FeatureFlagGate from './components/FeatureFlagGate'
 import LaunchSplash from './components/LaunchSplash'
 import ScrollToTop from './components/ScrollToTop'
@@ -123,6 +134,14 @@ export default function App() {
       <Route path="/signin" element={<SignInPage />} />
       <Route path="/signin/forgot-password" element={<ForgotPasswordPage />} />
       <Route path="/discover" element={<FeatureFlagGate flag="discoverEnabled"><DiscoverPage /></FeatureFlagGate>} />
+      <Route
+        path="/discover/date-night"
+        element={
+          <FeatureFlagGate flag="discoverEnabled">
+            <DateNightPage />
+          </FeatureFlagGate>
+        }
+      />
       <Route path="/host" element={<EventManagerPage />} />
       <Route path="/host/scan" element={<TicketScannerPage />} />
       <Route path="/host/profile" element={<EditPublicProfilePage />} />
@@ -133,6 +152,7 @@ export default function App() {
       <Route path="/host/team" element={<TeamPage />} />
       <Route path="/host/departments" element={<DepartmentsPage />} />
       <Route path="/host/finance" element={<FinanceHubPage />} />
+      <Route path="/host/marketplace" element={<HostMarketplaceManagerPage />} />
       <Route path="/host/subscription" element={<HostSubscriptionPage />} />
       <Route path="/host/view/personal/:userId" element={<PublicHostProfilePage />} />
       <Route path="/host/view/:orgId" element={<PublicHostProfilePage />} />
@@ -142,6 +162,7 @@ export default function App() {
       <Route path="/event/:eventId/marketplace" element={<EventMarketplacePage />} />
       <Route path="/host/event/:eventId/view" element={<HostEventViewPage />} />
       <Route path="/host/event/:eventId/merch" element={<HostEventMerchManagePage />} />
+      <Route path="/host/event/:eventId/operations" element={<HostEventOperationsPage />} />
       <Route path="/host/event/:eventId/posters" element={<HostEventPosterPage />} />
       <Route path="/e/:shareToken" element={<PrivateEventPage />} />
       <Route path="/verify-phone" element={<VerifyPhonePage />} />
@@ -160,6 +181,11 @@ export default function App() {
         element={<Navigate to="/bucket-list?tab=mine&discover=completed" replace />}
       />
       <Route path="/bucket-list/story/:id" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListStoryPage /></FeatureFlagGate>} />
+      <Route path="/bucket-list/create/:listId/:stepId" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListCreateWizardPage /></FeatureFlagGate>} />
+      <Route path="/bucket-list/create/:listId" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListCreateWizardPage /></FeatureFlagGate>} />
+      <Route path="/bucket-list/create" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListCreateWizardPage /></FeatureFlagGate>} />
+      <Route path="/bucket-list/:id/item/:itemId" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListItemPage /></FeatureFlagGate>} />
+      <Route path="/bucket-list/:id/recap" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListCompletionRecapPage /></FeatureFlagGate>} />
       <Route path="/bucket-list/:id" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListDetailPage /></FeatureFlagGate>} />
       <Route path="/bucket-list" element={<FeatureFlagGate flag="bucketListEnabled"><BucketListDiscoveryPage /></FeatureFlagGate>} />
       <Route path="/bucket-lists/discover" element={<Navigate to="/bucket-list" replace />} />
@@ -198,6 +224,7 @@ export default function App() {
       <Route path="/terms" element={<TermsOfServicePage />} />
       <Route path="/cookie-policy" element={<CookiePolicyPage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/dev/links" element={<DevLinksPage />} />
       <Route path="/dev/nav-icons" element={<NavIconPickerPage />} />
       <Route path="/dev/radius" element={<RadiusPickerPage />} />
       <Route path="/dev/reset" element={<DevResetPage />} />
@@ -207,7 +234,10 @@ export default function App() {
       <Route path="/onboarding/distance" element={<DistancePage />} />
       <Route path="/onboarding/timeframe" element={<TimeframePage />} />
       <Route path="/onboarding/friends" element={<OnboardingFriendsPage />} />
-      <Route path="/admin/signin" element={<AdminSignInPage />} />
+      <Route path={controlRoomSignInRoute} element={<AdminSignInPage />} />
+      {import.meta.env.DEV && controlRoomSignInRoute !== 'admin/signin' && (
+        <Route path="admin/signin" element={<AdminSignInPage />} />
+      )}
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboardPage />} />
         <Route path="analytics" element={<AdminAnalyticsPage />} />
@@ -221,6 +251,8 @@ export default function App() {
         <Route path="messages" element={<AdminMessagesLegacyRedirect />} />
         <Route path="content" element={<AdminContentPage />} />
         <Route path="rollout" element={<AdminRolloutPage />} />
+        <Route path="hero-banners" element={<AdminHeroBannersPage />} />
+        <Route path="road-trip-images" element={<Navigate to="/admin/hero-banners" replace />} />
         <Route path="trusted-partners" element={<AdminTrustedPartnersPage />} />
         <Route path="tickets" element={<AdminTicketsPage />} />
         <Route path="affiliates" element={<AdminAffiliatePartnersPage />} />

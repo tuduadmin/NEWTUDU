@@ -420,6 +420,22 @@ html[data-app-theme='dusk'] .host-analytics-panel {
   box-shadow: var(--sol-card-shadow);
 }
 
+html[data-app-theme='dusk'] .host-events-zone {
+  background-color: rgb(255 255 255 / 0.04);
+  border-color: rgb(255 255 255 / 0.14);
+  box-shadow: var(--sol-card-shadow), inset 0 1px 0 rgb(255 255 255 / 0.06);
+}
+
+html[data-app-theme='dusk'] .host-event-manager-card {
+  background-color: var(--sol-surface);
+  border-color: rgb(255 255 255 / 0.16);
+  box-shadow: 0 12px 36px -12px rgb(0 0 0 / 0.55);
+}
+
+html[data-app-theme='dusk'] .host-event-manager-card:hover {
+  border-color: rgba(249, 115, 22, 0.45);
+}
+
 /* Edit Profile — SOL form shell */
 html[data-app-theme='dusk'] .host-edit-profile .app-surface-card,
 html[data-app-theme='dusk'] .host-profile-preview .app-surface-card {

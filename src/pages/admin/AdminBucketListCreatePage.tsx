@@ -21,6 +21,7 @@ import {
   type AdminBucketListInput,
 } from '../../lib/bucketLists'
 import type { CustomBucketListItem, VibeTag } from '../../types/bucketList'
+import { BUCKET_LIST_VIBE_TAGS } from '../../lib/vibeTags'
 import {
   IMAGE_ACCEPT,
   VIDEO_ACCEPT,
@@ -28,19 +29,6 @@ import {
   mediaUploadErrorMessage,
   readMediaFileAsDataUrl,
 } from '../../lib/mediaUpload'
-
-const VIBES: VibeTag[] = [
-  'Adventurous',
-  'Chill',
-  'Romantic',
-  'Family',
-  'Foodie',
-  'Wild',
-  'Local',
-  'Luxury',
-  'Weekend',
-  'Road Trip',
-]
 
 const DEFAULT_COVER =
   'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80'
@@ -51,6 +39,7 @@ function emptyItem(): CustomBucketListItem {
     title: '',
     image: '',
     mediaType: 'image',
+    location: '',
     caption: '',
     link: '',
   }
@@ -341,7 +330,7 @@ export default function AdminBucketListCreatePage() {
                     value={form.vibe ?? 'Adventurous'}
                     onChange={(e) => updateForm({ vibe: e.target.value as VibeTag })}
                   >
-                    {VIBES.map((v) => (
+                    {BUCKET_LIST_VIBE_TAGS.map((v) => (
                       <option key={v} value={v}>
                         {v}
                       </option>
@@ -574,6 +563,12 @@ export default function AdminBucketListCreatePage() {
                         placeholder="Item title"
                         value={item.title}
                         onChange={(e) => updateItem(index, { title: e.target.value })}
+                      />
+                      <AdminInput
+                        className="w-full text-xs"
+                        placeholder="Location (city or region)"
+                        value={item.location ?? ''}
+                        onChange={(e) => updateItem(index, { location: e.target.value })}
                       />
                       <textarea
                         className="admin-input min-h-[56px] w-full resize-y text-xs"

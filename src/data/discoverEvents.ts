@@ -136,8 +136,8 @@ import {
   type Attraction,
 } from '../lib/attractions'
 import { EVENT_COVER_STOCK_IMAGES } from '../lib/eventCoverImage'
+import { DEFAULT_HIDDEN_GEM_IMAGE } from '../lib/hiddenGemDefaults'
 import {
-  DEFAULT_HIDDEN_GEM_IMAGE,
   getAgePolicyLabel,
   getHiddenGemDisplayCategory,
   getPublicOrgHiddenGems,

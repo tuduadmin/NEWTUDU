@@ -12,12 +12,15 @@ type EventDoorPaymentPickerProps = {
   doorPayment: DoorPaymentMode
   atmOnSite: boolean
   onChange: (partial: { doorPayment: DoorPaymentMode; atmOnSite: boolean }) => void
+  /** When true, omits heading — parent section supplies the Amenities label. */
+  embedded?: boolean
 }
 
 export default function EventDoorPaymentPicker({
   doorPayment,
   atmOnSite,
   onChange,
+  embedded = false,
 }: EventDoorPaymentPickerProps) {
   const cashAccepted = doorPaymentAcceptsCash(doorPayment)
   const cardAccepted = doorPaymentAcceptsCard(doorPayment)
@@ -40,11 +43,15 @@ export default function EventDoorPaymentPicker({
   }
 
   return (
-    <div className="mt-5">
-      <FieldLabel>Payment at the door</FieldLabel>
-      <FieldHelper className="mb-2">
-        Optional — how guests can pay on site for food, drinks, or extras
-      </FieldHelper>
+    <div className={embedded ? 'mb-3' : 'mt-5'}>
+      {!embedded && (
+        <>
+          <FieldLabel>Payment at the door</FieldLabel>
+          <FieldHelper className="mb-2">
+            Optional — how guests can pay on site for food, drinks, or extras
+          </FieldHelper>
+        </>
+      )}
       <div className="grid grid-cols-2 gap-2">
         <PaymentOption
           label="Card / tap"

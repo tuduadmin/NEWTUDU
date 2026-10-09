@@ -17,6 +17,7 @@ import {
   parseTicketCartFromSearch,
   resolveTicketCart,
 } from '../lib/ticketCheckout'
+import { beginPaidCheckout, isStripeCheckoutConfigured } from '../lib/payments'
 import { getMerchProductsForEvent } from '../lib/eventMerch'
 import { openAffiliateLink } from '../components/AffiliateOutboundLink'
 import EventTripActions from '../components/EventTripActions'
@@ -88,7 +89,7 @@ export default function EventRsvpPage() {
     setPhase('confirm')
   }
 
-  function handleConfirm() {
+  async function handleConfirm() {
     setError('')
 
     if (mode === 'external' && hostEvent.externalTicketUrl) {
@@ -119,18 +120,36 @@ export default function EventRsvpPage() {
       return
     }
 
+    const needsPaidCheckout = mode === 'sell' && cartSummary.totalCents > 0
+
+    if (needsPaidCheckout) {
+      const paid = await beginPaidCheckout({
+        kind: 'ticket_order',
+        eventId: hostEvent.id,
+        attendeeEmail,
+        attendeeName,
+        lines: cartSummary.lines,
+      })
+      if (paid.outcome === 'redirect') return
+      if (paid.outcome === 'error') {
+        setError(paid.error)
+        return
+      }
+      setPurchasedCount(cartSummary.totalQty)
+      setPhase('done')
+      return
+    }
+
     const result = completeTicketCheckout({
       eventId: hostEvent.id,
       attendeeEmail,
       attendeeName,
       lines: cartSummary.lines,
     })
-
     if (!result.ok) {
       setError(result.error)
       return
     }
-
     setLastTicketId(result.ticketIds[0])
     setPurchasedCount(result.totalTickets)
     setPhase('done')
@@ -228,7 +247,9 @@ export default function EventRsvpPage() {
                 {mode === 'external'
                   ? 'You will be redirected to the external ticket vendor.'
                   : mode === 'sell'
-                    ? 'Demo checkout — no payment collected in this build.'
+                    ? isStripeCheckoutConfigured()
+                      ? 'Pay securely with Stripe to complete your order.'
+                      : 'Demo checkout — no payment collected until Stripe is connected.'
                     : 'Confirm your spot for this free event.'}
               </p>
 

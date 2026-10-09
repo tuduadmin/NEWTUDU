@@ -12,6 +12,10 @@ dist
 dist-ssr
 *.local
 
+# Dev-published Road Trip hero (Control Room → Save to Road Trip)
+public/themes/road-trip-hero-live.*
+public/themes/bucket-list-hero-live.*
+
 # Secrets — never upload these
 .env
 .env.*

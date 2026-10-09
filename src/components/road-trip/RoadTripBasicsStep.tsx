@@ -1,5 +1,5 @@
-import { useState, type KeyboardEventHandler } from 'react'
-import { Plus, X } from 'lucide-react'
+import { useRef, useState, type KeyboardEventHandler } from 'react'
+import { ImagePlus, Plus, X } from 'lucide-react'
 import type { RoadTrip } from '../../lib/roadTrips'
 import {
   DEFAULT_ROAD_TRIP_DETOUR_KM,
@@ -8,6 +8,12 @@ import {
 } from '../../lib/roadTripRoute'
 import RoadTripFollowerPicker from './RoadTripFollowerPicker'
 import { FieldHelper, FieldLabel, TextInput } from '../create-event/CreateEventLayout'
+import { IMAGE_ACCEPT } from '../../lib/mediaUpload'
+import {
+  compressImageFile,
+  ImageCompressError,
+  PROFILE_STORAGE_QUOTA_MESSAGE,
+} from '../../lib/imageCompress'
 
 type RoadTripBasicsStepProps = {
   trip: RoadTrip
@@ -15,12 +21,38 @@ type RoadTripBasicsStepProps = {
     name?: string
     plannedCities?: string[]
     taggedFollowerIds?: string[]
-  }) => void
+    coverImageUrl?: string
+  }) => boolean
 }
 
 export default function RoadTripBasicsStep({ trip, onUpdate }: RoadTripBasicsStepProps) {
+  const coverInputRef = useRef<HTMLInputElement>(null)
+  const [uploadError, setUploadError] = useState('')
+  const [uploading, setUploading] = useState(false)
   const cities = getTripPlannedCities(trip)
   const [draftCity, setDraftCity] = useState('')
+
+  const coverUrl = trip.coverImageUrl?.trim() || ''
+
+  async function handleCoverFile(file: File | undefined) {
+    if (!file) return
+    setUploadError('')
+    setUploading(true)
+    try {
+      const dataUrl = await compressImageFile(file)
+      const saved = onUpdate({ coverImageUrl: dataUrl })
+      if (!saved) {
+        setUploadError(PROFILE_STORAGE_QUOTA_MESSAGE)
+      }
+    } catch (err) {
+      setUploadError(
+        err instanceof ImageCompressError ? err.message : 'Could not upload image. Try again.',
+      )
+    } finally {
+      setUploading(false)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+    }
+  }
 
   function addCity() {
     const next = normalizePlannedCity(draftCity)
@@ -47,6 +79,46 @@ export default function RoadTripBasicsStep({ trip, onUpdate }: RoadTripBasicsSte
 
   return (
     <section className="space-y-5 pt-3">
+      <div>
+        <FieldLabel>Cover art</FieldLabel>
+        <div className="mt-2 overflow-hidden rounded-[14px] border border-app-subtle bg-app-elevated shadow-sm">
+          {coverUrl ? (
+            <div className="relative aspect-[2.2/1] w-full">
+              <img src={coverUrl} alt="" className="h-full w-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              <div className="absolute bottom-3 left-3 right-3">
+                <p className="font-display text-lg font-bold text-white">
+                  {trip.name.trim() || 'Your trip title'}
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex aspect-[2.2/1] w-full flex-col items-center justify-center gap-3 bg-cream-dark/40 px-4">
+              <p className="text-center text-sm text-brown-muted">No cover art yet</p>
+            </div>
+          )}
+          <div className="border-t border-app-subtle p-3">
+            <button
+              type="button"
+              disabled={uploading}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] border border-app-subtle bg-cream py-3 text-sm font-semibold text-brown transition hover:border-orange/40 hover:text-orange disabled:opacity-60"
+              onClick={() => coverInputRef.current?.click()}
+            >
+              <ImagePlus size={18} strokeWidth={2} />
+              {uploading ? 'Uploading…' : coverUrl ? 'Change cover art' : 'Upload cover art'}
+            </button>
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept={IMAGE_ACCEPT}
+              className="hidden"
+              onChange={(e) => void handleCoverFile(e.target.files?.[0])}
+            />
+            {uploadError && <p className="mt-2 text-xs text-error">{uploadError}</p>}
+          </div>
+        </div>
+      </div>
+
       <div>
         <FieldLabel required>Trip Title</FieldLabel>
         <TextInput

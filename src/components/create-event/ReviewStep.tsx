@@ -13,7 +13,9 @@ import type { HostEventFormData } from '../../lib/account'
 import { canCreatePublicEvent, countFilledAdditionalPhotos, getAgeRestrictionLabel } from '../../lib/account'
 import { getChecklistSummary } from '../../lib/checklist'
 import { createEventFormToDiscoverPreview } from '../../lib/createEventPreview'
-import { isScheduleStepComplete } from '../../lib/createEventValidation'
+import { isMarketplaceStepComplete, isScheduleStepComplete } from '../../lib/createEventValidation'
+import { formatMerchMoney } from '../../lib/eventMerch'
+import { MERCH_FEE_MODE_OPTIONS } from '../../lib/merchFeeMode'
 import { formatScheduleSummary, getEffectiveOccurrences } from '../../lib/eventSchedule'
 import { areTicketSessionsValid, formatTicketSummary, getSyncedTicketSessions } from '../../lib/ticketSessions'
 import { formatDoorPayment } from '../../lib/eventDoorPayment'
@@ -76,6 +78,8 @@ export default function ReviewStep({
     !areTicketSessionsValid(form)
   const missingExternalUrl =
     form.ticketingMode === 'external' && !form.externalTicketUrl.trim()
+  const missingMarketplace =
+    form.marketplaceEnabled && !isMarketplaceStepComplete(form)
   const sessions = getSyncedTicketSessions(form)
   const allTiers = sessions.flatMap((s) => s.tiers)
 
@@ -313,6 +317,42 @@ export default function ReviewStep({
                 {form.ageRestriction ? getAgeRestrictionLabel(form.ageRestriction) : 'Not set'} Â· Preview:{' '}
                 {previewLabel}
               </p>
+            </ChecklistSection>
+
+            <ChecklistSection
+              title="Marketplace"
+              hasIssue={missingMarketplace}
+              onEdit={() => onEditStep(5)}
+            >
+              {!form.marketplaceEnabled ? (
+                <CheckItem label="Merch" value="Off — skip or enable on the Merch step" />
+              ) : (
+                <>
+                  <CheckItem
+                    label="Buyer pricing"
+                    value={
+                      MERCH_FEE_MODE_OPTIONS.find((o) => o.id === form.marketplaceFeeMode)?.label ??
+                      'List price + fees'
+                    }
+                  />
+                  <CheckItem
+                    label="Products"
+                    value={
+                      form.marketplaceDraftProducts.length === 0
+                        ? 'Add at least one product'
+                        : `${form.marketplaceDraftProducts.length} product${form.marketplaceDraftProducts.length === 1 ? '' : 's'}`
+                    }
+                    missing={missingMarketplace}
+                  />
+                  {form.marketplaceDraftProducts.map((p) => (
+                    <CheckItem
+                      key={p.id}
+                      label={p.name}
+                      value={`${formatMerchMoney(p.priceCents)} · ${p.fulfillment === 'ship_ahead' ? 'Ship ahead' : 'Event pickup'}`}
+                    />
+                  ))}
+                </>
+              )}
             </ChecklistSection>
           </div>
         )}

@@ -7,6 +7,7 @@ import type {
   VibeTag,
 } from '../types/bucketList'
 import { DEMO_USER } from './demoAccounts'
+import type { StoredUser } from './auth'
 import { removeSavedEvents } from './savedEvents'
 import { recordEventSave } from './distantSaves'
 import { resolveEventSaveMeta } from './eventSaveMeta'
@@ -30,8 +31,13 @@ function readLists(): BucketList[] {
   }
 }
 
-function writeLists(lists: BucketList[]): void {
-  localStorage.setItem(LISTS_KEY, JSON.stringify(lists))
+function writeLists(lists: BucketList[]): boolean {
+  try {
+    localStorage.setItem(LISTS_KEY, JSON.stringify(lists))
+    return true
+  } catch {
+    return false
+  }
 }
 
 export function getBucketLists(): BucketList[] {
@@ -40,8 +46,146 @@ export function getBucketLists(): BucketList[] {
   )
 }
 
+/** Saved lists for My lists hub (excludes in-progress wizard drafts). */
+export function getMyBucketLists(): BucketList[] {
+  return getBucketLists().filter((list) => list.isDraft !== true)
+}
+
 export function getBucketListById(id: string): BucketList | undefined {
   return readLists().find((l) => l.id === id)
+}
+
+function ownerMetaFromUser(user: StoredUser): {
+  ownerId: string
+  ownerName: string
+  ownerInitials: string
+} {
+  const ownerName =
+    `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim() ||
+    user.username ||
+    user.email.split('@')[0] ||
+    'You'
+  const initials =
+    `${user.firstName?.[0] ?? ''}${user.lastName?.[0] ?? ''}`.trim().toUpperCase() ||
+    ownerName.slice(0, 2).toUpperCase()
+  return { ownerId: user.email, ownerName, ownerInitials: initials }
+}
+
+export function canUserEditBucketList(list: BucketList, userEmail: string): boolean {
+  if (!list.ownerId) return true
+  return list.ownerId.toLowerCase() === userEmail.toLowerCase()
+}
+
+export type BucketListUpdateInput = {
+  name?: string
+  description?: string
+  coverImageUrl?: string
+  vibe?: VibeTag
+  region?: string
+  isPrivate?: boolean
+  spotifyUrl?: string
+  appleMusicUrl?: string
+  customItems?: CustomBucketListItem[]
+  eventIds?: string[]
+}
+
+export function createDraftBucketList(user: StoredUser): BucketList {
+  const now = new Date().toISOString()
+  const owner = ownerMetaFromUser(user)
+  const list: BucketList = {
+    id: generateId(),
+    name: '',
+    description: '',
+    eventIds: [],
+    customItems: [],
+    createdAt: now,
+    updatedAt: now,
+    completedIds: [],
+    completionNotes: {},
+    isPrivate: false,
+    vibe: 'Adventurous',
+    isDraft: true,
+    ...owner,
+  }
+  if (!writeLists([list, ...readLists()])) {
+    throw new Error('storage')
+  }
+  return list
+}
+
+export function startBucketListCreate(
+  navigate: (path: string) => void,
+  user: StoredUser,
+): BucketList | null {
+  try {
+    const list = createDraftBucketList(user)
+    navigate(`/bucket-list/create/${list.id}/details`)
+    return list
+  } catch {
+    return null
+  }
+}
+
+export function updateBucketList(
+  id: string,
+  input: BucketListUpdateInput,
+): BucketList | undefined {
+  const lists = readLists()
+  const idx = lists.findIndex((l) => l.id === id)
+  if (idx === -1) return undefined
+
+  const prev = lists[idx]
+  const customItems =
+    input.customItems !== undefined ? normalizeCustomItems(input.customItems) : prev.customItems
+  const eventIds =
+    input.eventIds !== undefined ? [...new Set(input.eventIds)] : prev.eventIds
+
+  lists[idx] = {
+    ...prev,
+    name: input.name !== undefined ? input.name : prev.name,
+    description: input.description !== undefined ? input.description : prev.description,
+    coverImageUrl:
+      input.coverImageUrl !== undefined
+        ? input.coverImageUrl.trim() || undefined
+        : prev.coverImageUrl,
+    vibe: input.vibe ?? prev.vibe,
+    region: input.region !== undefined ? input.region : prev.region,
+    isPrivate: input.isPrivate ?? prev.isPrivate,
+    spotifyUrl:
+      input.spotifyUrl !== undefined ? input.spotifyUrl.trim() || undefined : prev.spotifyUrl,
+    appleMusicUrl:
+      input.appleMusicUrl !== undefined
+        ? input.appleMusicUrl.trim() || undefined
+        : prev.appleMusicUrl,
+    customItems,
+    eventIds,
+    updatedAt: new Date().toISOString(),
+  }
+
+  if (!writeLists(lists)) {
+    return undefined
+  }
+  return lists[idx]
+}
+
+export function publishBucketList(id: string): BucketList | undefined {
+  const lists = readLists()
+  const idx = lists.findIndex((l) => l.id === id)
+  if (idx === -1) return undefined
+
+  lists[idx] = {
+    ...lists[idx],
+    isDraft: false,
+    name: lists[idx].name.trim() || 'Untitled List',
+    description: lists[idx].description?.trim() || lists[idx].description,
+    region: lists[idx].region?.trim() || lists[idx].region,
+    updatedAt: new Date().toISOString(),
+  }
+
+  if (!writeLists(lists)) {
+    return undefined
+  }
+  return lists[idx]
 }
 
 export function createBucketList(
@@ -126,10 +270,71 @@ export function removeEventFromBucketList(listId: string, eventId: string): Buck
   return lists[idx]
 }
 
+const MAX_COMPLETION_PHOTOS = 3
+
+function normalizePhotoUrls(urls: string[] | undefined): string[] {
+  return (urls ?? [])
+    .map((u) => u.trim())
+    .filter(Boolean)
+    .slice(0, MAX_COMPLETION_PHOTOS)
+}
+
+export function updateBucketListItemCompletion(
+  listId: string,
+  eventId: string,
+  options: {
+    note?: string
+    photoUrls?: string[]
+    taggedUserIds?: string[]
+  },
+): BucketList | undefined {
+  const lists = readLists()
+  const idx = lists.findIndex((l) => l.id === listId)
+  if (idx === -1) return undefined
+  if (!lists[idx].completedIds.includes(eventId)) return undefined
+
+  const completionNotes = { ...(lists[idx].completionNotes ?? {}) }
+  const completionPhotoUrls = { ...(lists[idx].completionPhotoUrls ?? {}) }
+  const completionTaggedUserIds = { ...(lists[idx].completionTaggedUserIds ?? {}) }
+  const completionPhotos = { ...(lists[idx].completionPhotos ?? {}) }
+
+  if (options.note !== undefined) {
+    if (options.note.trim()) completionNotes[eventId] = options.note.trim()
+    else delete completionNotes[eventId]
+  }
+  if (options.photoUrls !== undefined) {
+    const next = normalizePhotoUrls(options.photoUrls)
+    if (next.length) completionPhotoUrls[eventId] = next
+    else delete completionPhotoUrls[eventId]
+    delete completionPhotos[eventId]
+  }
+  if (options.taggedUserIds !== undefined) {
+    const next = [...new Set(options.taggedUserIds)]
+    if (next.length) completionTaggedUserIds[eventId] = next
+    else delete completionTaggedUserIds[eventId]
+  }
+
+  lists[idx] = {
+    ...lists[idx],
+    completionNotes,
+    completionPhotoUrls,
+    completionTaggedUserIds,
+    completionPhotos,
+    updatedAt: new Date().toISOString(),
+  }
+  if (!writeLists(lists)) return undefined
+  return lists[idx]
+}
+
 export function toggleEventComplete(
   listId: string,
   eventId: string,
-  note?: string,
+  options?: {
+    note?: string
+    photoDataUrl?: string
+    photoUrls?: string[]
+    taggedUserIds?: string[]
+  },
 ): BucketList | undefined {
   const lists = readLists()
   const idx = lists.findIndex((l) => l.id === listId)
@@ -139,22 +344,51 @@ export function toggleEventComplete(
   const isComplete = list.completedIds.includes(eventId)
   let completedIds: string[]
   const completionNotes = { ...(list.completionNotes ?? {}) }
+  const completionPhotos = { ...(list.completionPhotos ?? {}) }
+  const completionPhotoUrls = { ...(list.completionPhotoUrls ?? {}) }
+  const completionTaggedUserIds = { ...(list.completionTaggedUserIds ?? {}) }
+  const completedAt = { ...(list.completedAt ?? {}) }
 
   if (isComplete) {
     completedIds = list.completedIds.filter((id) => id !== eventId)
     delete completionNotes[eventId]
+    delete completionPhotos[eventId]
+    delete completionPhotoUrls[eventId]
+    delete completionTaggedUserIds[eventId]
+    delete completedAt[eventId]
   } else {
     completedIds = [...list.completedIds, eventId]
-    if (note?.trim()) completionNotes[eventId] = note.trim()
+    if (options?.note?.trim()) completionNotes[eventId] = options.note.trim()
+
+    let photos = normalizePhotoUrls(options?.photoUrls)
+    if (photos.length === 0 && options?.photoDataUrl?.trim()) {
+      photos = [options.photoDataUrl.trim()]
+    }
+    if (photos.length) {
+      completionPhotoUrls[eventId] = photos
+      delete completionPhotos[eventId]
+    }
+
+    if (options?.taggedUserIds?.length) {
+      completionTaggedUserIds[eventId] = [...new Set(options.taggedUserIds)]
+    }
+
+    completedAt[eventId] = new Date().toISOString()
   }
 
   lists[idx] = {
     ...list,
     completedIds,
     completionNotes,
+    completionPhotos,
+    completionPhotoUrls,
+    completionTaggedUserIds,
+    completedAt,
     updatedAt: new Date().toISOString(),
   }
-  writeLists(lists)
+  if (!writeLists(lists)) {
+    return undefined
+  }
   return lists[idx]
 }
 
@@ -261,7 +495,10 @@ export function customItemToDiscoverEvent(item: CustomBucketListItem): DiscoverE
   return {
     id: item.id,
     title: item.title,
-    city: item.caption?.slice(0, 48) || 'Bucket list item',
+    city:
+      item.location?.trim() ||
+      item.caption?.slice(0, 48) ||
+      'Location not set',
     image,
     badges: [],
     locationDetail: item.link,
@@ -302,6 +539,7 @@ function normalizeCustomItems(items: CustomBucketListItem[] | undefined): Custom
       image: item.image.trim() || (item.videoUrl?.trim() ? '' : DEFAULT_COVER),
       videoUrl: item.videoUrl?.trim() || undefined,
       mediaType: item.mediaType ?? (item.videoUrl?.trim() ? 'video' : 'image'),
+      location: item.location?.trim() || undefined,
       caption: item.caption?.trim() || undefined,
       link: item.link?.trim() || undefined,
     }))
@@ -328,6 +566,11 @@ export function bucketListToPublic(list: BucketList): PublicBucketList | null {
     vibe: list.vibe ?? 'Adventurous',
     itemCount,
     completedCount: list.completedIds.length,
+    completedEventIds: [...list.completedIds],
+    completionPhotos: list.completionPhotos,
+    completionPhotoUrls: list.completionPhotoUrls,
+    completionTaggedUserIds: list.completionTaggedUserIds,
+    completionNotes: list.completionNotes,
     likeCount: list.likeCount ?? 0,
     saveCount: list.saveCount ?? 0,
     hasSoundtrack,
@@ -612,14 +855,20 @@ export function getPublicBucketLists(): PublicBucketList[] {
 
 /** Public lists for the Explore tab (defaults, admin-seeded, and user-shared). */
 export function getDiscoveryFeedLists(): PublicBucketList[] {
-  const defaults = getPublicBucketLists().map((list) => ({
-    ...list,
-    itemCount: list.itemCount ?? list.events.length,
-    completedCount: list.completedCount ?? 0,
-  }))
+  const defaults = getPublicBucketLists().map((list) => {
+    const total = list.events.length
+    const done = list.completedEventIds?.length
+      ? list.events.filter((e) => list.completedEventIds!.includes(e.id)).length
+      : Math.min(list.completedCount ?? 0, total)
+    return {
+      ...list,
+      itemCount: total,
+      completedCount: done,
+    }
+  })
 
   const userPublic = getBucketLists()
-    .filter((l) => !l.isPrivate)
+    .filter((l) => !l.isPrivate && l.isDraft !== true)
     .map(bucketListToPublic)
     .filter((l): l is PublicBucketList => l != null)
 

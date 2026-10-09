@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react'
 import { Eye, MapPin, Pencil, Trash2 } from 'lucide-react'
+import { ModeActionTile } from '../mode/ModeActionTile'
 import type { RoadTrip } from '../../lib/roadTrips'
 import { getRoadTripProgress, getRoadTripStops } from '../../lib/roadTrips'
 import RoadTripProgressBar from './RoadTripProgressBar'
@@ -17,6 +17,8 @@ type RoadTripListCardProps = {
 }
 
 export function getTripCoverImage(trip: RoadTrip): string {
+  const cover = trip.coverImageUrl?.trim()
+  if (cover) return cover
   const stops = getRoadTripStops(trip)
   return stops[0]?.image ?? DEFAULT_COVER
 }
@@ -120,50 +122,20 @@ export default function RoadTripListCard({
       )}
 
       <div className={`grid gap-2 border-t border-app-subtle p-2.5 ${readOnly ? 'grid-cols-1' : 'grid-cols-3'}`}>
-        <ActionButton label="View" tone="neutral" onClick={onView}>
+        <ModeActionTile label="View" tone="neutral" onClick={onView}>
           <Eye size={18} aria-hidden />
-        </ActionButton>
+        </ModeActionTile>
         {!readOnly && (
           <>
-            <ActionButton label="Edit" tone="edit" onClick={onEdit}>
+            <ModeActionTile label="Edit" tone="edit" onClick={onEdit}>
               <Pencil size={18} aria-hidden />
-            </ActionButton>
-            <ActionButton label="Del" tone="danger" onClick={onDelete}>
+            </ModeActionTile>
+            <ModeActionTile label="Del" tone="danger" onClick={onDelete}>
               <Trash2 size={18} aria-hidden />
-            </ActionButton>
+            </ModeActionTile>
           </>
         )}
       </div>
     </article>
-  )
-}
-
-function ActionButton({
-  label,
-  tone,
-  onClick,
-  children,
-}: {
-  label: string
-  tone: 'neutral' | 'edit' | 'danger'
-  onClick: () => void
-  children: ReactNode
-}) {
-  const toneClass =
-    tone === 'edit'
-      ? 'border-electric-blue/35 text-electric-blue hover:border-electric-blue/55 hover:bg-electric-blue/5'
-      : tone === 'danger'
-        ? 'border-error/35 text-error hover:border-error/55 hover:bg-error/5'
-        : 'border-brown/20 text-brown-muted hover:border-orange/30 hover:bg-orange/5 hover:text-brown'
-
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`flex min-h-[52px] flex-col items-center justify-center gap-1 rounded-[14px] border bg-app-elevated px-2 py-2 text-[11px] font-bold transition active:scale-[0.98] ${toneClass}`}
-    >
-      {children}
-      {label}
-    </button>
   )
 }

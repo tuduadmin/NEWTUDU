@@ -48,10 +48,10 @@ export type TierPlanLimits = {
 export type UserTierLimits = TierPlanLimits & UserPlanPerks
 
 export type PaidPlanPricing = {
-  /** Founding / current checkout price */
+  /** Founding checkout price (while cohort has slots). */
   monthly: number
   annual: number
-  /** Standard list price (strikethrough) */
+  /** Full rate after founding cohort fills (and for non-grandfathered renewals). */
   wasMonthly: number
   wasAnnual: number
 }
@@ -131,7 +131,7 @@ export type LegacyTierConfig = {
 }
 
 const DEFAULT_FOUNDING_GRANDFATHER =
-  'Founding rate locked while your subscription stays active.'
+  'Founding rate locked for life while your subscription stays active.'
 
 /** Locked User-track defaults for Unverified — synced with unverifiedPublic/PrivateLimit. */
 export const DEFAULT_UNVERIFIED_PERKS: UserPlanPerks = {
@@ -178,7 +178,7 @@ export const DEFAULT_TIER_CONFIG: TierConfig = {
   unverifiedPrivateLimit: 2,
   unverifiedPerks: DEFAULT_UNVERIFIED_PERKS,
   verified: {
-    publicEventLimit: 5,
+    publicEventLimit: 3,
     monthlyBoosts: 0,
     businessListing: false,
     hiddenGemSlotsIncluded: 0,
@@ -194,7 +194,7 @@ export const DEFAULT_TIER_CONFIG: TierConfig = {
     marketplaceEnabled: false,
     fees: { platformPercent: 2.5, perTicketCents: 49 },
     ...DEFAULT_EXPLORER_PERKS,
-    pricing: { monthly: 7.99, annual: 79.9, wasMonthly: 14.99, wasAnnual: 149.9 },
+    pricing: { monthly: 7.99, annual: 79.9, wasMonthly: 11.99, wasAnnual: 119.9 },
     foundingPricing: {
       enabled: true,
       maxSlots: 500,
@@ -272,13 +272,13 @@ export const DEFAULT_TIER_CONFIG: TierConfig = {
     verified: {
       label: 'Verified',
       pillClass: 'bg-success/25 text-success-deep',
-      summary: 'Phone verified — 5 public events/mo, bucket list, Travel Pass trial.',
+      summary: 'Phone verified — 3 public events/mo, bucket list, Travel Pass trial.',
       cardBorderColor: BRAND_TOKENS.user.verified,
     },
     explorer: {
       label: 'Explorer',
       pillClass: EXPLORER_PILL_CLASS,
-      summary: 'No ads — unlimited private events, Travel Pass & Road Trip included.',
+      summary: '5 public events/mo — no ads, unlimited private, Travel Pass & Road Trip included.',
       cardBorderColor: BRAND_TOKENS.user.explorer,
     },
     pioneer: {
@@ -346,10 +346,14 @@ function migrateUserTierLimits(
   const merged = ensureUserTierLimits(partial, defaults)
   // v4 → v5: lock agreed public/private caps when stored config still has legacy values.
   if (defaults === DEFAULT_TIER_CONFIG.verified) {
-    if (partial?.publicEventLimit === 2) merged.publicEventLimit = DEFAULT_TIER_CONFIG.verified.publicEventLimit
+    if (partial?.publicEventLimit === 2 || partial?.publicEventLimit === 5) {
+      merged.publicEventLimit = DEFAULT_TIER_CONFIG.verified.publicEventLimit
+    }
   }
   if (defaults === DEFAULT_TIER_CONFIG.explorer) {
-    if (partial?.publicEventLimit === 10) merged.publicEventLimit = DEFAULT_TIER_CONFIG.explorer.publicEventLimit
+    if (partial?.publicEventLimit === 3 || partial?.publicEventLimit === 10) {
+      merged.publicEventLimit = DEFAULT_TIER_CONFIG.explorer.publicEventLimit
+    }
     if (partial?.fees?.platformPercent === 1.5) merged.fees = DEFAULT_TIER_CONFIG.explorer.fees
   }
   return merged
@@ -393,6 +397,13 @@ function migrateExplorerFromPioneer(raw: Partial<TierConfig>): TierConfig['explo
     if (raw.explorer.pricing.monthly === 14.99 && pricing.monthly === 14.99) {
       pricing.monthly = DEFAULT_TIER_CONFIG.explorer.pricing.monthly
       pricing.annual = DEFAULT_TIER_CONFIG.explorer.pricing.annual
+    }
+    if (
+      pricing.wasMonthly === 14.99 ||
+      raw.explorer.pricing.wasMonthly === 14.99
+    ) {
+      pricing.wasMonthly = DEFAULT_TIER_CONFIG.explorer.pricing.wasMonthly
+      pricing.wasAnnual = DEFAULT_TIER_CONFIG.explorer.pricing.wasAnnual
     }
     return {
       ...limits,
@@ -538,7 +549,7 @@ function migrateLegacy(raw: LegacyTierConfig & Partial<TierConfig>): TierConfig 
   const legacyMerged = deepMerge(DEFAULT_TIER_CONFIG, {
     unverifiedPublicLimit: raw.freePublicLimit ?? raw.unverifiedPublicLimit ?? 0,
     verified: {
-      publicEventLimit: raw.verifiedPublicLimit ?? raw.verified?.publicEventLimit ?? 5,
+      publicEventLimit: raw.verifiedPublicLimit ?? raw.verified?.publicEventLimit ?? 3,
     },
     pioneer: {
       publicEventLimit: raw.tier1PublicLimit ?? raw.pioneer?.publicEventLimit ?? 10,

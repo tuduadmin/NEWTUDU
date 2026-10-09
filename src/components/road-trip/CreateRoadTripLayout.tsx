@@ -4,6 +4,7 @@ import AppHeaderBar from '../locked/AppHeaderBar'
 import BottomNav from '../BottomNav'
 import GradientButton from '../GradientButton'
 import CreateRoadTripStepper from './CreateRoadTripStepper'
+import RoadTripLandingHero from './RoadTripLandingHero'
 import type { RoadTrip } from '../../lib/roadTrips'
 import type { RoadTripWizardStep } from '../../lib/roadTripWizard'
 
@@ -21,6 +22,8 @@ type CreateRoadTripLayoutProps = {
   nextLabel?: string
   showNext?: boolean
   nextDisabled?: boolean
+  heroUrl?: string
+  heroRevision?: string
 }
 
 export default function CreateRoadTripLayout({
@@ -37,19 +40,29 @@ export default function CreateRoadTripLayout({
   nextLabel = 'Next',
   showNext = true,
   nextDisabled = false,
+  heroUrl,
+  heroRevision,
 }: CreateRoadTripLayoutProps) {
   return (
-    <div className="app-page-shell pb-36">
+    <div className="app-page-shell bg-midnight pb-36 text-white">
       <AppHeaderBar logoLinkTo="/road-trip" />
+
+      {heroUrl && (
+        <RoadTripLandingHero
+          heroUrl={heroUrl}
+          heroRevision={heroRevision}
+          showCta={false}
+        />
+      )}
 
       <main className="px-4 pt-1">
         <BackLink to="/road-trip" variant="chevron" />
 
         <div className="mt-2 flex items-baseline justify-between">
-          <h1 className="font-display text-2xl font-extrabold tracking-tight text-brown">
+          <h1 className="font-display text-2xl font-extrabold tracking-tight text-white">
             {isEditing ? 'Edit Road Trip' : 'Create Road Trip'}
           </h1>
-          <span className="font-display text-sm font-bold text-orange">Step {step} / 3</span>
+          <span className="font-display text-sm font-bold text-sunset-orange">Step {step} / 3</span>
         </div>
 
         <CreateRoadTripStepper

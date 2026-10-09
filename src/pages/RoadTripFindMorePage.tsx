@@ -18,7 +18,12 @@ import {
   getRoadTripStops,
   updateRoadTrip,
 } from '../lib/roadTrips'
-import { getTripDetourKm, getTripPlannedCities, getTripRoutePoints } from '../lib/roadTripRoute'
+import {
+  getTripDetourKm,
+  getTripGoogleMapsDirectionsUrl,
+  getTripPlannedCities,
+  getTripRoutePoints,
+} from '../lib/roadTripRoute'
 import { appFieldClass } from '../lib/formFieldClasses'
 
 export default function RoadTripFindMorePage() {
@@ -44,6 +49,10 @@ export default function RoadTripFindMorePage() {
   const mapView = useMemo(
     () => getRoadTripMapViewFromPoints(routePoints),
     [routePoints],
+  )
+  const directionsUrl = useMemo(
+    () => (trip ? getTripGoogleMapsDirectionsUrl(trip, stops) : null),
+    [trip, stops],
   )
 
   const detourKm = trip ? getTripDetourKm(trip) : 10
@@ -122,6 +131,7 @@ export default function RoadTripFindMorePage() {
             pins={mapPins}
             stopCount={mapPins.length || stops.length}
             mapView={mapView}
+            directionsUrl={directionsUrl}
           />
         </div>
 

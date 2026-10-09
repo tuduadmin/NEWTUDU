@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { MapPin, Navigation } from 'lucide-react'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
@@ -7,6 +7,8 @@ import GradientButton from '../components/GradientButton'
 import { BackIconButton } from '../components/NavActionButtons'
 import { getBucketListById } from '../lib/bucketLists'
 import { getRoadTripById, getRoadTripStops, getRoadTrips } from '../lib/roadTrips'
+import RoadTripMoodBanner from '../components/road-trip/RoadTripMoodBanner'
+import { getRoadTripMood } from '../lib/roadTripMoods'
 
 type RoadTripLocationState = {
   tripId?: string
@@ -16,6 +18,8 @@ type RoadTripLocationState = {
 export default function RoadTripPlanPage() {
   const navigate = useNavigate()
   const location = useLocation()
+  const [searchParams] = useSearchParams()
+  const mood = getRoadTripMood(searchParams.get('mood'))
   const state = (location.state ?? {}) as RoadTripLocationState
 
   const trip = useMemo(() => {
@@ -45,8 +49,9 @@ export default function RoadTripPlanPage() {
       </div>
 
       <main className="px-4 pt-2">
+        {mood && <RoadTripMoodBanner mood={mood} />}
         {trip ? (
-          <div className="space-y-3">
+          <div className={`space-y-3 ${mood ? 'mt-3' : ''}`}>
             <div className="rounded-[14px] border border-app-subtle bg-app-elevated p-4 shadow-sm">
               <p className="font-display text-base font-bold text-brown">{trip.name}</p>
               <p className="mt-1 flex items-center gap-1 text-xs text-brown-muted">
@@ -105,7 +110,7 @@ export default function RoadTripPlanPage() {
                 From My Bucket List
               </GradientButton>
               <Link
-                to="/road-trip/surprise"
+                to={mood ? `/road-trip/surprise?mood=${encodeURIComponent(mood.id)}` : '/road-trip/surprise'}
                 className="rounded-[14px] border border-app-subtle bg-app-elevated px-6 py-2.5 text-sm font-semibold text-brown no-underline transition hover:border-orange/30"
               >
                 Surprise Me

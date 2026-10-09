@@ -1,53 +1,97 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { Bookmark, CheckCircle2 } from 'lucide-react'
+import { Link, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { BookOpen, Bookmark, CheckCircle2, Globe, Heart, Lock, Pencil, Share2, Trash2 } from 'lucide-react'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import AvatarStoryRing from '../components/AvatarStoryRing'
 import BottomNav from '../components/BottomNav'
 import MediaTile from '../components/MediaTile'
 import Toast from '../components/Toast'
 import VibeBadge from '../components/VibeBadge'
-import { BackIconButton, BackLink, ShareButton } from '../components/NavActionButtons'
-import { appFieldClass } from '../lib/formFieldClasses'
+import { BackIconButton, BackLink } from '../components/NavActionButtons'
+import {
+  ModeActionBar,
+  ModeActionPrimaryBar,
+  ModeActionTile,
+} from '../components/mode/ModeActionTile'
 import type { DiscoverEvent } from '../data/discoverEvents'
 import {
-  copyPublicEventToList,
   copyPublicListToMine,
-  createBucketList,
   deleteBucketList,
   getBucketListById,
-  getBucketLists,
   getListCoverImage,
   getPublicBucketListById,
-  removeEventFromBucketList,
   resolveListDisplayEvents,
-  toggleEventComplete,
   updateBucketListName,
   updateBucketListVisibility,
   type BucketList,
   type PublicBucketList,
 } from '../lib/bucketLists'
-import { createRoadTripFromBucketList } from '../lib/roadTrips'
-import { getCurrentUser } from '../lib/auth'
 import type { VibeTag } from '../types/bucketList'
+import BucketListProgressChecklist from '../components/bucket-list/BucketListProgressChecklist'
+import BucketListProofPhotosModal from '../components/bucket-list/BucketListProofPhotosModal'
+import BucketListProgressRing from '../components/bucket-list/BucketListProgressRing'
+import {
+  bucketListProgress,
+  getCompletedEventIds,
+  getCompletionPhoto,
+  isBucketListFullyComplete,
+} from '../lib/bucketListProgress'
+import {
+  bucketListDetailPath,
+  bucketListHubPath,
+  bucketListItemPath,
+  bucketListRecapPath,
+  parseBucketListViewContext,
+} from '../lib/bucketListViewContext'
+import {
+  getBucketListDisplayLikeCount,
+  isBucketListLiked,
+  toggleBucketListLike,
+} from '../lib/bucketListLikes'
+import { isDiscoverEventExpired } from '../lib/discoverEventExpiry'
 
 type TileSize = 'large' | 'small' | 'portrait' | 'editorial'
 
 const GRID_PATTERN: TileSize[] = ['large', 'small', 'small', 'portrait', 'small', 'editorial']
 
+function readListState(listId: string | undefined): {
+  ownList: BucketList | undefined
+  publicList: PublicBucketList | undefined
+} {
+  if (!listId) return { ownList: undefined, publicList: undefined }
+  return {
+    ownList: getBucketListById(listId),
+    publicList: getPublicBucketListById(listId),
+  }
+}
+
 export default function BucketListDetailPage() {
   const { id } = useParams<{ id: string }>()
+  const [searchParams] = useSearchParams()
+  const location = useLocation()
   const navigate = useNavigate()
+  const viewContext = parseBucketListViewContext(searchParams)
+  const hubBack = bucketListHubPath(viewContext)
   const [toast, setToast] = useState<string | null>(null)
-  const [ownList, setOwnList] = useState<BucketList | undefined>()
-  const [publicList, setPublicList] = useState<PublicBucketList | undefined>()
+  const [ownList, setOwnList] = useState<BucketList | undefined>(
+    () => readListState(id).ownList,
+  )
+  const [publicList, setPublicList] = useState<PublicBucketList | undefined>(
+    () => readListState(id).publicList,
+  )
   const [editingName, setEditingName] = useState(false)
   const [nameDraft, setNameDraft] = useState('')
-  const [pickListForEvent, setPickListForEvent] = useState<DiscoverEvent | null>(null)
-  const [completeNote, setCompleteNote] = useState<{ eventId: string; note: string } | null>(null)
   const [stickyVisible, setStickyVisible] = useState(false)
+  const [proofPhotoEdit, setProofPhotoEdit] = useState<{ eventId: string; title: string } | null>(
+    null,
+  )
+  const [liked, setLiked] = useState(false)
+  const [likeCount, setLikeCount] = useState(0)
 
   const isPublic = Boolean(publicList && !ownList)
+  /** Edit/delete only from My lists — Explore is view-only even for the owner */
+  const canManage = Boolean(ownList) && viewContext === 'mine'
+  const exploreViewer = viewContext === 'explore' && Boolean(publicList || ownList)
   const listName = ownList?.name ?? publicList?.name ?? 'Bucket List'
   const coverImage =
     (ownList && getListCoverImage(ownList)) || publicList?.coverImage || undefined
@@ -64,7 +108,22 @@ export default function BucketListDetailPage() {
 
   useEffect(() => {
     refresh()
-  }, [refresh])
+    if (!location.pathname.includes('/item/')) {
+      window.scrollTo(0, 0)
+    }
+  }, [id, refresh, location.pathname])
+
+  useEffect(() => {
+    if (!id) return
+    setLiked(isBucketListLiked(id))
+    setLikeCount(getBucketListDisplayLikeCount(id, publicList?.likeCount ?? 0))
+  }, [id, publicList?.likeCount])
+
+  useEffect(() => {
+    if (ownList?.isDraft === true) {
+      navigate(`/bucket-list/create/${ownList.id}/details`, { replace: true })
+    }
+  }, [ownList, navigate])
 
   useEffect(() => {
     function onScroll() {
@@ -104,7 +163,7 @@ export default function BucketListDetailPage() {
   }
 
   async function handleShare() {
-    const url = `${window.location.origin}/bucket-list/${id}`
+    const url = `${window.location.origin}/bucket-list/${id}?from=explore`
     try {
       if (navigator.share) {
         await navigator.share({ title: listName, text: `NOW YOU KNOW - ${listName}`, url })
@@ -122,57 +181,26 @@ export default function BucketListDetailPage() {
     }
   }
 
-  function handleSendToRoadTrip() {
-    if (!ownList) return
-    const trip = createRoadTripFromBucketList(ownList, getCurrentUser()?.email)
-    navigate('/road-trip/plan', { state: { tripId: trip.id } })
-  }
-
   function handleSaveWholePublicList() {
     if (!publicList) return
     const copy = copyPublicListToMine(publicList)
     setToast(`Saved as "${copy.name}"`)
-    navigate(`/bucket-list/${copy.id}`)
+    navigate(bucketListDetailPath(copy.id, 'mine'))
   }
 
-  function handleAddEventToMyList(listId: string) {
-    if (!pickListForEvent) return
-    copyPublicEventToList(listId, pickListForEvent)
-    setPickListForEvent(null)
-    setToast('Added to list')
+  function handleLike() {
+    if (!id) return
+    toggleBucketListLike(id)
+    setLiked(isBucketListLiked(id))
+    setLikeCount(getBucketListDisplayLikeCount(id, publicList?.likeCount ?? 0))
   }
 
-  function handleCreateListForEvent(name: string) {
-    if (!pickListForEvent) return
-    const list = createBucketList(name, [pickListForEvent.id])
-    setPickListForEvent(null)
-    setToast(`Created "${list.name}"`)
-  }
-
-  function handleToggleComplete(eventId: string) {
-    if (!ownList) return
-    const isComplete = ownList.completedIds.includes(eventId)
-    if (isComplete) {
-      toggleEventComplete(ownList.id, eventId)
-      refresh()
-    } else {
-      setCompleteNote({ eventId, note: '' })
+  function handleExploreSave() {
+    if (ownList) {
+      navigate('/bucket-list?tab=mine')
+      return
     }
-  }
-
-  function submitCompleteNote() {
-    if (!ownList || !completeNote) return
-    toggleEventComplete(ownList.id, completeNote.eventId, completeNote.note)
-    setCompleteNote(null)
-    refresh()
-    setToast('Marked complete!')
-  }
-
-  function handleRemoveEvent(eventId: string) {
-    if (!ownList) return
-    removeEventFromBucketList(ownList.id, eventId)
-    refresh()
-    setToast('Event removed')
+    handleSaveWholePublicList()
   }
 
   function handleDeleteList() {
@@ -190,8 +218,17 @@ export default function BucketListDetailPage() {
     setToast(currentlyPrivate ? 'List is now public in Explore' : 'List is now private')
   }
 
-  const completedCount = ownList?.completedIds.length ?? 0
-  const completionPct = events.length > 0 ? Math.round((completedCount / events.length) * 100) : 0
+  const completedIds = getCompletedEventIds(ownList, publicList)
+  const { total: progressTotal, done: completedCount } = bucketListProgress(events, completedIds)
+  const listFullyComplete = isBucketListFullyComplete(events, completedIds)
+  const completionPhotos = useMemo(() => {
+    const out: Record<string, string> = {}
+    for (const event of events) {
+      const thumb = getCompletionPhoto(event.id, ownList, publicList)
+      if (thumb) out[event.id] = thumb
+    }
+    return out
+  }, [events, ownList, publicList])
 
   return (
     <div className="app-page-shell pb-28">
@@ -204,7 +241,7 @@ export default function BucketListDetailPage() {
         style={{ paddingTop: 'max(0px, env(safe-area-inset-top))' }}
       >
         <div className="flex h-[52px] items-center gap-3 px-4">
-          <BackIconButton to="/bucket-list" variant="plain" />
+          <BackIconButton to={hubBack} variant="plain" />
           <h1 className="truncate font-display text-lg font-bold text-brown">{listName}</h1>
         </div>
       </header>
@@ -218,83 +255,176 @@ export default function BucketListDetailPage() {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-midnight/20 via-transparent to-midnight/95" />
         <BackIconButton
-          to="/bucket-list"
+          to={hubBack}
           variant="glass"
           className="absolute left-4 top-[calc(12px+env(safe-area-inset-top))]"
         />
-        <div className="absolute inset-x-0 bottom-0 p-5">
-          {isPublic && publicList && (
-            <div className="mb-3 flex items-center gap-2">
-              <AvatarStoryRing initials={publicList.ownerInitials} size={32} />
-              <span className="text-sm text-white/72">by {publicList.ownerName}</span>
-            </div>
-          )}
-          {ownList && editingName ? (
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={nameDraft}
-                onChange={(e) => setNameDraft(e.target.value)}
-                autoFocus
-                className="min-w-0 flex-1 rounded-[14px] border border-white/[0.08] bg-midnight-surface/90 px-3 py-2 font-display text-lg font-bold outline-none focus:border-magenta/50"
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
-              />
+        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-4 p-5">
+          <div className="min-w-0 flex-1">
+            {exploreViewer && publicList && (
+              <div className="mb-3 flex items-center gap-2">
+                <AvatarStoryRing initials={publicList.ownerInitials} size={32} />
+                <span className="text-sm text-white/72">
+                  by {publicList.ownerName}
+                  {ownList && viewContext === 'explore' && (
+                    <span className="text-white/50"> · Explore view</span>
+                  )}
+                </span>
+              </div>
+            )}
+            {canManage && editingName ? (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={nameDraft}
+                  onChange={(e) => setNameDraft(e.target.value)}
+                  autoFocus
+                  className="min-w-0 flex-1 rounded-[14px] border border-white/[0.08] bg-midnight-surface/90 px-3 py-2 font-display text-lg font-bold outline-none focus:border-magenta/50"
+                  onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveName}
+                  className="rounded-[14px] bg-gradient-tudu px-4 py-2 text-sm font-bold"
+                >
+                  Save
+                </button>
+              </div>
+            ) : (
               <button
                 type="button"
-                onClick={handleSaveName}
-                className="rounded-[14px] bg-gradient-tudu px-4 py-2 text-sm font-bold"
+                onClick={() => canManage && setEditingName(true)}
+                disabled={!canManage}
+                className={canManage ? '' : 'cursor-default'}
               >
-                Save
+                <h1 className="text-left font-display text-[28px] font-extrabold leading-tight tracking-tight">
+                  {listName}
+                  {canManage && <span className="ml-2 text-sm text-white/40">✎</span>}
+                </h1>
               </button>
+            )}
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <span className="text-sm text-white/48">
+                {events.length} {events.length === 1 ? 'item' : 'items'}
+              </span>
+              <VibeBadge vibe={vibe} />
             </div>
-          ) : (
-            <button type="button" onClick={() => ownList && setEditingName(true)} disabled={!ownList}>
-              <h1 className="text-left font-display text-[28px] font-extrabold leading-tight tracking-tight">
-                {listName}
-                {ownList && <span className="ml-2 text-sm text-white/40">âœŽ</span>}
-              </h1>
-            </button>
-          )}
-          <div className="mt-2 flex flex-wrap items-center gap-2">
-            <span className="text-sm text-white/48">
-              {events.length} items | {completionPct}% complete
-            </span>
-            <VibeBadge vibe={vibe} />
+            {publicList?.description && (
+              <p className="mt-2 line-clamp-2 text-sm text-white/60">{publicList.description}</p>
+            )}
           </div>
-          {publicList?.description && (
-            <p className="mt-2 line-clamp-2 text-sm text-white/60">{publicList.description}</p>
+          {events.length > 0 && (
+            <BucketListProgressRing
+              done={completedCount}
+              total={events.length}
+              size={72}
+              variant="light"
+            />
           )}
         </div>
       </div>
 
-      {/* Action bar */}
-      <div className="flex flex-wrap gap-2 px-4 py-4">
-        <ShareButton onClick={handleShare} className="rounded-[14px] px-4 py-2 font-display text-xs font-bold" />
-        {ownList && completedCount > 0 && (
-          <ActionButton
-            primary
-            onClick={() => navigate(`/bucket-list/story/own-${ownList.id}`)}
-          >
-            View Story
-          </ActionButton>
-        )}
-        {ownList && (
-          <>
-            <ActionButton onClick={handleToggleVisibility}>
-              {ownList.isPrivate === true ? 'Make public' : 'Make private'}
-            </ActionButton>
-            <ActionButton onClick={handleSendToRoadTrip}>Road Trip</ActionButton>
-            <ActionButton variant="danger" onClick={handleDeleteList}>
-              Delete
-            </ActionButton>
-          </>
-        )}
-        {isPublic && (
-          <ActionButton primary onClick={handleSaveWholePublicList}>
-            Save Whole List
-          </ActionButton>
-        )}
+      <div className="py-4">
+        <ModeActionBar>
+          {canManage ? (
+            <>
+              <div className="grid grid-cols-4 gap-1.5">
+                <ModeActionTile compact label="Share" tone="neutral" onClick={handleShare}>
+                  <Share2 size={16} aria-hidden />
+                </ModeActionTile>
+                <ModeActionTile
+                  compact
+                  label="Edit"
+                  tone="edit"
+                  onClick={() => navigate(`/bucket-list/create/${ownList!.id}/details`)}
+                >
+                  <Pencil size={16} aria-hidden />
+                </ModeActionTile>
+                <ModeActionTile compact label="Del" tone="danger" onClick={handleDeleteList}>
+                  <Trash2 size={16} aria-hidden />
+                </ModeActionTile>
+                <ModeActionTile
+                  compact
+                  label={ownList!.isPrivate === true ? 'Public' : 'Private'}
+                  tone="neutral"
+                  onClick={handleToggleVisibility}
+                >
+                  {ownList!.isPrivate === true ? (
+                    <Globe size={16} aria-hidden />
+                  ) : (
+                    <Lock size={16} aria-hidden />
+                  )}
+                </ModeActionTile>
+              </div>
+              {progressTotal > 0 && (
+                <div className="mt-2">
+                  {listFullyComplete ? (
+                    <ModeActionPrimaryBar
+                      label="View recap"
+                      icon={<BookOpen size={18} aria-hidden />}
+                      onClick={() => navigate(bucketListRecapPath(ownList!.id, 'mine'))}
+                    />
+                  ) : (
+                    <p className="rounded-[12px] border border-brown/10 bg-cream-dark/80 px-3 py-2.5 text-center text-[11px] leading-snug text-brown-muted">
+                      Complete every item to unlock your recap ({completedCount}/{progressTotal})
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="grid grid-cols-3 gap-1.5">
+                <ModeActionTile
+                  compact
+                  label={likeCount > 0 ? String(likeCount) : 'Like'}
+                  tone="neutral"
+                  onClick={handleLike}
+                >
+                  <Heart
+                    size={16}
+                    aria-hidden
+                    className={liked ? 'fill-error text-error' : undefined}
+                  />
+                </ModeActionTile>
+                <ModeActionTile compact label="Share" tone="neutral" onClick={handleShare}>
+                  <Share2 size={16} aria-hidden />
+                </ModeActionTile>
+                <ModeActionTile compact label="Save" tone="neutral" onClick={handleExploreSave}>
+                  <Bookmark size={16} aria-hidden />
+                </ModeActionTile>
+              </div>
+              {listFullyComplete && (
+                <div className="mt-2">
+                  <ModeActionPrimaryBar
+                    label="View recap"
+                    icon={<BookOpen size={18} aria-hidden />}
+                    onClick={() => navigate(bucketListRecapPath(id!, 'explore'))}
+                  />
+                </div>
+              )}
+            </>
+          )}
+        </ModeActionBar>
       </div>
+
+      <BucketListProgressChecklist
+        listId={id!}
+        ownerLabel={exploreViewer ? publicList?.ownerName : undefined}
+        itemLink={(eventId) => bucketListItemPath(id!, eventId, viewContext)}
+        events={events}
+        completedIds={completedIds}
+        completionPhotos={completionPhotos}
+        compactHeader
+        onProofPhotoClick={
+          canManage
+            ? (eventId) => {
+                const ev = events.find((e) => e.id === eventId)
+                setProofPhotoEdit({ eventId, title: ev?.title ?? 'Item' })
+              }
+            : undefined
+        }
+      />
 
       {/* Masonry mood board grid */}
       <main className="px-3 pb-8">
@@ -309,17 +439,16 @@ export default function BucketListDetailPage() {
           <div className="grid grid-cols-2 gap-2">
             {events.map((event, i) => {
               const size = GRID_PATTERN[i % GRID_PATTERN.length]
-              const isComplete = ownList?.completedIds.includes(event.id) ?? false
+              const isComplete = completedIds.includes(event.id)
+              const expired = isDiscoverEventExpired(event)
               return (
                 <ExperienceTile
                   key={event.id}
                   event={event}
                   size={size}
                   isComplete={isComplete}
-                  isOwner={Boolean(ownList)}
-                  onToggleComplete={() => handleToggleComplete(event.id)}
-                  onRemove={() => handleRemoveEvent(event.id)}
-                  onSave={() => setPickListForEvent(event)}
+                  expired={expired}
+                  onOpen={() => navigate(bucketListItemPath(id!, event.id, viewContext))}
                 />
               )
             })}
@@ -329,50 +458,18 @@ export default function BucketListDetailPage() {
 
       <BottomNav />
 
-      {pickListForEvent && (
-        <PickListModal
-          onClose={() => setPickListForEvent(null)}
-          onSelect={handleAddEventToMyList}
-          onCreate={handleCreateListForEvent}
+      {canManage && (
+        <BucketListProofPhotosModal
+          listId={id!}
+          eventId={proofPhotoEdit?.eventId ?? null}
+          eventTitle={proofPhotoEdit?.title}
+          onClose={() => setProofPhotoEdit(null)}
+          onSaved={() => {
+            refresh()
+            setToast('Photos saved')
+          }}
+          onError={(message) => setToast(message)}
         />
-      )}
-
-      {completeNote && (
-        <>
-          <button
-            type="button"
-            className="fixed inset-0 z-[var(--z-modal)] bg-black/60 backdrop-blur-sm"
-            aria-label="Close"
-            onClick={() => setCompleteNote(null)}
-          />
-          <div className="fixed bottom-24 left-1/2 z-[var(--z-floating)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 app-surface-card p-4 shadow-float">
-            <h2 className="font-display text-base font-bold text-brown">Mark complete</h2>
-            <p className="mt-1 text-sm text-brown-muted">What was the vibe? Would you do it again?</p>
-            <textarea
-              value={completeNote.note}
-              onChange={(e) => setCompleteNote({ ...completeNote, note: e.target.value })}
-              placeholder="Optional memory..."
-              rows={3}
-              className={`${appFieldClass} mt-3 resize-none px-3 py-2`}
-            />
-            <div className="mt-3 flex gap-2">
-              <button
-                type="button"
-                onClick={() => setCompleteNote(null)}
-                className="flex-1 rounded-[14px] border border-brown/15 py-2.5 text-sm font-semibold text-brown"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={submitCompleteNote}
-                className="flex-1 rounded-[14px] bg-gradient-tudu py-2.5 text-sm font-bold text-white"
-              >
-                Complete
-              </button>
-            </div>
-          </div>
-        </>
       )}
 
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
@@ -384,18 +481,14 @@ function ExperienceTile({
   event,
   size,
   isComplete,
-  isOwner,
-  onToggleComplete,
-  onRemove,
-  onSave,
+  expired,
+  onOpen,
 }: {
   event: DiscoverEvent
   size: TileSize
   isComplete: boolean
-  isOwner: boolean
-  onToggleComplete: () => void
-  onRemove: () => void
-  onSave: () => void
+  expired?: boolean
+  onOpen: () => void
 }) {
   const sizeClass =
     size === 'large' || size === 'editorial'
@@ -414,162 +507,40 @@ function ExperienceTile({
           : 'h-[160px]'
 
   return (
-    <article
-      className={`relative overflow-hidden rounded-[14px] ${sizeClass} ${heightClass} ${
-        isComplete ? 'opacity-60' : ''
-      }`}
-    >
+    <article className={`relative overflow-hidden rounded-[14px] ${sizeClass} ${heightClass}`}>
+      <button
+        type="button"
+        onClick={onOpen}
+        className="absolute inset-0 z-[1] cursor-pointer"
+        aria-label={`Open ${event.title}`}
+      />
       <MediaTile
         src={event.image}
         videoUrl={event.videoUrl}
         mediaType={event.mediaType}
-        className="h-full w-full object-cover"
-        autoPlay={event.mediaType === 'video'}
+        className={`h-full w-full object-cover ${expired ? 'grayscale' : ''}`}
+        autoPlay={event.mediaType === 'video' && !expired}
         muted
         loop
       />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-midnight/85" />
 
       {isComplete && (
-        <span className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-midnight/72 text-success">
-          <CheckCircle2 size={16} fill="currentColor" />
+        <span
+          className="pointer-events-none absolute right-2.5 top-2.5 z-[2] flex h-8 w-8 items-center justify-center rounded-full bg-success text-white shadow-[0_2px_8px_rgba(0,0,0,0.35)]"
+          aria-hidden
+        >
+          <CheckCircle2 size={20} strokeWidth={2.5} />
         </span>
       )}
 
-      <div className="absolute inset-x-0 bottom-0 p-3">
-        <h3
-          className={`line-clamp-2 font-display text-sm font-bold leading-tight ${isComplete ? 'line-through' : ''}`}
-        >
+      <div className="absolute inset-x-0 bottom-0 z-[2] p-3">
+        <h3 className="line-clamp-2 font-display text-sm font-bold leading-tight text-white">
           {event.title}
         </h3>
         <p className="mt-0.5 text-[11px] text-white/60">{event.city}</p>
-      </div>
-
-      <div className="absolute left-2 top-2 flex gap-1">
-        {isOwner ? (
-          <>
-            <button
-              type="button"
-              onClick={onToggleComplete}
-              className="flex h-8 w-8 items-center justify-center rounded-full glass-surface text-xs"
-              aria-label={isComplete ? 'Mark incomplete' : 'Mark complete'}
-            >
-              {isComplete ? 'âœ“' : 'â—‹'}
-            </button>
-            <button
-              type="button"
-              onClick={onRemove}
-              className="flex h-8 w-8 items-center justify-center rounded-full glass-surface text-xs text-error"
-              aria-label="Remove"
-            >
-              âœ•
-            </button>
-          </>
-        ) : (
-          <button
-            type="button"
-            onClick={onSave}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white/90 text-orange shadow-sm"
-            aria-label="Save to list"
-          >
-            <Bookmark size={14} />
-          </button>
-        )}
       </div>
     </article>
   )
 }
 
-function ActionButton({
-  children,
-  onClick,
-  primary,
-  variant,
-  icon,
-}: {
-  children: React.ReactNode
-  onClick: () => void
-  primary?: boolean
-  variant?: 'danger'
-  icon?: React.ReactNode
-}) {
-  let className =
-    'inline-flex items-center gap-1.5 rounded-[14px] border border-brown/15 bg-white px-4 py-2 font-display text-xs font-bold text-brown transition hover:border-orange/30 active:scale-[0.98]'
-  if (primary)
-    className =
-      'inline-flex items-center gap-1.5 rounded-[14px] bg-gradient-tudu px-4 py-2 font-display text-xs font-bold text-white active:scale-[0.98]'
-  if (variant === 'danger')
-    className =
-      'inline-flex items-center gap-1.5 rounded-[14px] border border-error/30 px-4 py-2 font-display text-xs font-bold text-error hover:border-error/50'
-
-  return (
-    <button type="button" onClick={onClick} className={className}>
-      {icon}
-      {children}
-    </button>
-  )
-}
-
-function PickListModal({
-  onClose,
-  onSelect,
-  onCreate,
-}: {
-  onClose: () => void
-  onSelect: (listId: string) => void
-  onCreate: (name: string) => void
-}) {
-  const [lists] = useState(() => getBucketLists())
-  const [creating, setCreating] = useState(false)
-  const [newName, setNewName] = useState('')
-
-  return (
-    <>
-      <button type="button" className="fixed inset-0 z-[var(--z-modal)] bg-black/60" aria-label="Close" onClick={onClose} />
-      <div className="fixed bottom-24 left-1/2 z-[var(--z-floating)] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 app-surface-card p-4 shadow-float">
-        <h2 className="font-display text-base font-bold text-brown">Save to list</h2>
-        {creating ? (
-          <div className="mt-3 space-y-2">
-            <input
-              type="text"
-              value={newName}
-              onChange={(e) => setNewName(e.target.value)}
-              placeholder="New list name"
-              autoFocus
-              className={`${appFieldClass} px-3 py-2`}
-            />
-            <button
-              type="button"
-              onClick={() => {
-                if (newName.trim()) onCreate(newName.trim())
-              }}
-              className="w-full rounded-[14px] bg-gradient-tudu py-2.5 font-display text-sm font-bold text-white"
-            >
-              Create &amp; Save
-            </button>
-          </div>
-        ) : (
-          <div className="mt-3 max-h-48 space-y-2 overflow-y-auto">
-            {lists.map((list) => (
-              <button
-                key={list.id}
-                type="button"
-                onClick={() => onSelect(list.id)}
-                className="flex w-full rounded-[14px] border border-brown/10 px-3 py-2.5 text-left text-sm font-semibold text-brown transition hover:border-orange/40 hover:bg-orange/5"
-              >
-                {list.name}
-              </button>
-            ))}
-            <button
-              type="button"
-              onClick={() => setCreating(true)}
-              className="w-full rounded-[14px] border border-dashed border-brown/20 py-2.5 text-sm font-semibold text-orange"
-            >
-              ï¼‹ Create New List
-            </button>
-          </div>
-        )}
-      </div>
-    </>
-  )
-}

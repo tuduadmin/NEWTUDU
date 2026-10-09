@@ -17,7 +17,8 @@ import {
   getAdminThemeSwitchTitle,
   useAdminTheme,
 } from '../../lib/adminTheme'
-import { getCurrentUser, isAuthenticated, isPlatformAdmin, signOut } from '../../lib/auth'
+import { getCurrentUser, hasControlRoomAccess, signOut } from '../../lib/auth'
+import { getControlRoomSignInPath } from '../../lib/controlRoomRoutes'
 import { ADMIN_MESSAGES_CHANGED_EVENT } from '../../lib/adminMessages'
 import { logActivity } from '../../lib/adminAnalytics'
 import { getSupportQueueTotal } from '../../lib/adminSupportQueue'
@@ -37,6 +38,7 @@ import {
   EVENT_REPORT_ESCALATION_CHANGED_EVENT,
 } from '../../lib/adminFeedback'
 import { useAdminSidebarCollapsed } from '../../lib/adminSidebarLayout'
+import { useNoIndexPage } from '../../hooks/useNoIndexPage'
 
 function getNavBadgeCount(key: AdminNavBadgeKey): number {
   switch (key) {
@@ -50,6 +52,7 @@ function getNavBadgeCount(key: AdminNavBadgeKey): number {
 }
 
 export default function AdminLayout() {
+  useNoIndexPage()
   const location = useLocation()
   const { theme, toggleTheme } = useAdminTheme()
   const { collapsed: sidebarCollapsed, toggleCollapsed: toggleSidebarCollapsed } =
@@ -114,24 +117,13 @@ export default function AdminLayout() {
     )
   }
 
-  if (!isPlatformAdmin()) {
-    const signedInAs = isAuthenticated() ? getCurrentUser()?.email : undefined
-    return (
-      <Navigate
-        to="/admin/signin"
-        replace
-        state={{
-          from: location.pathname,
-          reason: signedInAs ? 'not_admin' : 'auth_required',
-          signedInAs,
-        }}
-      />
-    )
+  if (!hasControlRoomAccess(admin?.email)) {
+    return <Navigate to="/" replace />
   }
 
   function handleSignOut() {
     signOut()
-    window.location.href = '/admin/signin'
+    window.location.href = getControlRoomSignInPath()
   }
 
   function handleSync() {

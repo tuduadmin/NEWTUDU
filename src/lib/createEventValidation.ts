@@ -17,7 +17,8 @@ export const CREATE_EVENT_STEPS: { id: string; label: string; number: CreateEven
   { id: 'category', label: 'CATEGORY', number: 2 },
   { id: 'schedule', label: 'SCHEDULE', number: 3 },
   { id: 'ticketing', label: 'TICKETING', number: 4 },
-  { id: 'review', label: 'REVIEW', number: 5 },
+  { id: 'marketplace', label: 'MERCH', number: 5 },
+  { id: 'review', label: 'REVIEW', number: 6 },
 ]
 
 function isTimeFilled(hour: string, minute: string): boolean {
@@ -73,6 +74,17 @@ export function isCategoryStepComplete(form: HostEventFormData): boolean {
   return eventCategoriesComplete(form) && eventKeywordsComplete(form.customTags)
 }
 
+export function isMarketplaceStepComplete(form: HostEventFormData): boolean {
+  if (!form.marketplaceEnabled) return true
+  return form.marketplaceDraftProducts.some(
+    (p) =>
+      p.name.trim() !== '' &&
+      p.priceCents >= 0 &&
+      p.sizes.length > 0 &&
+      p.sizes.every((size) => (p.sizeStock[size] ?? 0) >= 1),
+  )
+}
+
 export function isFinalStepComplete(form: HostEventFormData): boolean {
   if (!form.ageRestriction) return false
 
@@ -98,7 +110,8 @@ export function isReviewStepComplete(form: HostEventFormData): boolean {
     isBasicsStepComplete(form) &&
     isScheduleStepComplete(form) &&
     isCategoryStepComplete(form) &&
-    isFinalStepComplete(form)
+    isFinalStepComplete(form) &&
+    isMarketplaceStepComplete(form)
   )
 }
 
@@ -113,6 +126,8 @@ export function isStepComplete(step: CreateEventStep, form: HostEventFormData): 
     case 4:
       return isFinalStepComplete(form)
     case 5:
+      return isMarketplaceStepComplete(form)
+    case 6:
       return isReviewStepComplete(form)
     default:
       return false
@@ -125,7 +140,7 @@ export function getStepStatus(step: CreateEventStep, form: HostEventFormData): S
 
 /** Inline hint for the active step — hidden once that step's requirements are met. */
 export function getStepHintMessage(step: CreateEventStep, form: HostEventFormData): string | null {
-  if (step === 5 || isStepComplete(step, form)) return null
+  if (step === 6 || isStepComplete(step, form)) return null
 
   switch (step) {
     case 1:
@@ -159,18 +174,22 @@ export function getStepHintMessage(step: CreateEventStep, form: HostEventFormDat
       }
       return null
     }
+    case 5:
+      if (!form.marketplaceEnabled) return null
+      return 'Add at least one product with name, price, sizes, and stock — or turn off marketplace.'
     default:
       return null
   }
 }
 
-/** Steps 1–4 that still have required fields missing (review step aggregates these). */
+/** Steps 1–5 that still have required fields missing (review step aggregates these). */
 export function getIncompleteSteps(form: HostEventFormData): CreateEventStep[] {
   const incomplete: CreateEventStep[] = []
   if (!isBasicsStepComplete(form)) incomplete.push(1)
   if (!isCategoryStepComplete(form)) incomplete.push(2)
   if (!isScheduleStepComplete(form)) incomplete.push(3)
   if (!isFinalStepComplete(form)) incomplete.push(4)
+  if (!isMarketplaceStepComplete(form)) incomplete.push(5)
   return incomplete
 }
 
@@ -224,6 +243,10 @@ export function getPublishValidationIssues(form: HostEventFormData): string[] {
     } else {
       issues.push('ticket capacity and tier details')
     }
+  }
+
+  if (form.marketplaceEnabled && !isMarketplaceStepComplete(form)) {
+    issues.push('marketplace (add a product or turn off merch)')
   }
 
   return issues

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import CreateRoadTripLayout from '../components/road-trip/CreateRoadTripLayout'
 import RoadTripBasicsStep from '../components/road-trip/RoadTripBasicsStep'
+import { getTripCoverImage } from '../components/road-trip/RoadTripListCard'
 import RoadTripStopsStep from '../components/road-trip/RoadTripStopsStep'
 import GradientButton from '../components/GradientButton'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
@@ -20,11 +21,13 @@ import {
   type RoadTripWizardStep,
 } from '../lib/roadTripWizard'
 import { resolveTaggedFollowers } from '../lib/userFollows'
+import { useRoadTripHero } from '../hooks/useRoadTripHero'
 
 export default function RoadTripCreateWizardPage() {
   const navigate = useNavigate()
   const { tripId, stepId } = useParams<{ tripId?: string; stepId?: string }>()
   const user = getCurrentUser()
+  const { url: heroUrl, revision: heroRevision } = useRoadTripHero()
   const [refresh, setRefresh] = useState(0)
   const [visitedSteps, setVisitedSteps] = useState<Set<RoadTripWizardStep>>(new Set([1]))
 
@@ -92,10 +95,13 @@ export default function RoadTripCreateWizardPage() {
     name?: string
     plannedCities?: string[]
     taggedFollowerIds?: string[]
-  }) {
-    if (!trip) return
-    updateRoadTrip(trip.id, partial)
+    coverImageUrl?: string
+  }): boolean {
+    if (!trip) return false
+    const updated = updateRoadTrip(trip.id, partial)
+    if (!updated) return false
     reload()
+    return true
   }
 
   function handleSaveDraft() {
@@ -152,6 +158,8 @@ export default function RoadTripCreateWizardPage() {
       nextLabel={step === 2 ? 'Review' : 'Next'}
       showNext={step < 3}
       nextDisabled={step === 1 && !basicsComplete}
+      heroUrl={heroUrl}
+      heroRevision={heroRevision}
     >
       {step === 1 && <RoadTripBasicsStep trip={trip} onUpdate={handleUpdateBasics} />}
 
@@ -161,6 +169,13 @@ export default function RoadTripCreateWizardPage() {
 
       {step === 3 && (
         <section className="space-y-4 pt-3">
+          <div className="overflow-hidden rounded-[14px] border border-app-subtle shadow-sm">
+            <img
+              src={getTripCoverImage(trip)}
+              alt=""
+              className="aspect-[2.2/1] w-full object-cover"
+            />
+          </div>
           <div className="rounded-[14px] border border-app-subtle bg-app-elevated p-4">
             <p className="font-display text-base font-bold text-brown">{trip.name}</p>
             <p className="mt-1 text-sm text-brown-muted">

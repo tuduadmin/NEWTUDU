@@ -1,6 +1,9 @@
-import { PLATFORM_ADMIN } from './auth'
+import { isPlatformOwner } from './controlRoomAccess'
+import { PLATFORM_ADMIN } from './demoAccounts'
 
 const STORAGE_KEY = 'tudu-admin-employees'
+
+export const ADMIN_EMPLOYEES_CHANGED_EVENT = 'tudu-admin-employees-changed'
 
 export type EmployeeRole = 'admin' | 'support' | 'moderator'
 export type EmployeeStatus = 'active' | 'inactive' | 'on_leave'
@@ -13,58 +16,21 @@ export interface AdminEmployee {
   department: string
   status: EmployeeStatus
   joinedAt: string
-}
-
-function generateId(): string {
-  return `emp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+  /** When false, roster entry cannot sign into Control Room. */
+  controlRoomAccess?: boolean
 }
 
 function seedEmployees(): AdminEmployee[] {
   return [
     {
-      id: generateId(),
-      name: 'Platform Admin',
+      id: 'emp_platform_owner',
+      name: `${PLATFORM_ADMIN.firstName} ${PLATFORM_ADMIN.lastName}`.trim(),
       email: PLATFORM_ADMIN.email,
       role: 'admin',
       department: 'Leadership',
       status: 'active',
+      controlRoomAccess: true,
       joinedAt: new Date(Date.now() - 86400000 * 400).toISOString(),
-    },
-    {
-      id: generateId(),
-      name: 'Jordan Lee',
-      email: 'jordan@tudu.ca',
-      role: 'support',
-      department: 'Customer Success',
-      status: 'active',
-      joinedAt: new Date(Date.now() - 86400000 * 180).toISOString(),
-    },
-    {
-      id: generateId(),
-      name: 'Sam Rivera',
-      email: 'sam@tudu.ca',
-      role: 'moderator',
-      department: 'Trust & Safety',
-      status: 'active',
-      joinedAt: new Date(Date.now() - 86400000 * 90).toISOString(),
-    },
-    {
-      id: generateId(),
-      name: 'Alex Chen',
-      email: 'alex@tudu.ca',
-      role: 'support',
-      department: 'Customer Success',
-      status: 'on_leave',
-      joinedAt: new Date(Date.now() - 86400000 * 240).toISOString(),
-    },
-    {
-      id: generateId(),
-      name: 'Morgan Patel',
-      email: 'morgan@tudu.ca',
-      role: 'moderator',
-      department: 'Trust & Safety',
-      status: 'inactive',
-      joinedAt: new Date(Date.now() - 86400000 * 30).toISOString(),
     },
   ]
 }
@@ -77,7 +43,7 @@ function readItems(): AdminEmployee[] {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(seed))
       return seed
     }
-    return JSON.parse(raw) as AdminEmployee[]
+    return (JSON.parse(raw) as AdminEmployee[]).map(normalizeEmployee)
   } catch {
     return seedEmployees()
   }
@@ -85,6 +51,14 @@ function readItems(): AdminEmployee[] {
 
 function saveItems(items: AdminEmployee[]): void {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(items))
+  window.dispatchEvent(new Event(ADMIN_EMPLOYEES_CHANGED_EVENT))
+}
+
+function normalizeEmployee(raw: AdminEmployee): AdminEmployee {
+  return {
+    ...raw,
+    controlRoomAccess: raw.controlRoomAccess !== false,
+  }
 }
 
 export function getEmployees(): AdminEmployee[] {
@@ -108,7 +82,20 @@ export function updateEmployeeStatus(id: string, status: EmployeeStatus): boolea
   const items = readItems()
   const idx = items.findIndex((e) => e.id === id)
   if (idx < 0) return false
+  if (isPlatformOwner(items[idx].email) && status !== 'active') {
+    return false
+  }
   items[idx] = { ...items[idx], status }
   saveItems(items)
   return true
+}
+
+export function addEmployeeRecord(employee: AdminEmployee): { ok: boolean; error?: string } {
+  const items = readItems()
+  if (items.some((e) => e.email.toLowerCase() === employee.email.toLowerCase())) {
+    return { ok: false, error: 'This email is already on the employee roster.' }
+  }
+  items.push(normalizeEmployee(employee))
+  saveItems(items)
+  return { ok: true }
 }

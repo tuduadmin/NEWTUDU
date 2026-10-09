@@ -1,11 +1,14 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { ImagePlus, Package, Plus, Trash2, X } from 'lucide-react'
 import AppHeaderBar from '../../components/locked/AppHeaderBar'
 import BottomNav from '../../components/BottomNav'
 import GradientButton from '../../components/GradientButton'
 import { BackLink } from '../../components/NavActionButtons'
-import { getHostEventById } from '../../lib/account'
+import MerchFeeModePicker from '../../components/merch/MerchFeeModePicker'
+import { getHostEventById, updateHostEvent } from '../../lib/account'
+import { getEventMerchFeeMode, type MerchFeeMode } from '../../lib/merchFeeMode'
+import { estimateMerchHostNetPerItem, previewMerchSingleItemCheckout } from '../../lib/merchPricing'
 import {
   MERCH_SIZES,
   buildSizeStockForSizes,
@@ -16,6 +19,7 @@ import {
   getMerchStockReport,
   saveMerchProduct,
   sortMerchSizes,
+  type MerchProductFulfillment,
   type MerchSize,
 } from '../../lib/eventMerch'
 import { compressImageFile, ImageCompressError } from '../../lib/imageCompress'
@@ -50,6 +54,30 @@ export default function HostEventMerchManagePage() {
     L: 10,
     XL: 10,
   })
+  const [fulfillment, setFulfillment] = useState<MerchProductFulfillment>('event_pickup')
+  const [feeMode, setFeeMode] = useState<MerchFeeMode>(() =>
+    event ? getEventMerchFeeMode(event) : 'fees_on_top',
+  )
+
+  const priceCentsPreview = (() => {
+    const parsed = Math.round(parseFloat(price) * 100)
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : null
+  })()
+  const pricePreview =
+    priceCentsPreview != null
+      ? previewMerchSingleItemCheckout(priceCentsPreview, feeMode)
+      : null
+
+  function handleFeeModeChange(next: MerchFeeMode) {
+    setFeeMode(next)
+    if (eventId) {
+      updateHostEvent(eventId, { merchFeeMode: next })
+    }
+  }
+
+  useEffect(() => {
+    if (event) setFeeMode(getEventMerchFeeMode(event))
+  }, [event])
 
   function reload() {
     setRefresh((r) => r + 1)
@@ -109,6 +137,7 @@ export default function HostEventMerchManagePage() {
       imageUrl: imageUrl.trim() || undefined,
       sizes,
       sizeStock: buildSizeStockForSizes(sizes, sizeStock, 10),
+      fulfillment,
       active: true,
     })
 
@@ -163,7 +192,7 @@ export default function HostEventMerchManagePage() {
       <AppHeaderBar logoLinkTo="/host" />
 
       <main className="px-4 pt-2">
-        <BackLink to="/host">Event Manager</BackLink>
+        <BackLink to="/host/marketplace">Marketplace manager</BackLink>
 
         <h1 className="mt-3 font-display text-2xl font-extrabold text-brown">Event Marketplace</h1>
         <p className="mt-1 text-sm text-brown-muted">{event.title}</p>
@@ -172,12 +201,24 @@ export default function HostEventMerchManagePage() {
           {formatMerchMoney(49)} per item. Stock the shelf using the report below.
         </p>
 
-        <Link
-          to={`/event/${eventId}/marketplace`}
-          className="mt-3 inline-flex text-xs font-semibold text-orange no-underline hover:underline"
-        >
-          Preview buyer marketplace →
-        </Link>
+        <div className="mt-3 flex flex-wrap gap-3">
+          <Link
+            to={`/host/event/${eventId}/operations`}
+            className="text-xs font-semibold text-orange no-underline hover:underline"
+          >
+            Pick list & contacts →
+          </Link>
+          <Link
+            to={`/event/${eventId}/marketplace`}
+            className="text-xs font-semibold text-orange no-underline hover:underline"
+          >
+            Preview buyer marketplace →
+          </Link>
+        </div>
+
+        <section className="mt-5 rounded-[14px] border border-app-subtle bg-app-elevated p-4">
+          <MerchFeeModePicker value={feeMode} onChange={handleFeeModeChange} />
+        </section>
 
         <section className="mt-5 rounded-[14px] border border-app-subtle bg-app-elevated p-4">
           <h2 className="font-display text-sm font-bold text-brown">Add product</h2>
@@ -242,6 +283,49 @@ export default function HostEventMerchManagePage() {
               onChange={(e) => setPrice(e.target.value)}
               className="app-field w-full"
             />
+            {pricePreview && priceCentsPreview != null && (
+              <p className="text-xs text-brown-muted">
+                {feeMode === 'fees_on_top' ? (
+                  <>
+                    Buyer pays about {formatMerchMoney(pricePreview.totalCents)} at checkout (list + TUDU +
+                    Stripe).
+                  </>
+                ) : (
+                  <>
+                    Buyer pays {formatMerchMoney(priceCentsPreview)}. You keep about{' '}
+                    {formatMerchMoney(estimateMerchHostNetPerItem(priceCentsPreview, feeMode))} per item
+                    after fees.
+                  </>
+                )}
+              </p>
+            )}
+            <fieldset className="rounded-[12px] border border-app-subtle bg-cream-dark/30 px-3 py-2">
+              <legend className="text-[10px] font-bold uppercase tracking-wide text-brown-muted">
+                Fulfillment
+              </legend>
+              <label className="mt-1 flex cursor-pointer items-start gap-2 text-xs text-brown">
+                <input
+                  type="radio"
+                  name="fulfillment"
+                  checked={fulfillment === 'event_pickup'}
+                  onChange={() => setFulfillment('event_pickup')}
+                />
+                <span>
+                  <strong>Pickup at event</strong> — buyer gets order-received email with pickup #
+                </span>
+              </label>
+              <label className="mt-2 flex cursor-pointer items-start gap-2 text-xs text-brown">
+                <input
+                  type="radio"
+                  name="fulfillment"
+                  checked={fulfillment === 'ship_ahead'}
+                  onChange={() => setFulfillment('ship_ahead')}
+                />
+                <span>
+                  <strong>Ship before event</strong> — you mark shipped with tracking; buyer is emailed
+                </span>
+              </label>
+            </fieldset>
             <div>
               <p className="text-[10px] font-bold uppercase tracking-wide text-brown-muted">Sizes & stock</p>
               <div className="mt-1.5 flex flex-wrap gap-1.5">

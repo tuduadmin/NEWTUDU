@@ -108,7 +108,7 @@ export function useCreateEventForm(mode: CreateEventDraftLoadMode = 'default') {
 
   const nextStep = useCallback(() => {
     setStep((s) => {
-      const next = Math.min(5, s + 1) as CreateEventStep
+      const next = Math.min(6, s + 1) as CreateEventStep
       markStepVisited(next)
       return next
     })

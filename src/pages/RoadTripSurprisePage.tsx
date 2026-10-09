@@ -1,10 +1,14 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
 import { BackIconButton } from '../components/NavActionButtons'
+import RoadTripMoodBanner from '../components/road-trip/RoadTripMoodBanner'
+import { getRoadTripMood } from '../lib/roadTripMoods'
 
 export default function RoadTripSurprisePage() {
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const mood = getRoadTripMood(searchParams.get('mood'))
 
   return (
     <div className="app-page-shell pb-28">
@@ -19,6 +23,11 @@ export default function RoadTripSurprisePage() {
       </div>
 
       <main className="px-4 pt-6">
+        {mood && (
+          <div className="mb-4">
+            <RoadTripMoodBanner mood={mood} />
+          </div>
+        )}
         <div className="rounded-[14px] border border-app-subtle bg-app-elevated px-6 py-12 text-center shadow-sm">
           <p className="font-display text-lg font-bold text-brown">Coming soon</p>
           <p className="mt-2 text-sm text-brown-muted">

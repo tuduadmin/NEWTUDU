@@ -73,14 +73,14 @@ export default function LandingOrganizerTiers() {
   const config = getTierConfig()
 
   return (
-    <section className="mx-auto max-w-6xl border-t border-brown/8 px-4 py-14 sm:px-6 lg:px-8">
-      <p className="mb-3 text-center font-display text-xs font-bold uppercase tracking-wider text-brown-muted">
+    <section className="mx-auto max-w-6xl border-t border-white/10 px-4 py-14 sm:px-6 lg:px-8">
+      <p className="mb-3 text-center font-display text-xs font-bold uppercase tracking-wider text-white/60">
         For Event Organizers
       </p>
       <h2 className="mb-2 text-center font-display text-2xl font-extrabold text-gradient sm:text-3xl">
         Host on your terms.
       </h2>
-      <p className="mx-auto mb-10 max-w-xl text-center text-sm leading-relaxed text-brown-muted">
+      <p className="mx-auto mb-10 max-w-xl text-center text-sm leading-relaxed text-white/72">
         Start with private events, verify to publish publicly, then upgrade when you need
         more reach and ad-free perks — no listing fees, transparent platform rates.
       </p>
@@ -91,7 +91,7 @@ export default function LandingOrganizerTiers() {
         ))}
       </div>
 
-      <p className="mx-auto mt-6 max-w-lg text-center text-xs text-brown-muted">
+      <p className="mx-auto mt-6 max-w-lg text-center text-xs text-white/72">
         Host Accounts: Verified, Pioneer, and Trusted Host org plans on{' '}
         <Link to="/host/subscription" className="font-semibold text-peach no-underline hover:underline">
           plans &amp; pricing
@@ -100,8 +100,8 @@ export default function LandingOrganizerTiers() {
       </p>
 
       {config.partnerInviteOnly && (
-        <p className="mx-auto mt-4 max-w-lg text-center text-xs text-brown-muted">
-          <span className="font-semibold text-brown">Partner</span> tier is invite-only -{' '}
+        <p className="mx-auto mt-4 max-w-lg text-center text-xs text-white/72">
+          <span className="font-semibold text-white">Partner</span> tier is invite-only -{' '}
           <a href="mailto:sales@tudu.ca" className="font-semibold text-peach no-underline hover:underline">
             contact us
           </a>{' '}
@@ -113,12 +113,9 @@ export default function LandingOrganizerTiers() {
         <GradientButton to="/host" className="px-8 py-3">
           Host an Event
         </GradientButton>
-        <Link
-          to="/host/subscription"
-          className="inline-flex items-center justify-center rounded-[14px] border-2 border-brown/20 bg-white px-8 py-3 font-display text-sm font-bold text-brown no-underline transition hover:border-brown/35 hover:bg-cream active:scale-[0.98]"
-        >
+        <GradientButton to="/host/subscription" variant="outline" className="px-8 py-3">
           View plans &amp; rates
-        </Link>
+        </GradientButton>
       </div>
     </section>
   )

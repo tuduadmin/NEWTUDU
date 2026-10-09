@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { Navigate, useNavigate } from 'react-router-dom'
 import GradientButton from '../GradientButton'
 import { SkipButton } from '../NavActionButtons'
-import { isPlatformAdmin } from '../../lib/auth'
+import { getCurrentUser, hasControlRoomAccess } from '../../lib/auth'
 import { completeOnboarding } from '../../lib/preferences'
 
 type OnboardingLayoutProps = {
@@ -27,7 +27,7 @@ export default function OnboardingLayout({
   const navigate = useNavigate()
   const progress = (step / totalSteps) * 100
 
-  if (isPlatformAdmin()) {
+  if (hasControlRoomAccess(getCurrentUser()?.email)) {
     return <Navigate to="/admin" replace />
   }
 

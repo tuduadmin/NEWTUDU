@@ -6,6 +6,9 @@ export type FollowableUser = {
   type: 'friend' | 'business' | 'organizer'
   location?: string
   following?: boolean
+  /** Public profile route target */
+  profileKind: 'personal' | 'org'
+  profileId: string
 }
 
 export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
@@ -17,6 +20,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'business',
     location: 'Kindersley, SK',
     following: true,
+    profileKind: 'org',
+    profileId: 'org_demo_kindersley',
   },
   {
     id: 'emerald-lounge',
@@ -26,6 +31,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'business',
     location: 'Kindersley, SK',
     following: true,
+    profileKind: 'org',
+    profileId: 'org_demo_kindersley',
   },
   {
     id: 'jamie-ward',
@@ -35,6 +42,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'friend',
     location: 'Kindersley, SK',
     following: true,
+    profileKind: 'personal',
+    profileId: 'jamie@example.com',
   },
   {
     id: 'town-kindersley',
@@ -44,6 +53,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'organizer',
     location: 'Kindersley, SK',
     following: true,
+    profileKind: 'org',
+    profileId: 'org_demo_kindersley',
   },
   {
     id: 'sarah-chen',
@@ -53,6 +64,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'friend',
     location: 'Saskatoon, SK',
     following: false,
+    profileKind: 'personal',
+    profileId: 'demo@tudu.ca',
   },
   {
     id: 'marcus-webb',
@@ -62,6 +75,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'friend',
     location: 'Regina, SK',
     following: false,
+    profileKind: 'personal',
+    profileId: 'jamie@example.com',
   },
   {
     id: 'kindersley-arena',
@@ -71,6 +86,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'business',
     location: 'Kindersley, SK',
     following: false,
+    profileKind: 'org',
+    profileId: 'org_demo_kindersley',
   },
   {
     id: 'west-central-events',
@@ -80,6 +97,8 @@ export const MOCK_FOLLOWABLE_USERS: FollowableUser[] = [
     type: 'organizer',
     location: 'Rosetown, SK',
     following: false,
+    profileKind: 'org',
+    profileId: 'org_demo_kindersley',
   },
 ]
 

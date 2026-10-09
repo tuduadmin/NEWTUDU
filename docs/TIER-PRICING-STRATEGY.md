@@ -6,7 +6,7 @@ Optimized subscription + micro-transaction model. Configured in code via [`src/l
 
 | Track | Audience | Free tier | Paid upgrade |
 |-------|----------|-----------|--------------|
-| **User (personal)** | Garage sales, house parties, solo hosts | Verified (free) | Explorer ($7.99/mo) |
+| **User (personal)** | Garage sales, house parties, solo hosts | Verified (free) | Explorer (founding $7.99/mo · full $11.99/mo) |
 | **Org (Host Account)** | Venues, museums, recurring sellers | Verified (approved org) | Pioneer / Trusted Host |
 
 Personal and org tracks are **separate** — org subscription does not replace the personal plan, except where noted for Trusted Host primary owners.
@@ -16,8 +16,8 @@ Personal and org tracks are **separate** — org subscription does not replace t
 | Tier | Price | Private events | Public / mo | Ads | Platform fee |
 |------|-------|----------------|-------------|-----|--------------|
 | Unverified | Free | 2 | 0 | Yes | — (verify first) |
-| Verified | Free | 10 | 5 (monthly reset) | Yes | 3.5% + $0.49 + Stripe |
-| Explorer | $7.99/mo · $79.90/yr | Unlimited | 5 (monthly reset) | No | 2.5% + $0.49 + Stripe |
+| Verified | Free | 10 | 3 (monthly reset) | Yes | 3.5% + $0.49 + Stripe |
+| Explorer | Founding **$7.99/mo · $79.90/yr** (grandfathered for life while subscribed) · full **$11.99/mo · $119.90/yr** | Unlimited | 5 (monthly reset) | No | 2.5% + $0.49 + Stripe |
 
 **Verified perks:** bucket list · 1 dark + 1 light theme · Travel Pass 7-day trial · Road Trip with trial week · Travel Pass purchasable after trial.
 
@@ -64,5 +64,5 @@ See also [ADMIN-PORTAL.md](./ADMIN-PORTAL.md) and [TIERS-AND-ORGS.md](./TIERS-AN
 ## Implementation notes
 
 - Config version **5** — legacy v4 keys migrate on read (Explorer price, public caps, perks).
-- Stripe checkout is stubbed — purchase buttons show beta messaging.
+- Stripe: configure `.env` from `.env.example`; purchases use `src/lib/payments/` (demo until API is live). See [STRIPE-INTEGRATION.md](./STRIPE-INTEGRATION.md).
 - MRR analytics on `/admin/tiers` is a stub.

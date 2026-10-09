@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { signUp } from '../lib/auth'
+import { normalizeUsername, validateUsername } from '../lib/username'
 import Header from '../components/Header'
 import GradientButton from '../components/GradientButton'
 import Footer from '../components/Footer'
@@ -33,6 +34,7 @@ const HEAR_OPTIONS = [
 
 type FormErrors = {
   name?: string
+  username?: string
   email?: string
   password?: string
   dob?: string
@@ -42,6 +44,7 @@ type FormErrors = {
 
 function validate(values: {
   name: string
+  username: string
   email: string
   password: string
   dob: string
@@ -54,6 +57,11 @@ function validate(values: {
     errors.name = 'Please enter your name.'
   } else if (values.name.trim().length < 2) {
     errors.name = 'Name must be at least 2 characters.'
+  }
+
+  const usernameCheck = validateUsername(values.username)
+  if (!usernameCheck.ok) {
+    errors.username = usernameCheck.message
   }
 
   if (!values.email.trim()) {
@@ -94,6 +102,7 @@ export default function SignUpPage() {
   const navigate = useNavigate()
   const pwaInstall = usePwaInstall()
   const [name, setName] = useState('')
+  const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [dob, setDob] = useState('')
@@ -109,7 +118,7 @@ export default function SignUpPage() {
     e.preventDefault()
     setSubmitError('')
 
-    const nextErrors = validate({ name, email, password, dob, hearAbout, terms })
+    const nextErrors = validate({ name, username, email, password, dob, hearAbout, terms })
     setErrors(nextErrors)
     setSubmitted(true)
 
@@ -118,18 +127,20 @@ export default function SignUpPage() {
     }
 
     const { firstName, lastName } = splitName(name)
+    const usernameNormalized = normalizeUsername(username)
     const created = signUp({
       email: email.trim(),
       password,
       firstName,
       lastName,
+      username: usernameNormalized,
       dob,
       hearAbout,
       notify: notifications,
     })
 
-    if (!created) {
-      setSubmitError('An account with this email already exists. Please sign in instead.')
+    if (!created.ok) {
+      setSubmitError(created.error)
       return
     }
 
@@ -167,6 +178,27 @@ export default function SignUpPage() {
                   onChange={(e) => setName(e.target.value)}
                   error={!!errors.name && submitted}
                 />
+              </FormField>
+
+              <FormField
+                id="username"
+                label="Username"
+                error={submitted ? errors.username : undefined}
+              >
+                <IconInput
+                  id="username"
+                  name="username"
+                  type="text"
+                  autoComplete="username"
+                  placeholder="yourname"
+                  icon={<PersonIcon />}
+                  value={username}
+                  onChange={(e) => setUsername(normalizeUsername(e.target.value))}
+                  error={!!errors.username && submitted}
+                />
+                <p className="mt-1 text-xs text-brown-muted">
+                  Your unique @handle on TUDU. Letters, numbers, and underscores only.
+                </p>
               </FormField>
 
               <FormField id="email" label="Your Email" error={submitted ? errors.email : undefined}>

@@ -19,6 +19,7 @@ import {
   type RoadTrip,
 } from '../../lib/roadTrips'
 import { getAllUsers } from '../../lib/auth'
+import { Link } from 'react-router-dom'
 
 type AdminRoadTripPageProps = {
   embedded?: boolean
@@ -86,8 +87,12 @@ export default function AdminRoadTripPage({ embedded = false }: AdminRoadTripPag
 
       <AdminPanel className="mb-4">
         <p className="text-xs leading-relaxed text-[var(--admin-text-muted)]">
-          Trips can be created from bucket lists in the consumer app or seeded via Load demo events on
-          the Analytics dashboard.
+          Upload the consumer hero on{' '}
+          <Link to="/admin/hero-banners" className="text-[var(--admin-accent)] no-underline">
+            Hero banners
+          </Link>
+          . Trips can be created from bucket lists in the consumer app or seeded via Load demo events
+          on the Analytics dashboard.
         </p>
       </AdminPanel>
 

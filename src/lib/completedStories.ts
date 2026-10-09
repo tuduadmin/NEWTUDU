@@ -3,10 +3,12 @@ import {
   getBucketLists,
   getBucketListById,
   resolveEventsFromAnySource,
+  resolveListDisplayEvents,
   copyPublicEventToList,
   createBucketList,
   type BucketList,
 } from './bucketLists'
+import { isBucketListFullyComplete } from './bucketListProgress'
 
 export type CompletedStorySlide = {
   eventId: string
@@ -91,9 +93,13 @@ function eventToSlide(
     eventId,
     title: event.title,
     city: event.city,
-    image: list.completionPhotos?.[eventId] ?? event.image,
+    image:
+      list.completionPhotoUrls?.[eventId]?.[0] ??
+      list.completionPhotos?.[eventId] ??
+      event.image,
     completionNote: list.completionNotes?.[eventId],
-    completionPhoto: list.completionPhotos?.[eventId],
+    completionPhoto:
+      list.completionPhotoUrls?.[eventId]?.[0] ?? list.completionPhotos?.[eventId],
     completedAt: list.completedAt?.[eventId],
     dateTime: event.dateTime,
     cost: event.cost,
@@ -101,7 +107,8 @@ function eventToSlide(
 }
 
 export function buildStoryFromOwnList(list: BucketList): CompletedStory | undefined {
-  if (list.completedIds.length === 0) return undefined
+  const displayEvents = resolveListDisplayEvents(list)
+  if (!isBucketListFullyComplete(displayEvents, list.completedIds)) return undefined
 
   const events = resolveEventsFromAnySource(list.completedIds)
   const slides = list.completedIds

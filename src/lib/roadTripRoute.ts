@@ -67,6 +67,65 @@ export function getTripRoutePoints(
   }))
 }
 
+function directionsLabelForEvent(stop: DiscoverEvent): string {
+  const parts = [stop.venueName, stop.streetAddress, stop.city].filter(Boolean)
+  if (parts.length > 0) return parts.join(', ')
+  if (stop.mapsQuery?.trim()) return stop.mapsQuery.trim()
+  return stop.city
+}
+
+/** Cities plus event stops (for Google Maps multi-stop directions). */
+export function getTripDirectionsPoints(
+  trip: RoadTrip,
+  eventStops: DiscoverEvent[] = [],
+): Array<{ lat: number; lng: number; label: string }> {
+  const cityPoints = getRoutePointsFromPlannedCities(getTripPlannedCities(trip))
+  const stopPoints = eventStops.map((stop) => ({
+    label: directionsLabelForEvent(stop),
+    ...resolveEventLatLng(stop),
+  }))
+
+  if (cityPoints.length > 0 && stopPoints.length > 0) {
+    return [...cityPoints, ...stopPoints]
+  }
+  if (cityPoints.length > 0) return cityPoints
+  return stopPoints
+}
+
+/** Open in Google Maps with origin, destination, and waypoints. */
+export function buildGoogleMapsDirectionsUrl(
+  points: Array<{ lat: number; lng: number; label: string }>,
+): string | null {
+  if (points.length === 0) return null
+
+  const queryFor = (p: { lat: number; lng: number; label: string }) =>
+    p.label?.trim() || `${p.lat},${p.lng}`
+
+  if (points.length === 1) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryFor(points[0]))}`
+  }
+
+  const params = new URLSearchParams()
+  params.set('api', '1')
+  params.set('origin', queryFor(points[0]))
+  params.set('destination', queryFor(points[points.length - 1]))
+  params.set('travelmode', 'driving')
+
+  const middle = points.slice(1, -1)
+  if (middle.length > 0) {
+    params.set('waypoints', middle.map(queryFor).join('|'))
+  }
+
+  return `https://www.google.com/maps/dir/?${params.toString()}`
+}
+
+export function getTripGoogleMapsDirectionsUrl(
+  trip: RoadTrip,
+  eventStops: DiscoverEvent[] = [],
+): string | null {
+  return buildGoogleMapsDirectionsUrl(getTripDirectionsPoints(trip, eventStops))
+}
+
 export function isEventWithinRouteKm(
   event: DiscoverEvent,
   routePoints: Array<{ lat: number; lng: number }>,

@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type FormEvent } from 'react'
 import {
   AdminBadge,
+  AdminButton,
   AdminFilterBar,
   AdminInput,
   AdminKpi,
@@ -12,6 +13,7 @@ import {
   AdminTable,
 } from '../../components/admin/AdminUI'
 import {
+  ADMIN_EMPLOYEES_CHANGED_EVENT,
   getEmployees,
   getEmployeeStats,
   updateEmployeeStatus,
@@ -19,6 +21,11 @@ import {
   type EmployeeRole,
   type EmployeeStatus,
 } from '../../lib/adminEmployees'
+import { getCurrentUser, isPlatformAdmin } from '../../lib/auth'
+import { createControlRoomEmployee } from '../../lib/controlRoomEmployees'
+import { isPlatformOwner } from '../../lib/controlRoomAccess'
+import { controlRoomSignInUrl } from '../../lib/controlRoomWelcomeEmail'
+import { getControlRoomSignInPath } from '../../lib/controlRoomRoutes'
 
 const ROLE_LABELS: Record<EmployeeRole, string> = {
   admin: 'Admin',
@@ -37,6 +44,15 @@ export default function AdminEmployeesPage() {
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<'all' | EmployeeRole>('all')
   const [statusFilter, setStatusFilter] = useState<'all' | EmployeeStatus>('all')
+  const canCreateEmployees = isPlatformAdmin()
+
+  useEffect(() => {
+    function reload() {
+      setRefresh((r) => r + 1)
+    }
+    window.addEventListener(ADMIN_EMPLOYEES_CHANGED_EVENT, reload)
+    return () => window.removeEventListener(ADMIN_EMPLOYEES_CHANGED_EVENT, reload)
+  }, [])
 
   const stats = useMemo(() => getEmployeeStats(), [refresh])
 
@@ -67,13 +83,21 @@ export default function AdminEmployeesPage() {
         subtitle="Internal TUDU / platform team roster, roles, and departments."
       />
 
+      {canCreateEmployees && (
+        <AddEmployeePanel
+          onCreated={() => setRefresh((r) => r + 1)}
+        />
+      )}
+
       <AdminPanel className="mb-4">
         <p className="text-xs leading-relaxed text-[var(--admin-text-muted)]">
-          <strong className="text-[var(--admin-text)]">Phase 1:</strong> Demo roster in localStorage (
-          <code className="text-[var(--admin-text-dim)]">tudu-admin-employees</code>). View and update
-          status only.{' '}
-          <strong className="text-[var(--admin-text)]">Phase 2:</strong> Supabase HR sync, SSO role
-          mapping, and audit trail for access changes.
+          Staff sign-in is <strong className="text-[var(--admin-text)]">not linked</strong> from the public
+          site. Share the private URL only by email:{' '}
+          <code className="text-[var(--admin-text-dim)]">{controlRoomSignInUrl()}</code> (path{' '}
+          <code className="text-[var(--admin-text-dim)]">{getControlRoomSignInPath()}</code>). Set{' '}
+          <code className="text-[var(--admin-text-dim)]">VITE_CONTROL_ROOM_SIGN_IN_PATH</code> in production
+          to a non-obvious path so <code className="text-[var(--admin-text-dim)]">/admin/signin</code> is not
+          used. New hires get that link in their welcome email (Phase 1: stub — Support → Messages).
         </p>
       </AdminPanel>
 
@@ -123,6 +147,193 @@ export default function AdminEmployeesPage() {
   )
 }
 
+function AddEmployeePanel({ onCreated }: { onCreated: () => void }) {
+  const [open, setOpen] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [role, setRole] = useState<EmployeeRole>('support')
+  const [department, setDepartment] = useState('')
+  const [sendWelcomeEmail, setSendWelcomeEmail] = useState(true)
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
+
+  function resetForm() {
+    setFirstName('')
+    setLastName('')
+    setEmail('')
+    setPassword('')
+    setRole('support')
+    setDepartment('')
+    setSendWelcomeEmail(true)
+    setError('')
+  }
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    setError('')
+    setSuccess('')
+
+    const ownerEmail = getCurrentUser()?.email
+    if (!ownerEmail) {
+      setError('You must be signed in as the platform owner.')
+      return
+    }
+
+    const result = createControlRoomEmployee(
+      {
+        firstName,
+        lastName,
+        email,
+        password,
+        role,
+        department,
+        sendWelcomeEmail,
+        signInUrl: controlRoomSignInUrl(),
+      },
+      ownerEmail,
+    )
+    if (!result.ok) {
+      setError(result.error ?? 'Could not create employee.')
+      return
+    }
+
+    resetForm()
+    const signIn = controlRoomSignInUrl()
+    if (result.welcomeEmailSent) {
+      setSuccess(
+        `${result.employee?.name ?? 'Employee'} was added. Welcome email queued to ${email.trim().toLowerCase()} with sign-in link (${signIn}) and temporary password.`,
+      )
+    } else {
+      setSuccess(`${result.employee?.name ?? 'Employee'} was added. Share sign-in manually: ${signIn}`)
+    }
+    onCreated()
+  }
+
+  if (!open) {
+    return (
+      <AdminPanel className="mb-4">
+        <AdminButton type="button" variant="primary" onClick={() => setOpen(true)}>
+          Add Control Room employee
+        </AdminButton>
+      </AdminPanel>
+    )
+  }
+
+  return (
+    <AdminPanel className="mb-4">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-[var(--admin-text)]">New employee account</h2>
+        <AdminButton
+          type="button"
+          variant="ghost"
+          onClick={() => {
+            setOpen(false)
+            resetForm()
+            setSuccess('')
+          }}
+        >
+          Cancel
+        </AdminButton>
+      </div>
+      <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
+        <label className="block sm:col-span-1">
+          <span className="admin-label">First name</span>
+          <AdminInput
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            className="mt-1 w-full"
+          />
+        </label>
+        <label className="block sm:col-span-1">
+          <span className="admin-label">Last name</span>
+          <AdminInput
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            className="mt-1 w-full"
+          />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="admin-label">Work email</span>
+          <AdminInput
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="mt-1 w-full"
+          />
+        </label>
+        <label className="block sm:col-span-2">
+          <span className="admin-label">Initial password</span>
+          <AdminInput
+            type="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            minLength={8}
+            className="mt-1 w-full"
+          />
+          <p className="mt-1 text-[10px] text-[var(--admin-text-dim)]">At least 8 characters.</p>
+        </label>
+        <label className="block sm:col-span-1">
+          <span className="admin-label">Role</span>
+          <AdminSelect
+            value={role}
+            onChange={(e) => setRole(e.target.value as EmployeeRole)}
+            className="mt-1 w-full"
+          >
+            <option value="admin">Admin</option>
+            <option value="support">Customer Support</option>
+            <option value="moderator">Moderator</option>
+          </AdminSelect>
+        </label>
+        <label className="block sm:col-span-1">
+          <span className="admin-label">Department</span>
+          <AdminInput
+            value={department}
+            onChange={(e) => setDepartment(e.target.value)}
+            placeholder="e.g. Support"
+            required
+            className="mt-1 w-full"
+          />
+        </label>
+        <label className="flex cursor-pointer items-start gap-2 sm:col-span-2">
+          <input
+            type="checkbox"
+            className="mt-0.5"
+            checked={sendWelcomeEmail}
+            onChange={(e) => setSendWelcomeEmail(e.target.checked)}
+          />
+          <span className="text-xs leading-relaxed text-[var(--admin-text-muted)]">
+            Email initial login to their work address (sign-in URL, email, and temporary password). In
+            production this will use your transactional email provider; today it is logged in Control
+            Room → Support → Messages.
+          </span>
+        </label>
+        {error && (
+          <p className="sm:col-span-2 text-xs text-[var(--admin-danger)]" role="alert">
+            {error}
+          </p>
+        )}
+        {success && (
+          <p className="sm:col-span-2 text-xs text-[var(--admin-accent)]" role="status">
+            {success}
+          </p>
+        )}
+        <div className="sm:col-span-2">
+          <AdminButton type="submit" variant="primary">
+            {sendWelcomeEmail ? 'Create account & send login email' : 'Create account & add to roster'}
+          </AdminButton>
+        </div>
+      </form>
+    </AdminPanel>
+  )
+}
+
 function EmployeeRow({
   employee,
   onStatusChange,
@@ -157,10 +368,10 @@ function EmployeeRow({
             ...(employee.status !== 'active'
               ? [{ label: 'Mark active', onClick: () => { updateEmployeeStatus(employee.id, 'active'); onStatusChange() } }]
               : []),
-            ...(employee.status !== 'on_leave'
+            ...(employee.status !== 'on_leave' && !isPlatformOwner(employee.email)
               ? [{ label: 'Mark on leave', onClick: () => { updateEmployeeStatus(employee.id, 'on_leave'); onStatusChange() } }]
               : []),
-            ...(employee.status !== 'inactive'
+            ...(employee.status !== 'inactive' && !isPlatformOwner(employee.email)
               ? [{ label: 'Mark inactive', onClick: () => { updateEmployeeStatus(employee.id, 'inactive'); onStatusChange() }, danger: true }]
               : []),
           ]}

@@ -4,6 +4,7 @@ export const ORG_ADMIN_USER = {
   password: 'password123',
   firstName: 'Org',
   lastName: 'Admin',
+  username: 'orgadmin',
 } as const
 
 export const DEMO_USER = {
@@ -11,6 +12,7 @@ export const DEMO_USER = {
   password: 'password123',
   firstName: 'Demo',
   lastName: 'User',
+  username: 'demo',
 } as const
 
 export const PLATFORM_ADMIN = {
@@ -18,4 +20,5 @@ export const PLATFORM_ADMIN = {
   password: 'admin123',
   firstName: 'Platform',
   lastName: 'Admin',
+  username: 'platformadmin',
 } as const

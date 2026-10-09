@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useEffect, useMemo, useState } from 'react'
 import AppHeaderBar from '../../components/locked/AppHeaderBar'
 import BottomNav from '../../components/BottomNav'
@@ -12,6 +12,10 @@ import { BackLink } from '../../components/NavActionButtons'
 import { getOrganizationApprovalStatus, getOrganizationsForUser } from '../../lib/account'
 import { useCurrentAccount } from '../../hooks/useCurrentAccount'
 import { getTierConfig } from '../../lib/tierConfig'
+import {
+  getSubscriptionReturnLabel,
+  getSubscriptionReturnUrl,
+} from '../../lib/subscriptionNav'
 
 type PlanTab = 'user' | 'org'
 
@@ -25,6 +29,9 @@ function defaultTab(
 }
 
 export default function HostSubscriptionPage() {
+  const [searchParams] = useSearchParams()
+  const returnTo = getSubscriptionReturnUrl(searchParams)
+  const returnLabel = getSubscriptionReturnLabel(returnTo)
   const { account, sessionEmail } = useCurrentAccount()
   const config = getTierConfig()
 
@@ -59,14 +66,34 @@ export default function HostSubscriptionPage() {
   }, [activeUserPlanId, activeOrgPlanId])
 
   useEffect(() => {
+    function scrollToPlanHash() {
+      const hash = window.location.hash.replace('#', '')
+      if (hash === 'hidden-gems') {
+        setTab('org')
+        window.requestAnimationFrame(() => {
+          document.getElementById('hidden-gems')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        })
+        return
+      }
+      if (hash === 'event-slots') {
+        window.requestAnimationFrame(() => {
+          document.getElementById('event-slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        })
+      }
+    }
+    scrollToPlanHash()
+    window.addEventListener('hashchange', scrollToPlanHash)
+    return () => window.removeEventListener('hashchange', scrollToPlanHash)
+  }, [])
+
+  function selectPlanTab(next: PlanTab) {
+    setTab(next)
     const hash = window.location.hash.replace('#', '')
-    if (hash === 'hidden-gems') setTab('org')
-    if (hash !== 'event-slots' && hash !== 'hidden-gems') return
-    const frame = window.requestAnimationFrame(() => {
-      document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    })
-    return () => window.cancelAnimationFrame(frame)
-  }, [tab])
+    if (hash === 'event-slots' || hash === 'hidden-gems') {
+      history.replaceState(null, '', `${window.location.pathname}${window.location.search}`)
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
+  }
 
   const scope: PlanScope = tab
 
@@ -75,8 +102,8 @@ export default function HostSubscriptionPage() {
       <AppHeaderBar logoLinkTo="/host" />
 
       <main className="px-4 pt-2">
-        <BackLink to="/host" variant="chevron" className="mb-3">
-          Event Manager
+        <BackLink to={returnTo} variant="chevron" className="mb-3">
+          {returnLabel}
         </BackLink>
 
         <h1 className="font-display text-2xl font-extrabold tracking-tight text-brown">
@@ -109,7 +136,7 @@ export default function HostSubscriptionPage() {
             <button
               key={id}
               type="button"
-              onClick={() => setTab(id)}
+              onClick={() => selectPlanTab(id)}
               className={`flex-1 border-b-2 pb-2.5 text-center text-sm font-semibold transition ${
                 tab === id
                   ? 'border-orange text-orange'
@@ -136,7 +163,6 @@ export default function HostSubscriptionPage() {
 
         <div className="mt-4">
           <SubscriptionPlansPanel
-            key={tab}
             scope={scope}
             activeUserPlanId={activeUserPlanId}
             activeOrgPlanId={activeOrgPlanId}

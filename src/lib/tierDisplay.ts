@@ -156,7 +156,7 @@ export function getTierBadgeForAccount(
     ...display,
     label: 'Verified',
     pillClass: getTierPillClass('verified'),
-    summary: 'Phone verified - 5 public events/mo, bucket list, Travel Pass trial.',
+    summary: 'Phone verified - 3 public events/mo, bucket list, Travel Pass trial.',
     action: { type: 'upgrade', text: 'UPGRADE', href: '/host/subscription' },
   }
 }
@@ -195,7 +195,7 @@ export function getPlanCardMeta(planId: TierPlanId): {
   const subtitles: Partial<Record<TierPlanId, string>> = {
     unverified: 'Private events only until verified',
     verified: 'Free forever — phone verification required',
-    explorer: 'No ads — Travel Pass & Road Trip included',
+    explorer: '5 public events/mo — no ads, Travel Pass & Road Trip included',
     pioneer: 'Early org supporter — more reach',
     trusted: 'Businesses, venues & high-volume sellers',
   }

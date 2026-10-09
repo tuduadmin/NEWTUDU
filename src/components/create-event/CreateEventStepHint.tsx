@@ -9,7 +9,7 @@ type CreateEventStepHintProps = {
 }
 
 export default function CreateEventStepHint({ step, form, visitedSteps }: CreateEventStepHintProps) {
-  if (step === 5 || !visitedSteps.has(step)) return null
+  if (step === 6 || !visitedSteps.has(step)) return null
 
   const message = getStepHintMessage(step, form)
   if (!message) return null

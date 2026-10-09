@@ -3,7 +3,7 @@ import { Bookmark, Plus, X } from 'lucide-react'
 import {
   addEventsToBucketList,
   createBucketList,
-  getBucketLists,
+  getMyBucketLists,
 } from '../lib/bucketLists'
 import { appFieldClassLg } from '../lib/formFieldClasses'
 import type { BucketList } from '../types/bucketList'
@@ -21,7 +21,7 @@ export default function AddToBucketListModal({
   onClose,
   onSuccess,
 }: AddToBucketListModalProps) {
-  const [lists, setLists] = useState<BucketList[]>(() => getBucketLists())
+  const [lists, setLists] = useState<BucketList[]>(() => getMyBucketLists())
   const [creating, setCreating] = useState(false)
   const [newName, setNewName] = useState('')
 
@@ -141,7 +141,7 @@ export default function AddToBucketListModal({
               type="button"
               onClick={() => {
                 setCreating(true)
-                setLists(getBucketLists())
+                setLists(getMyBucketLists())
               }}
               className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-brown/20 py-3 font-display text-sm font-bold text-orange"
             >

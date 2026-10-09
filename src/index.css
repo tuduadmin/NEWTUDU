@@ -190,6 +190,47 @@
     background: linear-gradient(135deg, #f68e5d 0%, #d94a7a 50%, #c02e8d 100%);
   }
 
+  .road-trip-script-title {
+    font-family: 'Caveat', cursive;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+
+  .road-trip-cta-glow {
+    box-shadow:
+      0 0 28px rgba(249, 115, 22, 0.45),
+      0 8px 20px rgba(192, 46, 141, 0.35);
+  }
+
+  .road-trip-pill-orange {
+    border-color: rgba(249, 115, 22, 0.55);
+    box-shadow: 0 0 18px rgba(249, 115, 22, 0.28);
+  }
+
+  .road-trip-pill-pink {
+    border-color: rgba(244, 114, 154, 0.55);
+    box-shadow: 0 0 18px rgba(244, 114, 154, 0.28);
+  }
+
+  .road-trip-pill-purple {
+    border-color: rgba(192, 38, 160, 0.5);
+    box-shadow: 0 0 18px rgba(192, 38, 160, 0.25);
+  }
+
+  .bucket-list-hub-tab-explore-active {
+    border-color: rgba(249, 115, 22, 0.55);
+    background: rgba(249, 115, 22, 0.12);
+    color: rgb(249, 115, 22);
+    box-shadow: 0 0 18px rgba(249, 115, 22, 0.28);
+  }
+
+  .bucket-list-hub-tab-mine-active {
+    border-color: rgba(244, 114, 154, 0.55);
+    background: rgba(192, 38, 160, 0.12);
+    color: rgb(244, 114, 154);
+    box-shadow: 0 0 18px rgba(192, 38, 160, 0.22);
+  }
+
   .shadow-event-blue {
     box-shadow:
       0 0 0 2px rgba(59, 130, 246, 0.35),

@@ -12,6 +12,10 @@ export type RoadTripMapView = {
   zoom: number
   tiles: Array<{ x: number; y: number; url: string }>
   gridSize: number
+  originX: number
+  originY: number
+  mapWidth: number
+  mapHeight: number
 }
 
 /** Rough demo coordinates for prairie cities — map preview only. */

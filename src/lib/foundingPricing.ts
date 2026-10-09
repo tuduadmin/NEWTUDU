@@ -1,4 +1,4 @@
-import type { FoundingPricingConfig } from './tierConfig'
+import { getTierConfig, type FoundingPricingConfig, type TierConfig } from './tierConfig'
 
 export type FoundingOfferId = 'explorer' | 'pioneer' | 'trusted' | 'hiddenGem' | 'extraEvent'
 
@@ -65,4 +65,22 @@ export function isFoundingOfferActive(
 ): boolean {
   if (!offer.enabled) return false
   return getFoundingSlotsClaimed(offerId) < offer.maxSlots
+}
+
+export function getFoundingSubscriptionPrice(
+  plan: 'explorer' | 'pioneer' | 'trusted',
+  cycle: 'monthly' | 'annual',
+  config?: TierConfig,
+): number {
+  const pricing = (config ?? getTierConfig())[plan].pricing
+  return cycle === 'annual' ? pricing.annual : pricing.monthly
+}
+
+export function getStandardSubscriptionPrice(
+  plan: 'explorer' | 'pioneer' | 'trusted',
+  cycle: 'monthly' | 'annual',
+  config?: TierConfig,
+): number {
+  const pricing = (config ?? getTierConfig())[plan].pricing
+  return cycle === 'annual' ? pricing.wasAnnual : pricing.wasMonthly
 }

@@ -15,6 +15,7 @@ import {
   AdminTable,
 } from './AdminUI'
 import { buildAdminSeedEventCreatePath } from '../../lib/adminSeed'
+import AdminAccountSubscriptionSection from './AdminAccountSubscriptionSection'
 import AdminMerchControls from './AdminMerchControls'
 import { getHostMerchSettingsFromOrg, type HostMerchSettings } from '../../lib/hostMerch'
 import { rejectOrganizationWithNotification } from '../../lib/adminOrganizations'
@@ -614,6 +615,13 @@ function OrgManageDrawer({
             </AdminSelect>
           </label>
         </section>
+
+        {ownerAccount && (
+          <AdminAccountSubscriptionSection
+            account={ownerAccount}
+            subtitle="Owner account — founding rates apply to their Stripe subscription when live."
+          />
+        )}
 
         {/* Location — country field for future People page geo filters */}
         <section>

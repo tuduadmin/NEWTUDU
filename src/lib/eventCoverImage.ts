@@ -53,52 +53,54 @@ export type EventCoverStockImage = {
   url: string
 }
 
+const STOCK_IMG_PARAMS = 'w=800&q=80&auto=format&fit=crop'
+
 /** Curated royalty-free event-themed stock picks (Unsplash). */
 export const EVENT_COVER_STOCK_IMAGES: EventCoverStockImage[] = [
   {
     id: 'concert-crowd',
     label: 'Concert crowd',
-    url: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'festival-lights',
     label: 'Festival lights',
-    url: 'https://images.unsplash.com/photo-1511795409834-ef04bbd61622?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1511795409834-ef04bbd61622?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'outdoor-gathering',
     label: 'Outdoor gathering',
-    url: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'live-music',
     label: 'Live music',
-    url: 'https://images.unsplash.com/photo-1459749411175-04bf9262ceea?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1459749411175-04bf5292ceea?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'community-market',
     label: 'Community market',
-    url: 'https://images.unsplash.com/photo-1555529665-e79e65c88a0c?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1556740758-90de374c12ad?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'food-festival',
     label: 'Food festival',
-    url: 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1414235077428-338989a2e8c0?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'nightlife',
     label: 'Nightlife',
-    url: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1514525253161-7a46d19cd819?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'workshop',
     label: 'Workshop',
-    url: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1540575467063-178a50c2df87?${STOCK_IMG_PARAMS}`,
   },
   {
     id: 'sports-event',
     label: 'Sports event',
-    url: 'https://images.unsplash.com/photo-1461896836934-ffe607cd9385?w=800&q=80',
+    url: `https://images.unsplash.com/photo-1574629810360-7efbbe195018?${STOCK_IMG_PARAMS}`,
   },
 ]
 

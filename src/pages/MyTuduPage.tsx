@@ -4,9 +4,9 @@ import {
   BuildingLibraryIcon,
   CakeIcon,
   EnvelopeIcon,
-  LockClosedIcon,
   MagnifyingGlassIcon,
   SparklesIcon,
+  HeartIcon,
 } from '@heroicons/react/24/solid'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
@@ -42,7 +42,16 @@ import {
 } from '../lib/userTickets'
 import { getUnreadNotificationCount } from '../lib/userNotifications'
 import type { DiscoverEvent } from '../data/discoverEvents'
+import { DATE_NIGHT_PATH } from '../lib/dateNight'
+import { getSubscriptionUrl } from '../lib/subscriptionNav'
 import { prefChoiceClasses, PREF_CHOICE_ACTIVE_TEXT } from '../lib/prefChoiceClasses'
+
+const QUICK_PICK_TILES = [
+  { id: 'food' as const, label: 'Food', Icon: CakeIcon, type: 'filter' as const },
+  { id: 'entertainment' as const, label: 'Entertainment', Icon: SparklesIcon, type: 'filter' as const },
+  { id: 'poi' as const, label: 'Points of interest', Icon: BuildingLibraryIcon, type: 'filter' as const },
+  { id: 'date-night' as const, label: 'Date night', Icon: HeartIcon, type: 'date-night' as const },
+]
 
 type SavedItem = {
   event: DiscoverEvent
@@ -160,12 +169,28 @@ export default function MyTuduPage() {
     navigate(`/search?q=${encodeURIComponent(q)}`)
   }
 
+  function subscriptionUpsellUrl(): string {
+    return getSubscriptionUrl(`${location.pathname}${location.search}`)
+  }
+
   function handleQuickPick(category: QuickPickOverride) {
     if (!canUseQuickPick) {
-      navigate('/host/subscription')
+      navigate(subscriptionUpsellUrl())
       return
     }
     toggleQuickPickOverride(category)
+  }
+
+  function handleDateNight() {
+    if (!currentUser) {
+      navigate(`/signin?returnTo=${encodeURIComponent(DATE_NIGHT_PATH)}`)
+      return
+    }
+    if (!canUseQuickPick) {
+      navigate(subscriptionUpsellUrl())
+      return
+    }
+    navigate(DATE_NIGHT_PATH)
   }
 
   return (
@@ -230,72 +255,57 @@ export default function MyTuduPage() {
           <>
         {/* Quick pick + search */}
         <section className="mt-2 rounded-[14px] border border-app-subtle bg-app-elevated p-3 shadow-sm">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="font-display text-sm font-bold text-brown">Quick pick</h2>
-            {!canUseQuickPick && (
-              <span className="inline-flex items-center gap-1 rounded-[14px] bg-[#7F77DD]/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[#7F77DD]">
-                <LockClosedIcon className="h-3 w-3" aria-hidden />
-                Explorer
-              </span>
-            )}
-          </div>
-          {!canUseQuickPick && (
-            <p className="mt-1 text-[11px] leading-snug text-brown-muted">
-              Filter your Discover deck by category — upgrade to Explorer to unlock.
-            </p>
-          )}
+          <h2 className="font-display text-sm font-bold text-brown">Quick pick</h2>
 
-          <div className="mt-3 grid grid-cols-3 gap-2">
-            {(
-              [
-                { id: 'food' as const, label: 'Food', Icon: CakeIcon },
-                { id: 'entertainment' as const, label: 'Entertainment', Icon: SparklesIcon },
-                { id: 'poi' as const, label: 'Points of interest', Icon: BuildingLibraryIcon },
-              ] as const
-            ).map((pick) => {
-              const isActive = canUseQuickPick && quickPickOverride === pick.id
+          <div
+            className={`mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 ${
+              !canUseQuickPick ? 'opacity-50 grayscale' : ''
+            }`}
+          >
+            {QUICK_PICK_TILES.map((pick) => {
+              const isFilter = pick.type === 'filter'
+              const isActive =
+                isFilter && canUseQuickPick && quickPickOverride === pick.id
               const isLocked = !canUseQuickPick
               return (
                 <button
                   key={pick.id}
                   type="button"
-                  aria-pressed={isActive}
+                  aria-pressed={isFilter ? isActive : undefined}
                   aria-label={
                     isLocked
-                      ? `${pick.label} — Explorer subscription required`
-                      : isActive
-                        ? `Clear ${pick.label} quick pick`
-                        : `Quick pick ${pick.label} on Discover`
+                      ? `${pick.label} — upgrade to unlock`
+                      : pick.type === 'date-night'
+                        ? 'Open Date night planner'
+                        : isActive
+                          ? `Clear ${pick.label} quick pick`
+                          : `Quick pick ${pick.label} on Discover`
                   }
-                  onClick={() => handleQuickPick(pick.id)}
+                  onClick={() =>
+                    pick.type === 'date-night' ? handleDateNight() : handleQuickPick(pick.id)
+                  }
                   className={
-                    isLocked && !isActive
-                      ? 'group relative flex flex-col items-center gap-1 rounded-[14px] border border-brown/10 bg-cream/30 px-2 py-2.5 text-center opacity-75 transition active:scale-[0.98] hover:border-[#7F77DD]/30'
+                    isLocked
+                      ? 'group relative flex flex-col items-center gap-1 rounded-[14px] border border-brown/10 bg-cream/25 px-2 py-2.5 text-center transition active:scale-[0.98]'
                       : prefChoiceClasses(
                           isActive,
                           'group relative flex flex-col items-center gap-1 px-2 py-2.5 text-center',
                         )
                   }
                 >
-                  {isLocked && (
-                    <LockClosedIcon
-                      className="absolute right-1.5 top-1.5 h-3 w-3 text-[#7F77DD]"
-                      aria-hidden
-                    />
-                  )}
                   <pick.Icon
                     className={`pref-choice-icon h-5 w-5 transition ${
-                      isActive
-                        ? ''
-                        : isLocked
-                          ? 'text-brown-muted/70 group-hover:text-[#7F77DD]'
-                          : 'text-brown-muted'
+                      isActive ? '' : 'text-brown-muted'
                     }`}
                     aria-hidden
                   />
                   <span
                     className={`pref-choice-label text-[11px] leading-tight ${
-                      isActive ? PREF_CHOICE_ACTIVE_TEXT : 'font-semibold text-brown'
+                      isActive
+                        ? PREF_CHOICE_ACTIVE_TEXT
+                        : isLocked
+                          ? 'font-semibold text-brown-muted'
+                          : 'font-semibold text-brown'
                     }`}
                   >
                     {pick.label}

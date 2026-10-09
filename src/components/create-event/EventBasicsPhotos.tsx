@@ -439,7 +439,7 @@ export default function EventBasicsPhotos({
                   <img
                     src={stock.url}
                     alt=""
-                    className="aspect-[3/4] w-full object-cover transition group-hover:scale-[1.02]"
+                    className="aspect-[3/4] w-full bg-cream-dark/30 object-cover transition group-hover:scale-[1.02]"
                     loading="lazy"
                   />
                   <span className="block truncate px-2 py-1.5 text-[10px] font-medium text-brown-muted group-hover:text-brown">

@@ -1,8 +1,5 @@
 import { Link } from 'react-router-dom'
 import { getOrganization, type Organization } from '../../lib/account'
-import { getCurrentUser } from '../../lib/auth'
-import { useHostProfileStore } from '../../hooks/useHostProfileStore'
-import { resolvePersonalHostDisplayName } from '../../lib/personalHostProfile'
 import { prefChoiceClasses, PREF_CHOICE_ACTIVE_TEXT } from '../../lib/prefChoiceClasses'
 
 type HostContextToggleProps = {
@@ -37,19 +34,8 @@ export default function HostContextToggle({
   onChange,
   showPersonalOption = true,
 }: HostContextToggleProps) {
-  const profileRevision = useHostProfileStore()
-  void profileRevision
-
-  const user = getCurrentUser()
-  const personalFallback = user ? `${user.firstName} ${user.lastName}`.trim() : ''
-  const personalLabel = user
-    ? resolvePersonalHostDisplayName(user.email, personalFallback)
-    : 'Me'
-  const activeOrgLabel = activeOrg
-    ? resolveOrgDisplayName(activeOrg)
-    : hostAccounts.length > 0
-      ? resolveOrgDisplayName(hostAccounts[0])
-      : 'Organization'
+  const personalLabel = 'User'
+  const orgTabLabel = 'Organization'
   const hasOrg = hostAccounts.length > 0
 
   if (!showPersonalOption && hasOrg) {
@@ -106,7 +92,7 @@ export default function HostContextToggle({
           <span
             className={`pref-choice-label truncate ${!isPersonal ? PREF_CHOICE_ACTIVE_TEXT : 'font-semibold text-brown-muted'}`}
           >
-            {activeOrgLabel}
+            {orgTabLabel}
           </span>
         </button>
       </div>

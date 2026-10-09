@@ -1,5 +1,4 @@
 import { Link } from 'react-router-dom'
-import AdminEntryLink from './AdminEntryLink'
 
 type FooterProps = {
   variant?: 'light' | 'dark' | 'marketing'
@@ -22,11 +21,11 @@ export default function Footer({ variant = 'dark' }: FooterProps) {
         }`}
       >
         {isMarketing ? (
-          <p className="mb-4 text-sm">© 2024 Tudu.ca Made with ❤️ in Canada</p>
+          <p className="mb-4 text-sm">© 2025 Tudu.ca Made with ❤️</p>
         ) : (
           <>
             <p className="mb-1 text-sm">© 2026 TUDU Entertainment Inc.</p>
-            <p className="mb-5 text-xs opacity-80">Made with ❤️ in Canada</p>
+            <p className="mb-5 text-xs opacity-80">Made with ❤️</p>
           </>
         )}
         <nav
@@ -52,22 +51,12 @@ export default function Footer({ variant = 'dark' }: FooterProps) {
             |
           </span>
           {isMarketing ? (
-            <>
-              <Link
-                to="/privacy"
-                className={`no-underline transition ${isDark ? 'text-white/48 hover:text-white' : 'text-brown-muted hover:text-brown'}`}
-              >
-                Privacy Policy
-              </Link>
-              <span className={isDark ? 'text-white/20' : 'text-brown/30'} aria-hidden>
-                |
-              </span>
-              <AdminEntryLink
-                className={`text-[11px] opacity-45 no-underline transition hover:opacity-80 ${isDark ? 'text-white/48 hover:text-white' : 'text-brown-muted hover:text-brown'}`}
-              >
-                Admin
-              </AdminEntryLink>
-            </>
+            <Link
+              to="/privacy"
+              className={`no-underline transition ${isDark ? 'text-white/48 hover:text-white' : 'text-brown-muted hover:text-brown'}`}
+            >
+              Privacy Policy
+            </Link>
           ) : (
             <>
               <Link
@@ -94,14 +83,6 @@ export default function Footer({ variant = 'dark' }: FooterProps) {
               >
                 Cookie Policy
               </Link>
-              <span className={isDark ? 'text-white/20' : 'text-brown/30'} aria-hidden>
-                |
-              </span>
-              <AdminEntryLink
-                className={`text-[11px] opacity-45 no-underline transition hover:opacity-80 ${isDark ? 'text-white/48 hover:text-white' : 'text-brown-muted hover:text-brown'}`}
-              >
-                Admin
-              </AdminEntryLink>
             </>
           )}
         </nav>

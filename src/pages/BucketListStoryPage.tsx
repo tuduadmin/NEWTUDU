@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import Toast from '../components/Toast'
-import { BackLink, ShareIcon } from '../components/NavActionButtons'
+import { BackIconButton, BackLink, ShareIcon } from '../components/NavActionButtons'
 import { getBucketLists } from '../lib/bucketLists'
 import {
   getCompletedStoryById,
@@ -42,6 +42,12 @@ export default function BucketListStoryPage() {
   useEffect(() => {
     refreshStory()
   }, [refreshStory])
+
+  useEffect(() => {
+    if (id?.startsWith('own-')) {
+      navigate(`/bucket-list/${id.slice(4)}/recap`, { replace: true })
+    }
+  }, [id, navigate])
 
   const slideCount = story?.slides.length ?? 0
   const embedUrl = spotifyEmbedUrl(story?.spotifyUrl)
@@ -148,6 +154,22 @@ export default function BucketListStoryPage() {
     if (result) setToast(`Saved to new list "${result.listName}"`)
   }
 
+  function handleBack() {
+    if (!story) {
+      navigate('/bucket-list')
+      return
+    }
+    if (story.isOwn && story.id.startsWith('own-')) {
+      navigate(`/bucket-list/${story.id.slice(4)}/recap`)
+      return
+    }
+    if (story.sourceListId) {
+      navigate(`/bucket-list/${story.sourceListId}`)
+      return
+    }
+    navigate('/bucket-list?tab=discover&discover=completed')
+  }
+
   if (!id || !story) {
     return (
       <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-app-dark text-white">
@@ -189,25 +211,22 @@ export default function BucketListStoryPage() {
         ))}
       </div>
 
-      {/* Header */}
-      <div className="absolute left-0 right-0 top-0 z-10 flex items-center justify-between px-3 pt-8">
-        <div className="flex items-center gap-2">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">
+      {/* Header — back sits below story progress bars */}
+      <div className="pointer-events-none absolute left-0 right-0 top-0 z-20 flex items-center gap-2 px-3 pb-2 pt-[max(2.75rem,calc(env(safe-area-inset-top)+2rem))]">
+        <BackIconButton
+          variant="glass"
+          onClick={handleBack}
+          className="pointer-events-auto shrink-0"
+        />
+        <div className="pointer-events-auto flex min-w-0 flex-1 items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange text-xs font-bold text-white">
             {story.ownerInitials}
           </span>
-          <div>
-            <p className="text-sm font-bold text-white">{story.ownerName}</p>
-            <p className="text-xs text-white/70">{story.name}</p>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-bold text-white">{story.ownerName}</p>
+            <p className="truncate text-xs text-white/70">{story.name}</p>
           </div>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/bucket-list?tab=mine&discover=completed')}
-          className="flex h-9 w-9 items-center justify-center rounded-full bg-black/40 text-lg text-white backdrop-blur-sm"
-          aria-label="Close story"
-        >
-          âœ•
-        </button>
       </div>
 
       {/* Tap zones */}

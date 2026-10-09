@@ -6,6 +6,8 @@ import {
   exportMerchFulfillmentCsv,
   filterMerchFulfillmentRows,
   getMerchFulfillmentRows,
+  getMerchOrdersAwaitingShipment,
+  markMerchOrderShipped,
   redeemMerchOrderById,
   type MerchFulfillmentRow,
   type MerchFulfillmentStatusFilter,
@@ -26,6 +28,13 @@ export default function MerchFulfillmentPanel({
   const [query, setQuery] = useState('')
   const [status, setStatus] = useState<MerchFulfillmentStatusFilter>('all')
   const [redeemError, setRedeemError] = useState<string | null>(null)
+  const [trackingByOrder, setTrackingByOrder] = useState<Record<string, string>>({})
+  const [shipError, setShipError] = useState<string | null>(null)
+
+  const awaitingShip = useMemo(() => {
+    void refreshKey
+    return getMerchOrdersAwaitingShipment(event.id)
+  }, [event.id, refreshKey])
 
   const rows = useMemo(() => {
     void refreshKey
@@ -48,6 +57,22 @@ export default function MerchFulfillmentPanel({
 
   function handleExport() {
     exportMerchFulfillmentCsv(event.title, filtered)
+  }
+
+  function handleMarkShipped(orderId: string) {
+    const tracking = trackingByOrder[orderId] ?? ''
+    const result = markMerchOrderShipped(orderId, tracking)
+    if (!result.ok) {
+      setShipError(result.error)
+      return
+    }
+    setShipError(null)
+    setTrackingByOrder((prev) => {
+      const next = { ...prev }
+      delete next[orderId]
+      return next
+    })
+    onRedeemed()
   }
 
   function handleMarkPickedUp(orderId: string) {
@@ -91,6 +116,51 @@ export default function MerchFulfillmentPanel({
         </Link>
       </div>
 
+      {awaitingShip.length > 0 && (
+        <div className="mt-3 rounded-[12px] border border-orange/25 bg-orange/5 p-3">
+          <p className="text-xs font-bold text-brown">Pre-orders to ship ({awaitingShip.length})</p>
+          <p className="mt-0.5 text-[11px] text-brown-muted">
+            Enter tracking or confirmation # — buyer gets an email (Phase 1: stub + in-app).
+          </p>
+          <ul className="mt-2 space-y-2">
+            {awaitingShip.map((order) => (
+              <li
+                key={order.id}
+                className="flex flex-col gap-2 rounded-[10px] border border-brown/10 bg-white px-2 py-2 sm:flex-row sm:items-center"
+              >
+                <div className="min-w-0 flex-1">
+                  <p className="font-mono text-xs font-bold text-brown">{order.pickupNumber}</p>
+                  <p className="truncate text-[11px] text-brown-muted">
+                    {order.holderName} · {order.userEmail}
+                  </p>
+                </div>
+                <input
+                  type="text"
+                  value={trackingByOrder[order.id] ?? ''}
+                  onChange={(e) =>
+                    setTrackingByOrder((prev) => ({ ...prev, [order.id]: e.target.value }))
+                  }
+                  placeholder="Tracking / confirmation #"
+                  className="app-field min-w-0 flex-1 py-1.5 text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => handleMarkShipped(order.id)}
+                  className="shrink-0 rounded-[10px] bg-orange px-3 py-1.5 text-[11px] font-bold text-white"
+                >
+                  Mark shipped
+                </button>
+              </li>
+            ))}
+          </ul>
+          {shipError && (
+            <p className="mt-2 text-xs font-semibold text-maroon" role="alert">
+              {shipError}
+            </p>
+          )}
+        </div>
+      )}
+
       <div className="mt-3 grid grid-cols-2 gap-2">
         <StatCard label="Waiting pickup" value={pendingCount} tone="orange" />
         <StatCard label="Picked up" value={pickedUpCount} tone="green" />
@@ -116,6 +186,7 @@ export default function MerchFulfillmentPanel({
           [
             ['all', 'All'],
             ['pending_pickup', 'Waiting'],
+            ['shipped', 'Shipped'],
             ['picked_up', 'Picked up'],
           ] as const
         ).map(([value, label]) => (
@@ -163,6 +234,7 @@ export default function MerchFulfillmentPanel({
                   row={row}
                   showRedeemButton={
                     row.status === 'pending_pickup' &&
+                    !row.requiresShipping &&
                     firstRedeemRowKeyByOrder.get(row.orderId) ===
                       `${row.orderId}-${row.productName}-${row.size}`
                   }
@@ -215,7 +287,9 @@ function FulfillmentRow({
   showRedeemButton: boolean
   onMarkPickedUp: (orderId: string) => void
 }) {
-  const pending = row.status === 'pending_pickup'
+  const pendingPickup = row.status === 'pending_pickup' && !row.requiresShipping
+  const awaitingShip = row.status === 'pending_pickup' && row.requiresShipping
+  const shipped = row.status === 'shipped'
   return (
     <tr className="bg-white">
       <td className="px-3 py-2 align-top">
@@ -233,20 +307,26 @@ function FulfillmentRow({
         ×{row.quantity}
       </td>
       <td className="px-3 py-2 align-top">
-        {pending ? (
-          showRedeemButton ? (
-            <button
-              type="button"
-              onClick={() => onMarkPickedUp(row.orderId)}
-              className="rounded-[10px] bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success transition hover:bg-success/25"
-            >
-              Mark picked up
-            </button>
-          ) : (
-            <span className="rounded-[10px] bg-orange/10 px-2 py-0.5 text-[10px] font-bold text-orange">
-              Waiting
-            </span>
-          )
+        {pendingPickup && showRedeemButton ? (
+          <button
+            type="button"
+            onClick={() => onMarkPickedUp(row.orderId)}
+            className="rounded-[10px] bg-success/15 px-2 py-0.5 text-[10px] font-bold text-success transition hover:bg-success/25"
+          >
+            Mark picked up
+          </button>
+        ) : awaitingShip ? (
+          <span className="rounded-[10px] bg-orange/10 px-2 py-0.5 text-[10px] font-bold text-orange">
+            Ship
+          </span>
+        ) : shipped ? (
+          <span className="rounded-[10px] bg-cream-dark px-2 py-0.5 text-[10px] font-bold text-brown-muted">
+            Shipped{row.trackingNumber ? `: ${row.trackingNumber}` : ''}
+          </span>
+        ) : pendingPickup ? (
+          <span className="rounded-[10px] bg-orange/10 px-2 py-0.5 text-[10px] font-bold text-orange">
+            Waiting
+          </span>
         ) : (
           <span className="rounded-[10px] bg-cream-dark px-2 py-0.5 text-[10px] font-bold text-brown-muted">
             Picked up

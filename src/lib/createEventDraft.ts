@@ -13,7 +13,7 @@ import { getCurrentUser } from './auth'
 export const CREATE_EVENT_DRAFT_KEY = 'tudu_create_event_draft'
 const SESSION_KEY = 'tudu_create_event_session'
 
-export type CreateEventStep = 1 | 2 | 3 | 4 | 5
+export type CreateEventStep = 1 | 2 | 3 | 4 | 5 | 6
 
 export type CreateEventDraftAccountSnapshot = {
   tier: UserTier
@@ -61,6 +61,11 @@ function migrateLegacyFormFields(form: Partial<HostEventFormData>): Partial<Host
   if (!migrated.scheduledPublishAt) migrated.scheduledPublishAt = ''
   if (!migrated.ticketSessions?.length) {
     migrated.ticketSessions = migrateTicketSessions(migrated)
+  }
+  if (migrated.marketplaceEnabled === undefined) migrated.marketplaceEnabled = false
+  if (!migrated.marketplaceDraftProducts) migrated.marketplaceDraftProducts = []
+  if (migrated.marketplaceFeeMode === undefined) {
+    migrated.marketplaceFeeMode = 'fees_on_top'
   }
 
   return migrated

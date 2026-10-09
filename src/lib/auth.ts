@@ -5,18 +5,29 @@ export { DEMO_USER, ORG_ADMIN_USER, PLATFORM_ADMIN } from './demoAccounts'
 import { ensureAccount, isEmailFlagged, saveAccount, touchLastActive } from './account'
 import { logActivity } from './adminAnalytics'
 import { initializeNewUserPreferences, isOnboardingComplete } from './preferences'
+import { hasControlRoomAccess, isPlatformOwner } from './controlRoomAccess'
+import {
+  normalizeUsername,
+  suggestUsernameFromEmail,
+  validateUsername,
+  withUsernameSuffix,
+} from './username'
 
 export interface StoredUser {
   email: string
   password: string
   firstName: string
   lastName: string
+  /** Unique @handle — lowercase, 3–20 chars. Assigned on sign-up or repair. */
+  username?: string
   dob?: string
   hearAbout?: string
   notify?: boolean
   /** ISO timestamp set on sign-up. */
   joinedAt?: string
 }
+
+export type SignUpResult = { ok: true } | { ok: false; error: string }
 
 const USERS_KEY = 'tudu_users'
 const SESSION_KEY = 'tudu_session'
@@ -34,8 +45,9 @@ function getUsers(): StoredUser[] {
     const raw = localStorage.getItem(USERS_KEY)
     const parsed = raw ? (JSON.parse(raw) as StoredUser[]) : []
     const deduped = dedupeUsers(parsed)
-    if (deduped.length !== parsed.length) {
-      localStorage.setItem(USERS_KEY, JSON.stringify(deduped))
+    const serialized = JSON.stringify(deduped)
+    if (raw !== serialized) {
+      localStorage.setItem(USERS_KEY, serialized)
     }
     return deduped
   } catch {
@@ -51,7 +63,44 @@ function dedupeUsers(users: StoredUser[]): StoredUser[] {
     const existing = byEmail.get(key)
     byEmail.set(key, existing ? { ...existing, ...user, email: key } : { ...user, email: key })
   }
-  return Array.from(byEmail.values())
+  return repairMissingUsernames(Array.from(byEmail.values()))
+}
+
+function allocateUsername(base: string, taken: Set<string>): string {
+  let candidate = normalizeUsername(base)
+  let suffix = 1
+  while (taken.has(candidate) || !validateUsername(candidate).ok) {
+    candidate = withUsernameSuffix(base, suffix)
+    suffix += 1
+    if (suffix > 9999) {
+      candidate = suggestUsernameFromEmail(`${base}@tudu.local`)
+      break
+    }
+  }
+  return candidate
+}
+
+/** Backfill or fix usernames for legacy accounts and resolve collisions. */
+function repairMissingUsernames(users: StoredUser[]): StoredUser[] {
+  const taken = new Set<string>()
+  const repaired: StoredUser[] = []
+
+  for (const user of users) {
+    let username = user.username ? normalizeUsername(user.username) : ''
+    if (username) {
+      const valid = validateUsername(username)
+      if (!valid.ok || taken.has(username)) {
+        username = ''
+      }
+    }
+    if (!username) {
+      username = allocateUsername(suggestUsernameFromEmail(user.email), taken)
+    }
+    taken.add(username)
+    repaired.push(user.username === username ? user : { ...user, username })
+  }
+
+  return repaired
 }
 
 function saveUsers(users: StoredUser[]): void {
@@ -83,6 +132,7 @@ function upsertKnownUser(source: typeof DEMO_USER): void {
     password: source.password,
     firstName: source.firstName,
     lastName: source.lastName,
+    username: source.username,
   }
   if (idx === -1) {
     users.push(record)
@@ -127,6 +177,7 @@ export function seedDemoUser(): void {
 }
 
 export function seedAdminUser(): void {
+  if (!import.meta.env.DEV) return
   const users = getUsers()
   const idx = users.findIndex(
     (u) => u.email.toLowerCase() === PLATFORM_ADMIN.email.toLowerCase(),
@@ -136,6 +187,7 @@ export function seedAdminUser(): void {
     password: PLATFORM_ADMIN.password,
     firstName: PLATFORM_ADMIN.firstName,
     lastName: PLATFORM_ADMIN.lastName,
+    username: PLATFORM_ADMIN.username,
   }
   if (idx === -1) {
     users.push(adminRecord)
@@ -164,33 +216,83 @@ export function isPlatformAdmin(email?: string | null): boolean {
   const sessionEmail =
     typeof localStorage !== 'undefined' ? localStorage.getItem(SESSION_KEY) : null
   const resolved = email ?? getCurrentUser()?.email ?? sessionEmail
-  return resolved?.toLowerCase() === PLATFORM_ADMIN.email.toLowerCase()
+  return isPlatformOwner(resolved)
 }
+
+export { hasControlRoomAccess } from './controlRoomAccess'
 
 export function getAllUsers(): StoredUser[] {
   return getUsers()
 }
 
-export function signUp(userData: StoredUser): boolean {
+export function findUserByEmail(email: string): StoredUser | null {
+  return (
+    getUsers().find((u) => u.email.toLowerCase() === email.trim().toLowerCase()) ?? null
+  )
+}
+
+export function findUserByUsername(username: string): StoredUser | null {
+  const normalized = normalizeUsername(username)
+  if (!normalized) return null
+  return getUsers().find((u) => u.username?.toLowerCase() === normalized) ?? null
+}
+
+export function isUsernameTaken(username: string, excludeEmail?: string): boolean {
+  const normalized = normalizeUsername(username)
+  if (!normalized) return false
+  const exclude = excludeEmail?.trim().toLowerCase()
+  return getUsers().some(
+    (u) => u.username?.toLowerCase() === normalized && u.email.toLowerCase() !== exclude,
+  )
+}
+
+export function registerStoredUser(
+  userData: StoredUser,
+  options?: { startSession?: boolean },
+): SignUpResult {
+  const email = userData.email.trim().toLowerCase()
   const users = getUsers()
-  if (users.some((u) => u.email.toLowerCase() === userData.email.toLowerCase())) {
-    return false
+  if (users.some((u) => u.email.toLowerCase() === email)) {
+    return { ok: false, error: 'An account with this email already exists. Please sign in instead.' }
   }
-  if (isEmailFlagged(userData.email)) {
-    return false
+  if (isEmailFlagged(email)) {
+    return { ok: false, error: 'This email cannot be used to create an account.' }
   }
-  const joinedAt = new Date().toISOString()
-  users.push({ ...userData, joinedAt })
+
+  const usernameCheck = validateUsername(userData.username ?? '')
+  if (!usernameCheck.ok) {
+    return { ok: false, error: usernameCheck.message }
+  }
+  if (isUsernameTaken(usernameCheck.username)) {
+    return {
+      ok: false,
+      error: 'That username is already taken. Please choose another.',
+    }
+  }
+
+  const joinedAt = userData.joinedAt ?? new Date().toISOString()
+  users.push({
+    ...userData,
+    email,
+    username: usernameCheck.username,
+    joinedAt,
+  })
   saveUsers(users)
-  setSession(userData.email)
-  ensureAccount(userData.email)
-  initializeNewUserPreferences(userData.email)
+  if (options?.startSession !== false) {
+    setSession(email)
+  }
+  ensureAccount(email)
+  initializeNewUserPreferences(email)
   logActivity({
     type: 'signup',
     label: 'New user registered',
-    meta: { email: userData.email },
+    meta: { email, username: usernameCheck.username },
   })
-  return true
+  return { ok: true }
+}
+
+export function signUp(userData: StoredUser): SignUpResult {
+  return registerStoredUser(userData, { startSession: true })
 }
 
 export function getRememberedEmail(): string | null {
@@ -207,12 +309,6 @@ export function setRememberMe(email: string, remember: boolean): void {
   } else {
     localStorage.removeItem(REMEMBER_EMAIL_KEY)
   }
-}
-
-export function findUserByEmail(email: string): StoredUser | null {
-  return (
-    getUsers().find((u) => u.email.toLowerCase() === email.trim().toLowerCase()) ?? null
-  )
 }
 
 export function signIn(
@@ -320,13 +416,13 @@ export function resetPasswordByEmail(
 }
 
 export function getPostAuthPath(): string {
-  if (isPlatformAdmin()) return '/admin'
+  if (hasControlRoomAccess(getSessionEmail())) return '/admin'
   return isOnboardingComplete() ? '/discover' : '/onboarding/interests'
 }
 
 export function getDiscoverPath(): string {
   if (!isAuthenticated()) return '/signin'
-  if (isPlatformAdmin()) return '/admin'
+  if (hasControlRoomAccess(getSessionEmail())) return '/admin'
   return isOnboardingComplete() ? '/discover' : '/onboarding/interests'
 }
 

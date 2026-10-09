@@ -1,19 +1,27 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { Plus } from 'lucide-react'
+import { Bookmark, ChevronDown, Compass, Plus, Search } from 'lucide-react'
 import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
 import GradientButton from '../components/GradientButton'
+import BucketListLandingHero from '../components/bucket-list/BucketListLandingHero'
+import { useBucketListHero } from '../hooks/useBucketListHero'
 import VibeBadge from '../components/VibeBadge'
 import Toast from '../components/Toast'
+import { getCurrentUser } from '../lib/auth'
+import BucketListProgressRing from '../components/bucket-list/BucketListProgressRing'
 import {
-  createBucketList,
-  getBucketLists,
   getDiscoveryFeedLists,
+  getMyBucketLists,
   getListCoverImage,
+  resolveListDisplayEvents,
+  startBucketListCreate,
   type BucketList,
   type PublicBucketList,
 } from '../lib/bucketLists'
+import { bucketListProgress, getPublicListProgress } from '../lib/bucketListProgress'
+import { bucketListDetailPath, bucketListRecapPath } from '../lib/bucketListViewContext'
+import type { VibeTag } from '../types/bucketList'
 import {
   getCompletedStories,
   getDisplayLikeCount,
@@ -22,6 +30,9 @@ import {
 
 type HubTab = 'explore' | 'mine'
 type MineView = 'lists' | 'completed'
+
+const HUB_PANEL =
+  'rounded-[14px] border border-white/10 bg-midnight-elevated shadow-[0_0_24px_rgba(249,115,22,0.08)]'
 
 export default function BucketListDiscoveryPage() {
   const navigate = useNavigate()
@@ -33,17 +44,16 @@ export default function BucketListDiscoveryPage() {
     searchParams.get('discover') === 'completed' ? 'completed' : 'lists',
   )
   const [publicLists, setPublicLists] = useState<PublicBucketList[]>(() => getDiscoveryFeedLists())
-  const [myLists, setMyLists] = useState<BucketList[]>(() => getBucketLists())
+  const [myLists, setMyLists] = useState<BucketList[]>(() => getMyBucketLists())
   const [completedStories, setCompletedStories] = useState<CompletedStory[]>(() =>
     getCompletedStories(),
   )
+  const { url: heroUrl, revision: heroRevision } = useBucketListHero()
   const [toast, setToast] = useState<string | null>(null)
-  const [creating, setCreating] = useState(() => searchParams.get('create') === 'true')
-  const [newListName, setNewListName] = useState('')
 
   const refreshData = useCallback(() => {
     setPublicLists(getDiscoveryFeedLists())
-    setMyLists(getBucketLists())
+    setMyLists(getMyBucketLists())
     setCompletedStories(getCompletedStories())
   }, [])
 
@@ -55,8 +65,17 @@ export default function BucketListDiscoveryPage() {
     const nextTab = searchParams.get('tab') === 'mine' ? 'mine' : 'explore'
     setTab(nextTab)
     setMineView(searchParams.get('discover') === 'completed' ? 'completed' : 'lists')
-    if (searchParams.get('create') === 'true') setCreating(true)
   }, [searchParams])
+
+  useEffect(() => {
+    if (searchParams.get('create') !== 'true') return
+    const user = getCurrentUser()
+    if (user) {
+      startBucketListCreate((path) => navigate(path), user)
+    } else {
+      navigate('/signin')
+    }
+  }, [searchParams, navigate])
 
   function selectTab(next: HubTab) {
     setTab(next)
@@ -74,51 +93,66 @@ export default function BucketListDiscoveryPage() {
     }
   }
 
-  function closeCreate() {
-    setCreating(false)
-    setNewListName('')
-    const params: Record<string, string> = {}
-    if (tab === 'mine') params.tab = 'mine'
-    setSearchParams(params)
-  }
-
-  function handleCreateList() {
-    const name = newListName.trim()
-    if (!name) return
-    const list = createBucketList(name)
-    closeCreate()
-    refreshData()
-    navigate(`/bucket-list/${list.id}`)
+  function openCreate() {
+    const user = getCurrentUser()
+    if (!user) {
+      navigate('/signin')
+      return
+    }
+    const created = startBucketListCreate((path) => navigate(path), user)
+    if (!created) {
+      setToast('Could not start a new list. Free some browser storage and try again.')
+    }
   }
 
   return (
-    <div className="relative app-page-shell pb-[calc(var(--app-bottom-nav-h)+env(safe-area-inset-bottom))]">
+    <div className="relative app-page-shell bg-midnight pb-[calc(var(--app-bottom-nav-h)+env(safe-area-inset-bottom))] text-white">
       <AppHeaderBar logoLinkTo="/bucket-list" />
 
-      <div className="px-4 pb-2 pt-2">
-        <p className="text-tagline">Bucket List</p>
-        <h1 className="font-display text-xl font-extrabold tracking-tight text-brown">Bucket List</h1>
-      </div>
+      <BucketListLandingHero
+        heroUrl={heroUrl}
+        heroRevision={heroRevision}
+        onCreate={openCreate}
+      />
 
-      <div className="px-4 pb-3">
-        <div className="flex rounded-[14px] border border-app-subtle bg-app-elevated p-1">
+      <div className="mt-3 px-4 pb-3">
+        <div
+          className={`flex gap-2 bg-gradient-to-r from-sunset-orange/[0.07] via-transparent to-magenta/[0.08] p-1.5 ${HUB_PANEL}`}
+        >
           {(
             [
-              { id: 'explore' as const, label: 'Explore' },
-              { id: 'mine' as const, label: 'My lists' },
+              {
+                id: 'explore' as const,
+                label: 'Explore',
+                icon: Compass,
+                activeClass: 'bucket-list-hub-tab-explore-active',
+              },
+              {
+                id: 'mine' as const,
+                label: 'My lists',
+                icon: Bookmark,
+                activeClass: 'bucket-list-hub-tab-mine-active',
+              },
             ] as const
-          ).map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => selectTab(t.id)}
-              className={`flex-1 rounded-[14px] py-2.5 text-sm font-semibold transition ${
-                tab === t.id ? 'bg-orange/10 text-orange' : 'text-brown-muted hover:text-brown'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
+          ).map((t) => {
+            const Icon = t.icon
+            const active = tab === t.id
+            return (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => selectTab(t.id)}
+                className={`flex flex-1 items-center justify-center gap-2 rounded-[12px] border-2 py-2.5 text-sm font-bold transition active:scale-[0.98] ${
+                  active
+                    ? t.activeClass
+                    : 'border-transparent text-white/45 hover:bg-white/[0.04] hover:text-white/75'
+                }`}
+              >
+                <Icon size={17} strokeWidth={2.25} aria-hidden />
+                {t.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
@@ -126,28 +160,24 @@ export default function BucketListDiscoveryPage() {
         {tab === 'explore' ? (
           <ExploreTab
             lists={publicLists}
-            creating={creating}
-            newListName={newListName}
-            onNewListNameChange={setNewListName}
-            onOpenCreate={() => setCreating(true)}
-            onCloseCreate={closeCreate}
-            onCreateList={handleCreateList}
-            onOpenList={(id) => navigate(`/bucket-list/${id}`)}
+            onOpenCreate={openCreate}
+            onOpenList={(id) => navigate(bucketListDetailPath(id, 'explore'))}
           />
         ) : (
           <MineTab
             view={mineView}
             myLists={myLists}
             completedStories={completedStories}
-            creating={creating}
-            newListName={newListName}
-            onNewListNameChange={setNewListName}
             onSelectView={selectMineView}
-            onOpenCreate={() => setCreating(true)}
-            onCloseCreate={closeCreate}
-            onCreateList={handleCreateList}
-            onOpenList={(id) => navigate(`/bucket-list/${id}`)}
-            onOpenStory={(id) => navigate(`/bucket-list/story/${id}`)}
+            onOpenCreate={openCreate}
+            onOpenList={(id) => navigate(bucketListDetailPath(id, 'mine'))}
+            onOpenStory={(id) =>
+              navigate(
+                id.startsWith('own-')
+                  ? bucketListRecapPath(id.slice(4), 'mine')
+                  : `/bucket-list/story/${id}`,
+              )
+            }
           />
         )}
       </main>
@@ -158,45 +188,167 @@ export default function BucketListDiscoveryPage() {
   )
 }
 
+type ExploreProgressFilter = 'all' | 'ongoing' | 'complete'
+
 function ExploreTab({
   lists,
-  creating,
-  newListName,
-  onNewListNameChange,
   onOpenCreate,
-  onCloseCreate,
-  onCreateList,
   onOpenList,
 }: {
   lists: PublicBucketList[]
-  creating: boolean
-  newListName: string
-  onNewListNameChange: (v: string) => void
   onOpenCreate: () => void
-  onCloseCreate: () => void
-  onCreateList: () => void
   onOpenList: (id: string) => void
 }) {
-  return (
-    <div className="pb-4">
-      <CreateListSection
-        creating={creating}
-        newListName={newListName}
-        onNewListNameChange={onNewListNameChange}
-        onOpenCreate={onOpenCreate}
-        onCloseCreate={onCloseCreate}
-        onCreateList={onCreateList}
-      />
+  const [searchQuery, setSearchQuery] = useState('')
+  const [progressFilter, setProgressFilter] = useState<ExploreProgressFilter>('all')
+  const [vibeFilter, setVibeFilter] = useState<VibeTag | 'all'>('all')
 
-      {lists.length === 0 ? (
+  const availableVibes = useMemo(() => {
+    const vibes = new Set<VibeTag>()
+    for (const list of lists) {
+      if (list.vibe) vibes.add(list.vibe)
+    }
+    return [...vibes].sort((a, b) => a.localeCompare(b))
+  }, [lists])
+
+  const filteredLists = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    return lists.filter((list) => {
+      const { isComplete } = getPublicListProgress(list)
+      if (progressFilter === 'complete' && !isComplete) return false
+      if (progressFilter === 'ongoing' && isComplete) return false
+      if (vibeFilter !== 'all' && list.vibe !== vibeFilter) return false
+      if (!q) return true
+      return (
+        list.name.toLowerCase().includes(q) ||
+        list.ownerName.toLowerCase().includes(q) ||
+        (list.description?.toLowerCase().includes(q) ?? false) ||
+        (list.region?.toLowerCase().includes(q) ?? false)
+      )
+    })
+  }, [lists, searchQuery, progressFilter, vibeFilter])
+
+  const progressCounts = useMemo(() => {
+    let ongoing = 0
+    let complete = 0
+    for (const list of lists) {
+      if (getPublicListProgress(list).isComplete) complete += 1
+      else ongoing += 1
+    }
+    return { all: lists.length, ongoing, complete }
+  }, [lists])
+
+  const hasActiveFilters =
+    searchQuery.trim().length > 0 || progressFilter !== 'all' || vibeFilter !== 'all'
+
+  function clearFilters() {
+    setSearchQuery('')
+    setProgressFilter('all')
+    setVibeFilter('all')
+  }
+
+  if (lists.length === 0) {
+    return (
+      <div className="pb-4">
         <EmptyState
           icon="🌍"
           title="No public lists yet"
           message="Create your own bucket list to get started. Public lists from the community will appear here."
+          actionLabel="Create"
+          onAction={onOpenCreate}
         />
+      </div>
+    )
+  }
+
+  return (
+    <div className="pb-4">
+      <div className="relative mt-2">
+        <Search
+          size={16}
+          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40"
+          aria-hidden
+        />
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search lists, creators, vibes…"
+          className="w-full rounded-[14px] border border-white/12 bg-midnight-surface py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-sunset-orange/50 focus:ring-2 focus:ring-sunset-orange/20"
+        />
+      </div>
+
+      <div className={`mt-3 flex p-1 ${HUB_PANEL}`}>
+        {(
+          [
+            { id: 'all' as const, label: 'All' },
+            { id: 'ongoing' as const, label: 'Ongoing' },
+            { id: 'complete' as const, label: 'Complete' },
+          ] as const
+        ).map((t) => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setProgressFilter(t.id)}
+            className={`flex-1 rounded-[12px] py-2 text-xs font-bold transition ${
+              progressFilter === t.id
+                ? 'bg-sunset-orange/15 text-sunset-orange'
+                : 'text-white/45 hover:text-white/70'
+            }`}
+          >
+            {t.label} ({progressCounts[t.id]})
+          </button>
+        ))}
+      </div>
+
+      {availableVibes.length > 0 && (
+        <div className={`mt-3 ${HUB_PANEL} p-3`}>
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Vibe</p>
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-[11px] font-semibold text-sunset-orange transition hover:text-sunset-orange/80"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
+          <div className="relative mt-2">
+            <select
+              id="explore-vibe-filter"
+              value={vibeFilter}
+              onChange={(e) => setVibeFilter(e.target.value as VibeTag | 'all')}
+              className="w-full appearance-none rounded-[12px] border border-white/10 bg-midnight-surface py-2.5 pl-3 pr-10 text-sm font-semibold text-white outline-none focus:border-sunset-orange/45 focus:ring-2 focus:ring-sunset-orange/15"
+            >
+              <option value="all">All vibes</option>
+              {availableVibes.map((vibe) => (
+                <option key={vibe} value={vibe}>
+                  {vibe}
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              size={18}
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/45"
+              aria-hidden
+            />
+          </div>
+        </div>
+      )}
+
+      {filteredLists.length === 0 ? (
+        <div className="mt-6">
+          <EmptyState
+            icon="🔍"
+            title="No lists match"
+            message="Try another vibe, status, or search term."
+          />
+        </div>
       ) : (
         <ul className="mt-4 space-y-2">
-          {lists.map((list) => (
+          {filteredLists.map((list) => (
             <li key={list.id}>
               <PublicListCard list={list} onClick={() => onOpenList(list.id)} />
             </li>
@@ -211,32 +363,22 @@ function MineTab({
   view,
   myLists,
   completedStories,
-  creating,
-  newListName,
-  onNewListNameChange,
   onSelectView,
   onOpenCreate,
-  onCloseCreate,
-  onCreateList,
   onOpenList,
   onOpenStory,
 }: {
   view: MineView
   myLists: BucketList[]
   completedStories: CompletedStory[]
-  creating: boolean
-  newListName: string
-  onNewListNameChange: (v: string) => void
   onSelectView: (v: MineView) => void
   onOpenCreate: () => void
-  onCloseCreate: () => void
-  onCreateList: () => void
   onOpenList: (id: string) => void
   onOpenStory: (id: string) => void
 }) {
   return (
     <div className="pb-4">
-      <div className="flex rounded-[14px] border border-app-subtle bg-app-elevated p-1">
+      <div className={`flex p-1 ${HUB_PANEL}`}>
         {(
           [
             { id: 'lists' as const, label: 'My Lists' },
@@ -248,7 +390,9 @@ function MineTab({
             type="button"
             onClick={() => onSelectView(t.id)}
             className={`flex-1 rounded-[14px] py-2.5 text-sm font-semibold transition ${
-              view === t.id ? 'bg-orange/10 text-orange' : 'text-brown-muted hover:text-brown'
+              view === t.id
+                ? 'bg-sunset-orange/15 text-sunset-orange'
+                : 'text-white/45 hover:text-white/70'
             }`}
           >
             {t.label}
@@ -258,15 +402,7 @@ function MineTab({
 
       {view === 'lists' ? (
         <div className="mt-4 space-y-3">
-          <CreateListSection
-            creating={creating}
-            newListName={newListName}
-            onNewListNameChange={onNewListNameChange}
-            onOpenCreate={onOpenCreate}
-            onCloseCreate={onCloseCreate}
-            onCreateList={onCreateList}
-            dashed
-          />
+          <CreateListButton onOpenCreate={onOpenCreate} dashed />
 
           {myLists.length === 0 ? (
             <EmptyState
@@ -275,15 +411,21 @@ function MineTab({
               message="Create a list or copy one while you browse Explore."
             />
           ) : (
-            myLists.map((list) => (
-              <ListCard
-                key={list.id}
-                title={list.name}
-                subtitle={`${list.eventIds.length} events | ${list.completedIds.length} done${list.isPrivate === true ? ' | Private' : ''}`}
-                image={getListCoverImage(list)}
-                onClick={() => onOpenList(list.id)}
-              />
-            ))
+            myLists.map((list) => {
+              const events = resolveListDisplayEvents(list)
+              const { done, total } = bucketListProgress(events, list.completedIds)
+              return (
+                <ListCard
+                  key={list.id}
+                  title={list.name}
+                  subtitle={`${total} items${list.isPrivate === true ? ' · Private' : ''}`}
+                  image={getListCoverImage(list)}
+                  progressDone={done}
+                  progressTotal={total}
+                  onClick={() => onOpenList(list.id)}
+                />
+              )
+            })
           )}
         </div>
       ) : (
@@ -291,7 +433,7 @@ function MineTab({
           {completedStories.length === 0 ? (
             <EmptyState
               icon="✨"
-              title="No completed stories yet"
+              title="No completed lists yet"
               message="Mark items complete on your lists or check back for community stories."
             />
           ) : (
@@ -310,68 +452,22 @@ function MineTab({
   )
 }
 
-function CreateListSection({
-  creating,
-  newListName,
-  onNewListNameChange,
+function CreateListButton({
   onOpenCreate,
-  onCloseCreate,
-  onCreateList,
   dashed,
 }: {
-  creating: boolean
-  newListName: string
-  onNewListNameChange: (v: string) => void
   onOpenCreate: () => void
-  onCloseCreate: () => void
-  onCreateList: () => void
   dashed?: boolean
 }) {
-  if (creating) {
-    return (
-      <div className="rounded-[14px] border border-app-subtle bg-app-elevated p-4 shadow-sm">
-        <label className="block text-xs font-semibold uppercase tracking-wide text-brown-muted">
-          New list name
-        </label>
-        <input
-          type="text"
-          value={newListName}
-          onChange={(e) => onNewListNameChange(e.target.value)}
-          placeholder="e.g. Summer Adventures"
-          autoFocus
-          className="app-field mt-2"
-          onKeyDown={(e) => e.key === 'Enter' && onCreateList()}
-        />
-        <div className="mt-3 flex gap-2">
-          <button
-            type="button"
-            onClick={onCloseCreate}
-            className="flex-1 rounded-[14px] border border-brown/15 py-2 text-sm font-semibold text-brown"
-          >
-            Cancel
-          </button>
-          <GradientButton
-            type="button"
-            onClick={onCreateList}
-            disabled={!newListName.trim()}
-            className="flex-1 rounded-[14px] py-2 text-sm font-semibold disabled:opacity-50"
-          >
-            Create
-          </GradientButton>
-        </div>
-      </div>
-    )
-  }
-
   if (dashed) {
     return (
       <button
         type="button"
         onClick={onOpenCreate}
-        className="flex w-full items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-brown/20 py-4 text-sm font-semibold text-orange transition hover:border-orange/50"
+        className="flex w-full items-center justify-center gap-2 rounded-[14px] border-2 border-dashed border-white/20 py-4 text-sm font-semibold text-sunset-orange transition hover:border-sunset-orange/50"
       >
         <Plus size={16} aria-hidden />
-        Create bucket list
+        Create
       </button>
     )
   }
@@ -379,17 +475,19 @@ function CreateListSection({
   return (
     <GradientButton type="button" fullWidth className="px-4 py-2 text-sm" onClick={onOpenCreate}>
       <Plus size={16} className="mr-1 inline" aria-hidden />
-      Create bucket list
+      Create
     </GradientButton>
   )
 }
 
 function PublicListCard({ list, onClick }: { list: PublicBucketList; onClick: () => void }) {
+  const { total, done, isComplete } = getPublicListProgress(list)
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-full items-center gap-3 rounded-[14px] border border-app-subtle bg-app-elevated p-2.5 text-left shadow-sm transition hover:border-orange/20 active:scale-[0.99]"
+      className={`group flex w-full items-center gap-3 p-2.5 text-left transition hover:border-sunset-orange/30 active:scale-[0.99] ${HUB_PANEL}`}
     >
       <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-[10px] bg-cream-dark">
         <img
@@ -399,16 +497,37 @@ function PublicListCard({ list, onClick }: { list: PublicBucketList; onClick: ()
         />
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="truncate font-display text-sm font-bold text-brown">{list.name}</h2>
-        <p className="mt-0.5 truncate text-xs text-brown-muted">by {list.ownerName}</p>
+        <h2 className="truncate font-display text-sm font-bold text-white">{list.name}</h2>
+        <p className="mt-0.5 truncate text-xs text-white/60">by {list.ownerName}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <VibeBadge vibe={list.vibe ?? 'Adventurous'} />
-          <span className="text-[11px] text-brown-muted">
-            {list.itemCount} {list.itemCount === 1 ? 'item' : 'items'}
+          <span className="text-[11px] text-white/50">
+            {total} {total === 1 ? 'item' : 'items'}
           </span>
         </div>
       </div>
-      <span className="shrink-0 self-center pr-1 text-brown-muted/40">&gt;</span>
+      {total > 0 ? (
+        <div className="flex shrink-0 flex-col items-center gap-0.5 self-center pr-0.5">
+          <BucketListProgressRing
+            done={done}
+            total={total}
+            size={48}
+            variant="light"
+            complete={isComplete}
+          />
+          <span
+            className={`text-[9px] font-bold uppercase tracking-wide ${
+              isComplete ? 'text-success' : 'text-white/45'
+            }`}
+          >
+            {isComplete ? 'Complete' : 'Ongoing'}
+          </span>
+        </div>
+      ) : (
+        <span className="shrink-0 self-center pr-1 text-white/35" aria-hidden>
+          ›
+        </span>
+      )}
     </button>
   )
 }
@@ -417,18 +536,25 @@ function ListCard({
   title,
   subtitle,
   image,
+  progressDone,
+  progressTotal,
   onClick,
 }: {
   title: string
   subtitle: string
   image?: string
+  progressDone?: number
+  progressTotal?: number
   onClick: () => void
 }) {
+  const showProgress =
+    progressTotal != null && progressTotal > 0 && progressDone != null
+
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group relative flex w-full overflow-hidden rounded-[14px] border border-app-subtle bg-app-elevated text-left shadow-sm transition hover:border-orange/20 active:scale-[0.99]"
+      className={`group relative flex w-full overflow-hidden text-left transition hover:border-sunset-orange/30 active:scale-[0.99] ${HUB_PANEL}`}
     >
       <div className="relative h-24 w-24 shrink-0 overflow-hidden">
         {image ? (
@@ -438,10 +564,17 @@ function ListCard({
         )}
       </div>
       <div className="min-w-0 flex-1 p-3 py-2.5">
-        <h2 className="truncate font-display text-base font-bold text-brown">{title}</h2>
-        <p className="mt-0.5 text-xs text-brown-muted">{subtitle}</p>
+        <h2 className="truncate font-display text-base font-bold text-white">{title}</h2>
+        <p className="mt-0.5 text-xs text-white/60">{subtitle}</p>
       </div>
-      <span className="self-center pr-3 text-brown-muted/40">&gt;</span>
+      <div className="flex shrink-0 items-center gap-2 self-center pr-3">
+        {showProgress && (
+          <BucketListProgressRing done={progressDone} total={progressTotal} size={48} variant="light" />
+        )}
+        <span className="text-white/35" aria-hidden>
+          ›
+        </span>
+      </div>
     </button>
   )
 }
@@ -459,7 +592,7 @@ function CompletedStoryCard({
     <button
       type="button"
       onClick={onClick}
-      className="flex w-full gap-3 rounded-[14px] border border-app-subtle bg-app-elevated p-3 text-left shadow-sm transition hover:border-orange/20"
+      className={`flex w-full gap-3 p-3 text-left transition hover:border-sunset-orange/30 ${HUB_PANEL}`}
     >
       <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-[14px] bg-cream-dark">
         <img src={story.coverImage} alt="" className="h-full w-full object-cover" />
@@ -471,20 +604,20 @@ function CompletedStoryCard({
         </span>
       </div>
       <div className="min-w-0 flex-1 py-0.5">
-        <h2 className="truncate text-base font-bold text-brown">{story.name}</h2>
-        <p className="mt-0.5 text-xs text-brown-muted">
-          {story.isOwn ? 'Your story' : `by ${story.ownerName}`} | {story.slides.length}{' '}
-          {story.slides.length === 1 ? 'moment' : 'moments'}
+        <h2 className="truncate text-base font-bold text-white">{story.name}</h2>
+        <p className="mt-0.5 text-xs text-white/60">
+          {story.isOwn ? 'Your recap' : `by ${story.ownerName}`} · {story.slides.length}{' '}
+          {story.slides.length === 1 ? 'item' : 'items'}
         </p>
         {story.description && (
-          <p className="mt-1 line-clamp-2 text-xs text-brown-muted/80">{story.description}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-white/55">{story.description}</p>
         )}
-        <div className="mt-2 flex items-center gap-3 text-xs text-brown-muted">
+        <div className="mt-2 flex items-center gap-3 text-xs text-white/50">
           {story.spotifyUrl && <span>🎵 Soundtrack</span>}
           {likeCount > 0 && <span>❤️ {likeCount}</span>}
         </div>
       </div>
-      <span className="self-center text-brown-muted/40">&gt;</span>
+      <span className="self-center text-white/35">&gt;</span>
     </button>
   )
 }
@@ -493,18 +626,31 @@ function EmptyState({
   icon,
   title,
   message,
+  actionLabel,
+  onAction,
 }: {
   icon: string
   title: string
   message: string
+  actionLabel?: string
+  onAction?: () => void
 }) {
   return (
-    <div className="mt-4 rounded-[14px] border border-app-subtle bg-app-elevated px-6 py-10 text-center shadow-sm">
-      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-cream-dark text-2xl">
+    <div className={`mt-4 px-6 py-10 text-center ${HUB_PANEL}`}>
+      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-midnight-surface text-2xl">
         {icon}
       </div>
-      <h2 className="text-lg font-bold text-brown">{title}</h2>
-      <p className="mt-1 text-sm text-brown-muted">{message}</p>
+      <h2 className="text-lg font-bold text-white">{title}</h2>
+      <p className="mt-1 text-sm text-white/65">{message}</p>
+      {actionLabel && onAction && (
+        <GradientButton
+          type="button"
+          onClick={onAction}
+          className="mt-4 inline-block rounded-[14px] px-6 py-2.5 text-sm font-bold"
+        >
+          {actionLabel}
+        </GradientButton>
+      )}
     </div>
   )
 }

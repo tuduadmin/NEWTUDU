@@ -133,6 +133,7 @@ function defaultStoredUser(
     password: source.password,
     firstName: source.firstName,
     lastName: source.lastName,
+    username: source.username,
   }
 }
 

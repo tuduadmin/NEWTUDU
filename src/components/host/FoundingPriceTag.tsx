@@ -27,6 +27,7 @@ export function FoundingPriceRow({
   showHeadline = true,
 }: FoundingPriceTagProps) {
   const active = isFoundingOfferActive(offer, offerId)
+  const displayPrice = active ? foundingPrice : standardPrice
   const showStrike = active && standardPrice > foundingPrice
 
   return (
@@ -35,7 +36,7 @@ export function FoundingPriceRow({
         <span
           className={`font-display font-extrabold text-brown ${compact ? 'text-base' : 'text-2xl'}`}
         >
-          {formatMoney(foundingPrice)}
+          {formatMoney(displayPrice)}
           {suffix}
         </span>
         {showStrike && (

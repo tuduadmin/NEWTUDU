@@ -22,7 +22,7 @@ import ReportProblemSheet from '../../components/ReportProblemSheet'
 import HostContextToggle from '../../components/host/HostContextToggle'
 import HostProfileAvatar from '../../components/host/HostProfileAvatar'
 import HostProfileSocialLinks from '../../components/host/HostProfileSocialLinks'
-import PublicProfileMerchBar from '../../components/host/PublicProfileMerchBar'
+import HostMarketplaceManagerButton from '../../components/host/HostMarketplaceManagerButton'
 import HostAnalyticsPanel from '../../components/host/HostAnalyticsPanel'
 import HostProfileTierBadge from '../../components/host/HostProfileTierBadge'
 import HostAddSlotsLink from '../../components/host/HostAddSlotsLink'
@@ -31,7 +31,6 @@ import {
   approveSeedEvent,
   canCreatePrivateEvent,
   canCreatePublicEvent,
-  getConsumerAccountStatus,
   getHostEventById,
   getHostEventsForUser,
   getOrganization,
@@ -95,6 +94,8 @@ type EventTab = 'upcoming' | 'drafts' | 'past'
 
 const HOST_CARD = 'app-surface-card p-4'
 const HOST_PANEL = 'rounded-[14px] border border-app-subtle bg-app-elevated'
+/** Primary events workflow — solid tray (analytics uses soft gradient panel below). */
+const HOST_EVENTS_ZONE = 'host-events-zone rounded-[16px] border-2 border-brown/20 bg-cream-dark/60 p-4 shadow-[0_8px_28px_-10px_rgba(61,44,41,0.22)]'
 const HOST_OUTLINE_BTN =
   'inline-flex items-center justify-center rounded-[14px] border border-app-subtle bg-app-elevated px-3 py-2 text-xs font-semibold text-brown transition hover:border-orange/30 hover:bg-orange/5'
 const HOST_SECONDARY_LINK =
@@ -140,8 +141,7 @@ export default function EventManagerPage() {
   const { isPersonal, activeOrg, hostAccounts, personalName, setHostContext, user, canUsePersonalMode } =
     useHostContext()
   const profileRevision = useHostProfileStore()
-  const { account, sessionEmail } = useCurrentAccount()
-  const planStatus = account ? getConsumerAccountStatus(account) : null
+  const { account } = useCurrentAccount()
   const publicCheck = account
     ? canCreatePublicEvent(account, isPersonal ? null : activeOrg?.id)
     : null
@@ -175,25 +175,19 @@ export default function EventManagerPage() {
     return getOrgApprovalBadge(getOrganizationApprovalStatus(activeOrg))
   }, [isPersonal, activeOrg])
 
-  const { showMerchShop, merchShopUrl } = useMemo(() => {
+  const showMerchShop = useMemo(() => {
     void profileRevision
     if (isPersonal) {
       const settings = getHostMerchSettingsFromAccount(account)
-      return {
-        showMerchShop: isHostMerchVisible(settings),
-        merchShopUrl: settings.merchShopUrl,
-      }
+      return isHostMerchVisible(settings)
     }
     if (activeOrg) {
       const org = getOrganization(activeOrg.id)
       const settings = getHostMerchSettingsFromOrg(org)
       const orgPlanId = org ? resolveOrgPlanForOrganization(org) : 'unverified'
-      return {
-        showMerchShop: isHostMerchVisibleForOrg(settings, orgPlanId),
-        merchShopUrl: settings.merchShopUrl,
-      }
+      return isHostMerchVisibleForOrg(settings, orgPlanId)
     }
-    return { showMerchShop: false, merchShopUrl: undefined }
+    return false
   }, [isPersonal, activeOrg, account, profileRevision])
   const orgDepartments = !isPersonal && activeOrg ? getOrgDepartments(activeOrg.id) : []
   const orgVerificationRequest =
@@ -298,42 +292,12 @@ export default function EventManagerPage() {
     setShareEvent(eventId)
   }
 
-  const showSessionBanner =
-    import.meta.env.DEV || sessionEmail?.toLowerCase() === 'demo@tudu.ca'
-
-  const sessionBanner =
-    showSessionBanner && sessionEmail && account ? (
-      <div className="app-surface-card mt-3 px-3 py-2.5 text-xs text-brown">
-        <p>
-          Signed in as <span className="font-semibold">{sessionEmail}</span>
-          {' · '}
-          Your plan: <span className="font-semibold">{planStatus?.label}</span>
-        </p>
-        {!isPersonal && orgApprovalBadge && (
-          <p className="mt-1 text-brown-muted">
-            &ldquo;Host account&rdquo; below is org approval — not your personal subscription.
-          </p>
-        )}
-        {sessionEmail.toLowerCase() !== 'demo@tudu.ca' && (
-          <p className="mt-1 text-brown-muted">
-            Upgraded demo@tudu.ca in Control Room?{' '}
-            <Link to="/signin" className="font-semibold text-orange no-underline">
-              Sign in as demo@tudu.ca
-            </Link>{' '}
-            (password: password123) or use Manage → &ldquo;Sign in as user&rdquo; in Control Room.
-          </p>
-        )}
-      </div>
-    ) : null
-
   return (
     <div className="host-event-manager app-page-shell pb-28">
       <AppHeaderBar logoLinkTo="/host" />
 
       <main className="px-4 pt-2">
         <h1 className="font-display text-2xl font-extrabold tracking-tight text-brown">Event Manager</h1>
-
-        {sessionBanner}
 
         <div className="mt-4">
           <HostContextToggle
@@ -397,15 +361,7 @@ export default function EventManagerPage() {
               </p>
             )}
             <HostProfileSocialLinks social={profileSocial} reserveSpace />
-            {showMerchShop && (
-              <PublicProfileMerchBar
-                shopUrl={merchShopUrl}
-                prominent
-                hostKind={isPersonal ? 'personal' : 'org'}
-                hostId={isPersonal ? (user?.email ?? '') : (activeOrg?.id ?? '')}
-                showMerchShop={showMerchShop}
-              />
-            )}
+            <HostMarketplaceManagerButton enabled={showMerchShop} prominent />
             {account && privateCheck && (
               <p className="mt-4 text-xs text-brown-muted">
                 {formatPrivateEventSlotLabel(privateCheck.used, privateCheck.limit)}
@@ -529,8 +485,16 @@ export default function EventManagerPage() {
         </section>
 
         {/* Events tabs — primary host workflow */}
-        <section className="mt-6">
-          <div className="flex border-b border-app-subtle">
+        <section className={`mt-8 ${HOST_EVENTS_ZONE}`}>
+          <div className="mb-4 flex items-center gap-2 border-b border-brown/15 pb-3">
+            <Calendar size={20} className="shrink-0 text-orange" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <h2 className="font-display text-base font-bold text-brown">Your events</h2>
+              <p className="text-[11px] text-brown-muted">Upcoming, drafts, and past events for this host.</p>
+            </div>
+          </div>
+
+          <div className="flex border-b border-brown/15">
             {(['upcoming', 'drafts', 'past'] as EventTab[]).map((tab) => (
               <button
                 key={tab}
@@ -585,7 +549,7 @@ export default function EventManagerPage() {
           )}
 
           {filteredEvents.length === 0 ? (
-            <div className={`mt-6 ${HOST_PANEL} p-8 text-center`}>
+            <div className="mt-6 rounded-[14px] border-2 border-dashed border-brown/20 bg-white/80 p-8 text-center shadow-inner">
               <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-cream-dark">
                 <Calendar size={28} className="text-brown-muted" />
               </div>
@@ -601,7 +565,7 @@ export default function EventManagerPage() {
               </GradientButton>
             </div>
           ) : (
-            <ul className="mt-4 space-y-2">
+            <ul className="mt-4 space-y-4">
               {filteredEvents.map((event) =>
                 user ? (
                   <HostEventManagerCard
@@ -627,11 +591,13 @@ export default function EventManagerPage() {
         </section>
 
         {account && (
-          <HostAnalyticsPanel
-            account={account}
-            hostAccountId={isPersonal ? null : activeOrg?.id}
-            events={contextEvents}
-          />
+          <div className="mt-10 border-t border-brown/15 pt-8">
+            <HostAnalyticsPanel
+              account={account}
+              hostAccountId={isPersonal ? null : activeOrg?.id}
+              events={contextEvents}
+            />
+          </div>
         )}
 
         {/* Distant savers */}

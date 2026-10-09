@@ -453,6 +453,107 @@
   z-index: 60;
 }
 
+/* Portaled pickers live outside .admin-shell — carry theme tokens on the node itself */
+.admin-date-picker-popover {
+  position: fixed;
+  z-index: calc(var(--z-modal, 60) + 2);
+  padding: 0.75rem;
+  border-radius: var(--admin-radius);
+  border: 1px solid var(--admin-border);
+  background: var(--admin-surface-raised);
+  color: var(--admin-text);
+  box-shadow: var(--admin-menu-shadow);
+}
+
+.admin-date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.admin-date-picker-month {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.admin-date-picker-nav {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.375rem;
+  border: none;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.admin-date-picker-nav:hover {
+  background: var(--admin-accent-muted);
+  color: var(--admin-accent);
+}
+
+.admin-date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.admin-date-picker-weekday {
+  padding: 0.25rem 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--admin-text-dim);
+}
+
+.admin-date-picker-day {
+  display: flex;
+  height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--admin-radius);
+  background: transparent;
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.admin-date-picker-day:hover {
+  background: var(--admin-accent-muted);
+}
+
+.admin-date-picker-day-today {
+  font-weight: 600;
+  color: var(--admin-accent);
+  box-shadow: inset 0 0 0 1px var(--admin-focus-ring);
+}
+
+.admin-date-picker-day-selected {
+  background: var(--admin-accent);
+  font-weight: 600;
+  color: #fff;
+  box-shadow: none;
+}
+
+.admin-date-picker-day-selected:hover {
+  background: var(--admin-accent-hover);
+}
+
+.admin-shell[data-admin-theme='light'] .admin-date-picker-day-selected {
+  color: #fff;
+}
+
 .admin-menu-item {
   display: flex;
   width: 100%;

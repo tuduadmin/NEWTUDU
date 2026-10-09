@@ -19,6 +19,7 @@ import { getHomeCity } from './location'
 import { parsePhoneDigits } from './phoneFormat'
 import { notifyHostProfilesCleared } from './hostProfileStore'
 import { persistOrgMerchSettings, persistUserMerchSettings, type HostMerchSettings } from './hostMerch'
+import { DEFAULT_MERCH_FEE_MODE, normalizeMerchFeeMode, type MerchFeeMode } from './merchFeeMode'
 import { isRemovedDemoHostEvent } from './removedDemoEvents'
 import { isEventHiddenFromDiscover } from './adminEventModeration'
 import {
@@ -36,6 +37,15 @@ import {
   type UserPlanPerks,
 } from './tierConfig'
 import type { DoorPaymentMode } from './eventDoorPayment'
+import {
+  claimFoundingSlot,
+  isFoundingOfferActive,
+} from './foundingPricing'
+import type { BillingCycle } from './tierPricing'
+import type {
+  FoundingSubscriptionLock,
+  SubscriptionFoundingLocks,
+} from './subscriptionPricing'
 
 export type VerificationStatus = 'unverified' | 'phone_verified'
 export type UserTier = 'free' | 'verified' | 'tier1' | 'tier2'
@@ -175,6 +185,10 @@ export type HostEventFormData = {
   privateInviteEmails: string[]
   /** Saved share lists to include when visibility is private. */
   privateShareListIds: string[]
+  /** Event marketplace — optional create-event step (products apply on publish). */
+  marketplaceEnabled: boolean
+  marketplaceDraftProducts: import('./eventMerch').EventMerchDraftProduct[]
+  marketplaceFeeMode: MerchFeeMode
 }
 
 /** Host Account — business entity separate from User (stored as Organization). */
@@ -362,6 +376,8 @@ export interface HostEvent {
   amenities?: string[]
   doorPayment?: DoorPaymentMode
   atmOnSite?: boolean
+  /** Buyer sees list price + fees vs all-in list price. */
+  merchFeeMode?: MerchFeeMode
   /** Platform admin seeded this event (God Mode). */
   seededByAdmin?: boolean
   /** Admin email that created the seed event. */
@@ -446,6 +462,12 @@ function migrateHostEvent(event: HostEvent): HostEvent {
     }
   }
 
+  if (migrated.merchFeeMode === undefined) {
+    migrated = { ...migrated, merchFeeMode: DEFAULT_MERCH_FEE_MODE }
+  } else {
+    migrated = { ...migrated, merchFeeMode: normalizeMerchFeeMode(migrated.merchFeeMode) }
+  }
+
   return migrated
 }
 
@@ -526,6 +548,10 @@ function mergeDuplicateAccounts(a: UserAccount, b: UserAccount): UserAccount {
     email,
     tier,
     verificationStatus,
+    subscriptionFounding: {
+      ...a.subscriptionFounding,
+      ...b.subscriptionFounding,
+    },
   }
 }
 
@@ -601,6 +627,8 @@ export interface UserAccount {
   merchBlockedReason?: string
   merchReportedAt?: string
   merchShopUrl?: string
+  /** Grandfathered founding subscription rates — cleared when the paid tier lapses. */
+  subscriptionFounding?: SubscriptionFoundingLocks
 }
 
 function defaultAccount(email: string): UserAccount {
@@ -1124,12 +1152,77 @@ export function getConsumerAccountStatus(account: UserAccount): {
   return { label: 'Verified', tone: 'emerald' }
 }
 
+function pruneSubscriptionFounding(account: UserAccount, tier: UserTier): UserAccount {
+  if (!account.subscriptionFounding) return account
+  const founding = { ...account.subscriptionFounding }
+  if (tier !== 'tier1') {
+    delete founding.explorer
+    delete founding.pioneer
+  }
+  if (tier !== 'tier2') {
+    delete founding.trusted
+  }
+  if (Object.keys(founding).length === 0) {
+    const { subscriptionFounding: _removed, ...rest } = account
+    return rest
+  }
+  return { ...account, subscriptionFounding: founding }
+}
+
+function lockFoundingSubscriptionRate(
+  account: UserAccount,
+  plan: 'explorer' | 'pioneer' | 'trusted',
+  billingCycle: BillingCycle,
+): UserAccount {
+  const config = getTierConfig()
+  const offer = config[plan].foundingPricing
+  if (!isFoundingOfferActive(offer, plan)) {
+    return account
+  }
+  claimFoundingSlot(plan)
+  const pricing = config[plan].pricing
+  const lock: FoundingSubscriptionLock = {
+    billingCycle,
+    lockedAt: new Date().toISOString(),
+    monthlyCad: pricing.monthly,
+    annualCad: pricing.annual,
+  }
+  return {
+    ...account,
+    subscriptionFounding: {
+      ...account.subscriptionFounding,
+      [plan]: lock,
+    },
+  }
+}
+
+function applyPaidSubscriptionTierChange(
+  account: UserAccount,
+  tier: UserTier,
+  foundingPlan: 'explorer' | 'pioneer' | 'trusted',
+  billingCycle: BillingCycle,
+): UserAccount {
+  const withTier: UserAccount = {
+    ...account,
+    tier,
+    verificationStatus: 'phone_verified',
+  }
+  const pruned = pruneSubscriptionFounding(withTier, tier)
+  return lockFoundingSubscriptionRate(pruned, foundingPlan, billingCycle)
+}
+
 /** Admin tier / verification edits — keep fields aligned with the consumer app. */
 export function applyAdminTierChange(account: UserAccount, tier: UserTier): UserAccount {
   if (tier === 'free') {
-    return { ...account, tier: 'free', verificationStatus: 'unverified' }
+    return pruneSubscriptionFounding(
+      { ...account, tier: 'free', verificationStatus: 'unverified' },
+      'free',
+    )
   }
-  return { ...account, tier, verificationStatus: 'phone_verified' }
+  return pruneSubscriptionFounding(
+    { ...account, tier, verificationStatus: 'phone_verified' },
+    tier,
+  )
 }
 
 /** Admin verification edits — sync with tier for free vs verified hosts. */
@@ -1153,6 +1246,7 @@ export function applyAdminVerificationChange(
 export function applyDemoSubscriptionUpgrade(
   planId: UserPlanId | OrgPlanId,
   scope: 'user' | 'org',
+  billingCycle: BillingCycle = 'monthly',
 ): { ok: boolean; error?: string; account?: UserAccount } {
   const current = getCurrentAccount()
   if (!current) {
@@ -1174,7 +1268,13 @@ export function applyDemoSubscriptionUpgrade(
       if (current.verificationStatus !== 'phone_verified') {
         return { ok: false, error: 'Verify your phone before upgrading to Explorer.' }
       }
-      return { ok: true, account: saveAccount(applyAdminTierChange(current, userPlanIdToUserTier(userPlanId))) }
+      const account = applyPaidSubscriptionTierChange(
+        current,
+        userPlanIdToUserTier(userPlanId),
+        'explorer',
+        billingCycle,
+      )
+      return { ok: true, account: saveAccount(account) }
     }
   }
 
@@ -1185,10 +1285,16 @@ export function applyDemoSubscriptionUpgrade(
   if (current.verificationStatus !== 'phone_verified') {
     return { ok: false, error: 'Verify your phone before upgrading your org plan.' }
   }
-  return {
-    ok: true,
-    account: saveAccount(applyAdminTierChange(current, orgPlanIdToUserTier(orgPlanId))),
+  if (orgPlanId !== 'pioneer' && orgPlanId !== 'trusted') {
+    return { ok: false, error: 'Invalid org plan.' }
   }
+  const account = applyPaidSubscriptionTierChange(
+    current,
+    orgPlanIdToUserTier(orgPlanId),
+    orgPlanId,
+    billingCycle,
+  )
+  return { ok: true, account: saveAccount(account) }
 }
 
 /** Admin or tools — set tier on any account by email. */
@@ -2152,6 +2258,9 @@ export function defaultHostEventFormData(): HostEventFormData {
     visibility: '',
     privateInviteEmails: [],
     privateShareListIds: [],
+    marketplaceEnabled: false,
+    marketplaceDraftProducts: [],
+    marketplaceFeeMode: DEFAULT_MERCH_FEE_MODE,
   }
 }
 
@@ -2218,6 +2327,7 @@ export function hostEventToFormData(event: HostEvent): HostEventFormData {
     visibility: event.visibility,
     privateInviteEmails: event.privateInviteEmails ?? [],
     privateShareListIds: event.privateShareListIds ?? [],
+    marketplaceFeeMode: normalizeMerchFeeMode(event.merchFeeMode),
   }
 }
 
@@ -2357,6 +2467,7 @@ function formDataToEventFields(form: HostEventFormData, visibility: EventVisibil
       visibility === 'private' && form.privateShareListIds.length > 0
         ? [...form.privateShareListIds]
         : undefined,
+    merchFeeMode: normalizeMerchFeeMode(form.marketplaceFeeMode),
   }
 }
 

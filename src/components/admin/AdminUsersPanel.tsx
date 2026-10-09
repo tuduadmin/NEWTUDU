@@ -41,6 +41,7 @@ import {
   type UserTier,
   type VerificationStatus,
 } from '../../lib/account'
+import AdminAccountSubscriptionSection from './AdminAccountSubscriptionSection'
 import {
   GENDER_OPTIONS,
   getAccountAgeDisplay,
@@ -540,6 +541,8 @@ export default function AdminUsersPanel() {
                 {getGenderLabel(selectedAccount.gender)}
               </p>
             </section>
+
+            <AdminAccountSubscriptionSection account={selectedAccount} />
 
             <AdminMerchControls
               profileLabel={selectedUser.email}

@@ -4,6 +4,7 @@ import BasicsStep from '../../components/create-event/BasicsStep'
 import CategoryStep from '../../components/create-event/CategoryStep'
 import CreateEventLayout from '../../components/create-event/CreateEventLayout'
 import FinalStep from '../../components/create-event/FinalStep'
+import MarketplaceStep from '../../components/create-event/MarketplaceStep'
 import ReviewStep from '../../components/create-event/ReviewStep'
 import ScheduleStep from '../../components/create-event/ScheduleStep'
 import ShareEventModal from '../../components/ShareEventModal'
@@ -44,6 +45,7 @@ import {
 } from '../../lib/account'
 import { resolvePrivateInviteEmails } from '../../lib/shareLists'
 import { sendPrivateEventShare } from '../../lib/sharePublish'
+import { applyMerchDraftToEvent } from '../../lib/eventMerch'
 
 export default function CreateEventPage() {
   const navigate = useNavigate()
@@ -215,6 +217,12 @@ export default function CreateEventPage() {
     recordRecentVenue(form, venueContext)
 
     const savedEvent = saved.event
+    applyMerchDraftToEvent(
+      savedEvent.id,
+      savedEvent.hostAccountId,
+      form.marketplaceEnabled,
+      form.marketplaceDraftProducts,
+    )
     setEventId(savedEvent.id)
     clearCreateEventDraft()
     clearCreateEventSession()
@@ -278,12 +286,14 @@ export default function CreateEventPage() {
           />
         )
       case 5:
+        return <MarketplaceStep form={form} updateForm={updateForm} />
+      case 6:
         return (
           <ReviewStep
             form={form}
             updateForm={updateForm}
             hostName={hostName}
-            onEditStep={(s) => goToStep(s as 1 | 2 | 3 | 4 | 5)}
+            onEditStep={(s) => goToStep(s as 1 | 2 | 3 | 4 | 5 | 6)}
             slotBudget={slotBudget}
             isPhoneVerified={isPhoneVerified}
             publicCheck={publicCheck}
@@ -305,13 +315,13 @@ export default function CreateEventPage() {
         visitedSteps={visitedSteps}
         onStepClick={goToStep}
         onBack={handleBack}
-        onNext={step < 5 ? nextStep : undefined}
+        onNext={step < 6 ? nextStep : undefined}
         onSaveDraft={handleSaveDraft}
         onDiscard={handleDiscard}
-        showNext={step < 5}
+        showNext={step < 6}
         nextLabel={step === 4 ? 'Next' : 'Next'}
         footerExtra={
-          step === 5 ? (
+          step === 6 ? (
             <GradientButton type="button" fullWidth className="rounded-[14px] py-3.5" onClick={handlePublish}>
               Publish Event
             </GradientButton>

@@ -4,7 +4,6 @@ import {
   getHiddenGemSubscription,
   getOrganization,
   isHiddenGemSubscriptionActive,
-  subscribeHiddenGemSlots,
 } from '../../lib/account'
 import {
   canCreateHiddenGem,
@@ -85,13 +84,8 @@ export default function HiddenGemSlotsPanel() {
     setCheckoutOpen(true)
   }
 
-  function handleCompleteDemo() {
-    if (!org || !selectedPlan) return
-    const result = subscribeHiddenGemSlots(org.id, selectedPlan.slots)
-    if (!result.ok) {
-      setToast(result.error ?? 'Subscription could not be completed.')
-      return
-    }
+  function handleSubscribeSuccess() {
+    if (!selectedPlan) return
     setRefresh((r) => r + 1)
     claimFoundingSlot('hiddenGem')
     setToast(
@@ -227,7 +221,13 @@ export default function HiddenGemSlotsPanel() {
           lineItems={[{ label: planLineItemLabel(selectedPlan), amount: selectedPrice }]}
           totalAmount={selectedPrice}
           demoEnabled={shopEnabled}
-          onCompleteDemo={handleCompleteDemo}
+          fulfillment={
+            org && selectedPlan
+              ? { kind: 'hidden_gem_slots', orgId: org.id, slots: selectedPlan.slots }
+              : undefined
+          }
+          onCompleteDemo={handleSubscribeSuccess}
+          onCheckoutError={(message) => setToast(message)}
         />
       )}
 
