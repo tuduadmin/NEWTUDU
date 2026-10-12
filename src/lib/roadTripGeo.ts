@@ -1,4 +1,5 @@
 import type { DiscoverEvent } from '../data/discoverEvents'
+import { buildRoadTripMapTileUrl } from './mapTiles'
 
 export type MapPin = {
   id: string
@@ -130,7 +131,7 @@ function buildMapView(
       tiles.push({
         x,
         y,
-        url: `https://tile.openstreetmap.org/${zoom}/${x}/${y}.png`,
+        url: buildRoadTripMapTileUrl(zoom, x, y),
       })
     }
   }

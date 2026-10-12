@@ -6,10 +6,12 @@ import AppHeaderBar from '../components/locked/AppHeaderBar'
 import BottomNav from '../components/BottomNav'
 import GradientButton from '../components/GradientButton'
 import { BackIconButton } from '../components/NavActionButtons'
-import RoadTripMapHero from '../components/road-trip/RoadTripMapHero'
+import DiscoverEventDetailPanel from '../components/DiscoverEventDetailPanel'
+import RoadTripMap from '../components/road-trip/RoadTripMap'
+import type { DiscoverEvent } from '../data/discoverEvents'
 import RoadTripStopSettings from '../components/road-trip/RoadTripStopSettings'
 import { getCurrentUser } from '../lib/auth'
-import { projectTripRouteToMapPins, getRoadTripMapViewFromPoints } from '../lib/roadTripGeo'
+import { buildRoadTripMapStops } from '../lib/roadTripMapModel'
 import { filterEventsForRoadTrip, INTEREST_CATEGORIES } from '../lib/roadTripDiscover'
 import CategoryIcon from '../components/CategoryIcon'
 import {
@@ -18,12 +20,7 @@ import {
   getRoadTripStops,
   updateRoadTrip,
 } from '../lib/roadTrips'
-import {
-  getTripDetourKm,
-  getTripGoogleMapsDirectionsUrl,
-  getTripPlannedCities,
-  getTripRoutePoints,
-} from '../lib/roadTripRoute'
+import { getTripDetourKm, getTripGoogleMapsDirectionsUrl } from '../lib/roadTripRoute'
 import { appFieldClass } from '../lib/formFieldClasses'
 
 export default function RoadTripFindMorePage() {
@@ -33,6 +30,7 @@ export default function RoadTripFindMorePage() {
   const [refresh, setRefresh] = useState(0)
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState<string | null>(null)
+  const [detailEvent, setDetailEvent] = useState<DiscoverEvent | null>(null)
 
   const trip = useMemo(() => {
     void refresh
@@ -40,15 +38,9 @@ export default function RoadTripFindMorePage() {
   }, [tripId, refresh])
 
   const stops = trip ? getRoadTripStops(trip) : []
-  const plannedCities = trip ? getTripPlannedCities(trip) : []
-  const routePoints = trip ? getTripRoutePoints(trip, stops) : []
-  const mapPins = useMemo(
-    () => projectTripRouteToMapPins(plannedCities, stops),
-    [plannedCities, stops],
-  )
-  const mapView = useMemo(
-    () => getRoadTripMapViewFromPoints(routePoints),
-    [routePoints],
+  const mapStops = useMemo(
+    () => (trip ? buildRoadTripMapStops(trip, stops) : []),
+    [trip, stops],
   )
   const directionsUrl = useMemo(
     () => (trip ? getTripGoogleMapsDirectionsUrl(trip, stops) : null),
@@ -125,13 +117,10 @@ export default function RoadTripFindMorePage() {
         </p>
 
         <div className="mt-4">
-          <RoadTripMapHero
-            tripName={trip.name}
-            destination={trip.destination}
-            pins={mapPins}
-            stopCount={mapPins.length || stops.length}
-            mapView={mapView}
+          <RoadTripMap
+            stops={mapStops}
             directionsUrl={directionsUrl}
+            onEventSelect={(event) => setDetailEvent(event)}
           />
         </div>
 
@@ -221,6 +210,14 @@ export default function RoadTripFindMorePage() {
           Back to trip ({trip.stopEventIds.length} stops)
         </GradientButton>
       </main>
+
+      {detailEvent && (
+        <DiscoverEventDetailPanel
+          event={detailEvent}
+          onClose={() => setDetailEvent(null)}
+          onSave={() => setDetailEvent(null)}
+        />
+      )}
 
       <BottomNav />
     </div>

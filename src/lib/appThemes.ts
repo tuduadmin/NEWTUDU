@@ -6,12 +6,12 @@
  *
  * | Token id   | Legacy name | Settings label | Notes                                |
  * |------------|-------------|----------------|--------------------------------------|
- * | dusk       | Dusk        | SOL            | Default dark — DUSK gradient brand   |
- * | dawn       | Dawn        | Lumi           | Light warm shell                     |
- * | midnight   | Midnight    | Nova           | Starfield night                      |
- * | evergreen  | Evergreen   | Ember          | Nature / growth                      |
- * | aurora     | Aurora      | Axis           | Alaskan winter night + aurora borealis |
- * | harvest    | Harvest     | Marigold       | Placeholder autumn companion         |
+ * | dusk       | Dusk        | SOL            | Autumn evening — brand DUSK gradient   |
+ * | dawn       | Dawn        | Lumi           | Soft sunrise — light warm shell        |
+ * | midnight   | Winter Night| Nova           | Moonlit snow, frost glass (dark)       |
+ * | evergreen  | Spring Dawn | Petal          | Cherry blossom morning (light)         |
+ * | aurora     | Aurora      | Axis           | Arctic winter + aurora borealis (dark) |
+ * | harvest    | High Summer | Marigold       | Blazing sun + pool haze (light)        |
  */
 export type AppThemeId = 'dawn' | 'dusk' | 'midnight' | 'evergreen' | 'aurora' | 'harvest' | 'auto'
 
@@ -47,16 +47,16 @@ export const APP_THEME_OPTIONS: AppThemeOption[] = [
   {
     id: 'midnight',
     characterName: 'Nova',
-    legacyName: 'Midnight',
-    icon: '🌌',
-    preview: { bg: '#0b0f1a', accent: '#818cf8' },
+    legacyName: 'Winter Night',
+    icon: '🌙',
+    preview: { bg: '#06080f', accent: '#bae6fd' },
   },
   {
     id: 'evergreen',
-    characterName: 'Ember',
-    legacyName: 'Evergreen',
-    icon: '🌿',
-    preview: { bg: '#f0faf4', accent: '#34d399' },
+    characterName: 'Petal',
+    legacyName: 'Spring Dawn',
+    icon: '🌸',
+    preview: { bg: '#fdf2f8', accent: '#f472b6' },
   },
   {
     id: 'aurora',
@@ -68,9 +68,9 @@ export const APP_THEME_OPTIONS: AppThemeOption[] = [
   {
     id: 'harvest',
     characterName: 'Marigold',
-    legacyName: 'Harvest',
-    icon: '🎨',
-    preview: { bg: '#fff5eb', accent: '#ea580c' },
+    legacyName: 'High Summer',
+    icon: '☀️',
+    preview: { bg: '#fff7ed', accent: '#f59e0b' },
   },
 ]
 
@@ -131,9 +131,11 @@ export function saveAppThemeId(id: AppThemeId): void {
 function resolveTheme(id: AppThemeId): AppThemeId {
   if (id !== 'auto') return id
   const hour = new Date().getHours()
-  if (hour >= 6 && hour < 12) return 'dawn'
-  if (hour >= 12 && hour < 18) return 'evergreen'
-  if (hour >= 18 && hour < 21) return 'dusk'
+  if (hour >= 6 && hour < 9) return 'dawn'
+  if (hour >= 9 && hour < 12) return 'evergreen'
+  if (hour >= 12 && hour < 17) return 'harvest'
+  if (hour >= 17 && hour < 20) return 'dusk'
+  if (hour >= 20 && hour < 23) return 'aurora'
   return 'midnight'
 }
 
@@ -159,4 +161,14 @@ export function getResolvedThemeOption(): AppThemeOption {
     APP_THEME_OPTIONS.find((t) => t.id === resolved) ??
     APP_THEME_OPTIONS.find((t) => t.id === DEFAULT_APP_THEME_ID)!
   )
+}
+
+/** Resolved theme id on `html[data-app-theme]` (never `auto`). */
+export function getResolvedAppThemeId(): Exclude<AppThemeId, 'auto'> {
+  return resolveTheme(getAppThemeId())
+}
+
+/** Dark consumer shells (SOL, Nova, Axis) vs light (Lumi, Petal, Marigold). */
+export function isDarkConsumerTheme(id: Exclude<AppThemeId, 'auto'> = getResolvedAppThemeId()): boolean {
+  return id === 'dusk' || id === 'midnight' || id === 'aurora'
 }

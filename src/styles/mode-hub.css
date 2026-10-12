@@ -1,0 +1,115 @@
+/**
+ * Road Trip + Bucket List hubs — follow Lumi (dawn) cream shell; SOL/Nova/Axis stay dark via sol-* theme CSS.
+ */
+
+@layer components {
+  .mode-hub-panel {
+    border-radius: 14px;
+    border: 1px solid rgb(61 44 41 / 0.1);
+    background-color: white;
+    box-shadow: 0 1px 3px rgb(61 44 41 / 0.06);
+  }
+
+  html[data-app-theme='dusk'] .mode-hub-panel,
+  html[data-app-theme='aurora'] .mode-hub-panel {
+    border-color: rgb(255 255 255 / 0.1);
+    background-color: var(--color-midnight-elevated);
+    box-shadow: 0 0 24px rgba(249, 115, 22, 0.08);
+  }
+
+  html[data-app-theme='midnight'] .mode-hub-panel {
+    border-color: rgb(255 255 255 / 0.1);
+    background-color: var(--color-midnight-elevated);
+    box-shadow: 0 0 24px rgba(186, 230, 253, 0.1);
+  }
+
+  .mode-hub-search-wrap .mode-hub-search-icon {
+    color: rgb(61 44 41 / 0.45);
+  }
+
+  html[data-app-theme='dusk'] .mode-hub-search-wrap .mode-hub-search-icon,
+  html[data-app-theme='midnight'] .mode-hub-search-wrap .mode-hub-search-icon,
+  html[data-app-theme='aurora'] .mode-hub-search-wrap .mode-hub-search-icon {
+    color: rgb(255 255 255 / 0.4);
+  }
+
+  .mode-hub-quick-link {
+    border-radius: 14px;
+    border-width: 2px;
+    background-color: white;
+    color: var(--color-brown);
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.12s ease;
+  }
+
+  html[data-app-theme='dusk'] .mode-hub-quick-link,
+  html[data-app-theme='aurora'] .mode-hub-quick-link {
+    background-color: rgb(26 34 54 / 0.9);
+    color: rgb(255 255 255 / 0.92);
+  }
+
+  html[data-app-theme='midnight'] .mode-hub-quick-link {
+    background-color: rgb(21 30 50 / 0.92);
+    color: rgb(226 232 240 / 0.94);
+  }
+
+  .mode-hub-quick-link:active {
+    transform: scale(0.98);
+  }
+
+  .mode-hub-tab-rail {
+    background: linear-gradient(
+      to right,
+      rgb(249 115 22 / 0.07),
+      transparent,
+      rgb(192 38 160 / 0.08)
+    );
+  }
+
+  .mode-hub-segment-active {
+    background-color: rgb(249 115 22 / 0.15);
+    color: rgb(249 115 22);
+  }
+
+  .mode-hub-segment-inactive {
+    color: var(--color-brown-muted);
+  }
+
+  .mode-hub-segment-inactive:hover {
+    color: var(--color-brown);
+  }
+}
+
+html[data-app-theme='aurora'] .mode-hub-tab-rail {
+  background: linear-gradient(
+    to right,
+    rgb(52 211 153 / 0.12),
+    transparent,
+    rgb(244 114 182 / 0.12)
+  );
+}
+
+html[data-app-theme='aurora'] .bucket-list-hub-tab-explore-active {
+  border-color: rgb(52 211 153 / 0.55);
+  background: rgb(52 211 153 / 0.14);
+  color: var(--axis-aurora-green-soft);
+  box-shadow: 0 0 20px rgb(52 211 153 / 0.32);
+}
+
+html[data-app-theme='aurora'] .bucket-list-hub-tab-mine-active {
+  border-color: rgb(244 114 182 / 0.55);
+  background: rgb(244 114 182 / 0.12);
+  color: var(--axis-aurora-pink-soft);
+  box-shadow: 0 0 20px rgb(244 114 182 / 0.28);
+}
+
+html[data-app-theme='aurora'] .mode-hub-segment-active {
+  background-color: rgb(56 189 248 / 0.16);
+  color: var(--axis-sky-bright);
+}
+
+html[data-app-theme='aurora'] .mode-hub-tab-rail .mode-hub-segment-inactive:hover,
+html[data-app-theme='aurora'] .mode-hub-panel .mode-hub-segment-inactive:hover {
+  background-color: rgb(125 211 252 / 0.06);
+}

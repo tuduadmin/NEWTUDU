@@ -31,7 +31,7 @@ export default function SavedEventListRow({
     <div
       className={`flex w-full items-center gap-3 px-3 py-2.5 transition ${
         isPast ? 'opacity-90' : ''
-      } ${selected ? 'bg-teal-600/5' : 'hover:bg-cream/60'}`}
+      } ${selected ? 'theme-accent-bg-subtle' : 'hover:bg-cream/60'}`}
     >
       {selectable && (
         <input
@@ -39,7 +39,7 @@ export default function SavedEventListRow({
           checked={selected}
           onChange={(e) => onSelectChange?.(e.target.checked)}
           aria-label={`Select ${event.title}`}
-          className="h-4 w-4 shrink-0 rounded border-brown/25 text-teal-600 focus:ring-teal-600/30"
+          className="theme-accent-checkbox h-4 w-4 shrink-0 rounded border-brown/25 focus:ring-orange/30"
         />
       )}
 
@@ -63,7 +63,7 @@ export default function SavedEventListRow({
         <div className="min-w-0 flex-1">
           <p
             className={`text-[9px] font-bold uppercase tracking-[0.08em] ${
-              isPast ? 'text-brown-muted' : 'text-teal-600'
+              isPast ? 'text-brown-muted' : 'theme-accent-text'
             }`}
           >
             {isPast ? 'Past event' : statusLabel}

@@ -2,13 +2,15 @@ import { getCurrentUser } from './auth'
 import {
   DEFAULT_ROAD_TRIP_DETOUR_KM,
   ROAD_TRIP_DETOUR_KM_OPTIONS,
-} from './roadTripRoute'
+} from './roadTripConstants'
 
 const STORAGE_KEY = 'tudu_road_trip_preferences'
 
 export type RoadTripPreferences = {
   defaultDetourKm: number
   defaultMaxStops: number
+  /** Default “leave from” for new trips and Google Maps origin when a trip has no home base set. */
+  defaultHomeBase?: string
 }
 
 const DEFAULT_PREFERENCES: RoadTripPreferences = {
@@ -47,6 +49,7 @@ export function getRoadTripPreferences(viewerEmail?: string): RoadTripPreference
       ? saved.defaultDetourKm
       : DEFAULT_ROAD_TRIP_DETOUR_KM,
     defaultMaxStops: saved.defaultMaxStops > 0 ? saved.defaultMaxStops : DEFAULT_PREFERENCES.defaultMaxStops,
+    defaultHomeBase: saved.defaultHomeBase?.trim() || undefined,
   }
 }
 
@@ -65,6 +68,10 @@ export function updateRoadTripPreferences(
       partial.defaultDetourKm != null ? partial.defaultDetourKm : current.defaultDetourKm,
     defaultMaxStops:
       partial.defaultMaxStops != null ? partial.defaultMaxStops : current.defaultMaxStops,
+    defaultHomeBase:
+      partial.defaultHomeBase !== undefined
+        ? partial.defaultHomeBase.trim() || undefined
+        : current.defaultHomeBase,
   }
   store[key] = next
   writeStore(store)

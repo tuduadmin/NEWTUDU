@@ -18,7 +18,7 @@ const baseClasses =
 
 const activeVariantClasses: Record<SaveButtonVariant, string> = {
   primary:
-    'bg-gradient-tudu text-white shadow-md hover:brightness-110 active:scale-[0.98] hover:shadow-[var(--shadow-glow-warm)]',
+    'bg-gradient-tudu text-[var(--gradient-cta-fg)] hover:brightness-110 active:scale-[0.98]',
   secondary:
     'border border-app-subtle bg-app-elevated text-brown hover:border-orange/30 hover:bg-orange/5 active:scale-[0.98]',
 }

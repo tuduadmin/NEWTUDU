@@ -1,4 +1,6 @@
 import type { DiscoverEvent } from '../data/discoverEvents'
+import { getPreferences } from './preferences'
+import { getRoadTripPreferences } from './roadTripPreferences'
 import type { RoadTrip } from './roadTrips'
 import {
   distanceToRouteKm,
@@ -7,8 +9,12 @@ import {
   resolvePlannedCityLatLng,
 } from './roadTripGeo'
 
-export const DEFAULT_ROAD_TRIP_DETOUR_KM = 10
-export const ROAD_TRIP_DETOUR_KM_OPTIONS = [5, 10, 15, 25, 50] as const
+import {
+  DEFAULT_ROAD_TRIP_DETOUR_KM,
+  ROAD_TRIP_DETOUR_KM_OPTIONS,
+} from './roadTripConstants'
+
+export { DEFAULT_ROAD_TRIP_DETOUR_KM, ROAD_TRIP_DETOUR_KM_OPTIONS }
 
 export function normalizePlannedCity(name: string): string {
   return name.trim().replace(/\s+/g, ' ')
@@ -35,6 +41,38 @@ export function getTripPlannedCities(trip: RoadTrip): string[] {
   return parseDestinationToPlannedCities(trip.destination)
 }
 
+/** Starting point for driving directions and map (trip field, then road-trip prefs, then profile location). */
+export function getTripHomeBase(trip: RoadTrip): string {
+  const fromTrip = trip.homeBase?.trim()
+  if (fromTrip) return normalizePlannedCity(fromTrip)
+  const fromRoadPrefs = getRoadTripPreferences(trip.ownerEmail).defaultHomeBase?.trim()
+  if (fromRoadPrefs) return normalizePlannedCity(fromRoadPrefs)
+  const profile = trip.ownerEmail ? getPreferences(trip.ownerEmail) : getPreferences()
+  const fromProfile = profile.location?.trim()
+  if (fromProfile) return normalizePlannedCity(fromProfile)
+  return ''
+}
+
+export function getTripHomeBasePoint(
+  trip: RoadTrip,
+): { lat: number; lng: number; label: string } | null {
+  const label = getTripHomeBase(trip)
+  if (!label) return null
+  return { label, ...resolvePlannedCityLatLng(label) }
+}
+
+function prependHomeBaseToRoute(
+  trip: RoadTrip,
+  points: Array<{ lat: number; lng: number; label: string }>,
+): Array<{ lat: number; lng: number; label: string }> {
+  const home = getTripHomeBasePoint(trip)
+  if (!home) return points
+  if (points.length > 0 && points[0].label.toLowerCase() === home.label.toLowerCase()) {
+    return points
+  }
+  return [home, ...points]
+}
+
 export function getTripDetourKm(trip: RoadTrip): number {
   if (trip.detourKm != null && trip.detourKm > 0) return trip.detourKm
   if (trip.detourMinutes != null && trip.detourMinutes > 0) {
@@ -59,12 +97,13 @@ export function getTripRoutePoints(
 ): Array<{ lat: number; lng: number; label: string }> {
   const cities = getTripPlannedCities(trip)
   if (cities.length > 0) {
-    return getRoutePointsFromPlannedCities(cities)
+    return prependHomeBaseToRoute(trip, getRoutePointsFromPlannedCities(cities))
   }
-  return eventStops.map((stop) => ({
+  const eventPoints = eventStops.map((stop) => ({
     label: stop.city,
     ...resolveEventLatLng(stop),
   }))
+  return prependHomeBaseToRoute(trip, eventPoints)
 }
 
 function directionsLabelForEvent(stop: DiscoverEvent): string {
@@ -85,11 +124,15 @@ export function getTripDirectionsPoints(
     ...resolveEventLatLng(stop),
   }))
 
+  let merged: Array<{ lat: number; lng: number; label: string }>
   if (cityPoints.length > 0 && stopPoints.length > 0) {
-    return [...cityPoints, ...stopPoints]
+    merged = [...cityPoints, ...stopPoints]
+  } else if (cityPoints.length > 0) {
+    merged = cityPoints
+  } else {
+    merged = stopPoints
   }
-  if (cityPoints.length > 0) return cityPoints
-  return stopPoints
+  return prependHomeBaseToRoute(trip, merged)
 }
 
 /** Open in Google Maps with origin, destination, and waypoints. */

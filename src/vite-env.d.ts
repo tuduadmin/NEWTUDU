@@ -5,6 +5,9 @@ interface ImportMetaEnv {
   readonly VITE_PAYMENTS_API_URL?: string
   /** Unlisted staff sign-in path, e.g. /staff/access-8f3k2 (production). */
   readonly VITE_CONTROL_ROOM_SIGN_IN_PATH?: string
+  /** MapTiler API key for Road Trip MapLibre basemap (optional — Carto fallback if unset). */
+  readonly VITE_MAPTILER_KEY?: string
+  readonly VITE_MAP_TILE_URL?: string
 }
 
 interface ImportMeta {

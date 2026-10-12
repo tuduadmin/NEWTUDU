@@ -6,6 +6,7 @@ import SettingsLayout, {
 } from '../../components/settings/SettingsLayout'
 import RoadTripStopSettings from '../../components/road-trip/RoadTripStopSettings'
 import GradientButton from '../../components/GradientButton'
+import { FieldHelper, FieldLabel, TextInput } from '../../components/create-event/CreateEventLayout'
 import {
   getRoadTripPreferences,
   ROAD_TRIP_MAX_STOP_OPTIONS,
@@ -28,6 +29,13 @@ export default function MyTuduRoadTripSettingsPage() {
 
   function handleMaxStopsChange(count: number) {
     const next = updateRoadTripPreferences({ defaultMaxStops: count }, user?.email)
+    setPrefs(next)
+    setSaved(true)
+    window.setTimeout(() => setSaved(false), 2000)
+  }
+
+  function handleHomeBaseChange(homeBase: string) {
+    const next = updateRoadTripPreferences({ defaultHomeBase: homeBase }, user?.email)
     setPrefs(next)
     setSaved(true)
     window.setTimeout(() => setSaved(false), 2000)
@@ -56,6 +64,19 @@ export default function MyTuduRoadTripSettingsPage() {
           onDetourChange={handleDetourChange}
           onMaxStopsChange={handleMaxStopsChange}
         />
+
+        <div className="mt-5 border-t border-app-subtle pt-4">
+          <FieldLabel>Default home base</FieldLabel>
+          <FieldHelper className="mt-1">
+            Starting point for new trips and for Google Maps when a trip doesn&apos;t set its own.
+          </FieldHelper>
+          <TextInput
+            className="mt-2"
+            value={prefs.defaultHomeBase ?? ''}
+            onChange={handleHomeBaseChange}
+            placeholder="e.g. Kindersley, SK"
+          />
+        </div>
       </SettingsCard>
 
       <SettingsCard className="p-4">

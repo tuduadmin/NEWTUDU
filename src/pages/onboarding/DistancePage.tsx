@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import OnboardingLayout from '../../components/onboarding/OnboardingLayout'
+import type { CSSProperties } from 'react'
+import TravelDistanceSlider from '../../components/settings/TravelDistanceSlider'
 import { getPreferences, updateTravelDistance } from '../../lib/preferences'
+import { travelDistanceUnit } from '../../lib/travelDistanceUi'
 
 export default function DistancePage() {
   const navigate = useNavigate()
@@ -23,21 +26,19 @@ export default function DistancePage() {
       subtitle="Tell us your comfort zone for getting to events."
       onContinue={handleContinue}
     >
-      <div className="text-center">
-        <p className="font-display text-3xl font-extrabold text-gradient">{km} km</p>
-        <input
-          type="range"
-          min={5}
-          max={200}
-          step={5}
+      <div
+        className="text-center"
+        style={{ '--travel-distance-pct': travelDistanceUnit(km) } as CSSProperties}
+      >
+        <p className="travel-distance-value font-display text-3xl font-extrabold tabular-nums">
+          {km} km
+        </p>
+        <TravelDistanceSlider
+          className="mt-4"
           value={km}
-          onChange={(e) => setKm(Number(e.target.value))}
-          className="mt-4 w-full accent-sunset-orange"
+          onChange={setKm}
+          boundsClassName="text-white/48"
         />
-        <div className="mt-2 flex justify-between text-xs text-white/48">
-          <span>5 km</span>
-          <span>200 km</span>
-        </div>
       </div>
     </OnboardingLayout>
   )

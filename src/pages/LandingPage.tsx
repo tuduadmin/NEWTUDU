@@ -59,7 +59,7 @@ export default function LandingPage() {
     landingFlags.landingBucketList || landingFlags.landingRoadTrip || landingFlags.landingTuduCrew
 
   return (
-    <div className="min-h-svh overflow-x-hidden bg-midnight text-white">
+    <div className="landing-page min-h-svh overflow-x-hidden bg-midnight text-white">
       <Header variant="dark" />
 
       <section id="about" className="px-4 pt-2 sm:px-6 lg:px-8">

@@ -1,0 +1,178 @@
+/**
+ * PETAL consumer theme (persisted id: evergreen).
+ * Spring morning — cherry blossom, dewy hills, soft rain-washed light.
+ */
+
+html[data-app-theme='evergreen'] {
+  --color-brown: #3d2a36;
+  --color-brown-muted: #6b4d5c;
+  --color-page-bg: #fdf4f8;
+  --color-cream: #fdf4f8;
+  --color-cream-dark: #f5e8ef;
+
+  --petal-blush: #fce7f3;
+  --petal-bloom: #f472b6;
+  --petal-bloom-deep: #db2777;
+  --petal-leaf: #4ade80;
+  --petal-leaf-deep: #15803d;
+  --petal-dew: #ecfdf5;
+  --petal-mist: #f0f9ff;
+  --petal-sun: #fde68a;
+  --petal-sun-warm: #fbbf24;
+
+  --petal-surface: rgba(255, 255, 255, 0.94);
+  --petal-surface-raised: rgba(255, 252, 254, 0.98);
+  --petal-border: rgba(244, 114, 182, 0.18);
+  --petal-border-subtle: rgba(21, 128, 61, 0.12);
+  --petal-field-bg: #ffffff;
+  --petal-text: #3d2a36;
+  --petal-text-muted: #6b4d5c;
+  --petal-placeholder: rgba(107, 77, 92, 0.42);
+  --petal-focus-ring: rgba(244, 114, 182, 0.28);
+  --petal-focus-border: rgba(219, 39, 119, 0.4);
+  --petal-card-shadow:
+    0 1px 2px rgb(219 39 119 / 0.04), 0 10px 28px rgb(74 222 128 / 0.1),
+    0 0 0 1px rgb(244 114 182 / 0.06);
+
+  --petal-ambient-bg:
+    radial-gradient(ellipse 90% 50% at 8% 0%, rgba(244, 114, 182, 0.28), transparent 52%),
+    radial-gradient(ellipse 75% 45% at 92% 6%, rgba(251, 207, 232, 0.55), transparent 48%),
+    radial-gradient(ellipse 100% 55% at 50% 100%, rgba(74, 222, 128, 0.2), transparent 58%),
+    radial-gradient(ellipse 60% 40% at 20% 55%, rgba(253, 230, 138, 0.22), transparent 50%),
+    radial-gradient(circle at 70% 35%, rgba(244, 114, 182, 0.35) 0, rgba(244, 114, 182, 0.35) 6px, transparent 6px),
+    radial-gradient(circle at 35% 28%, rgba(251, 207, 232, 0.5) 0, rgba(251, 207, 232, 0.5) 4px, transparent 4px),
+    radial-gradient(circle at 55% 18%, rgba(244, 114, 182, 0.25) 0, rgba(244, 114, 182, 0.25) 5px, transparent 5px),
+    linear-gradient(180deg, #fdf2f8 0%, #fce7f3 22%, #ecfdf5 55%, #f0fdf4 100%);
+
+  --color-glass-bg: rgba(255, 252, 254, 0.78);
+  --color-glass-border: rgba(244, 114, 182, 0.2);
+  --shadow-glow-warm: 0 0 24px rgba(244, 114, 182, 0.22);
+
+  color-scheme: light;
+}
+
+html[data-app-theme='evergreen'] body {
+  background-color: var(--color-page-bg);
+  background-image: var(--petal-ambient-bg);
+  background-attachment: fixed;
+  color: var(--petal-text);
+}
+
+html[data-app-theme='evergreen'] :is(.app-page-shell, .app-page-shell-flex) {
+  background-color: transparent;
+  background-image: var(--petal-ambient-bg);
+  background-attachment: fixed;
+  color: var(--petal-text);
+}
+
+html[data-app-theme='evergreen'] .glass-surface {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: var(--petal-card-shadow);
+}
+
+html[data-app-theme='evergreen'] .sol-bottom-nav {
+  box-shadow: var(--petal-card-shadow);
+}
+
+html[data-app-theme='evergreen'] .bg-app-elevated {
+  background-color: var(--petal-surface);
+  box-shadow: var(--petal-card-shadow);
+}
+
+html[data-app-theme='evergreen'] .bg-app-surface {
+  background-color: var(--petal-surface-raised);
+}
+
+html[data-app-theme='evergreen'] .border-app-subtle {
+  border-color: var(--petal-border-subtle);
+}
+
+html[data-app-theme='evergreen'] .divide-app-subtle > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--petal-border-subtle);
+}
+
+html[data-app-theme='evergreen'] .border-app-subtle.bg-app-elevated {
+  box-shadow: var(--petal-card-shadow);
+}
+
+html[data-app-theme='evergreen'] .text-gradient {
+  background: linear-gradient(
+    135deg,
+    var(--petal-bloom),
+    var(--petal-leaf),
+    var(--petal-sun-warm)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html[data-app-theme='evergreen'] .app-field {
+  background-color: var(--petal-field-bg);
+  border-color: var(--petal-border-subtle);
+  color: var(--petal-text);
+}
+
+html[data-app-theme='evergreen'] .app-field::placeholder {
+  color: var(--petal-placeholder);
+}
+
+html[data-app-theme='evergreen'] .app-field:focus {
+  border-color: var(--petal-focus-border);
+  box-shadow: 0 0 0 3px var(--petal-focus-ring);
+}
+
+html[data-app-theme='evergreen'] :is(.text-orange, .text-orange-500, .text-sunset-orange) {
+  color: var(--petal-bloom-deep) !important;
+}
+
+html[data-app-theme='evergreen'] :is(.text-magenta, .text-sunset-pink) {
+  color: var(--petal-leaf-deep) !important;
+}
+
+html[data-app-theme='evergreen'] :is(.text-success, .text-success-deep) {
+  color: var(--petal-leaf-deep) !important;
+}
+
+html[data-app-theme='evergreen'] .mode-hub-panel {
+  border-color: var(--petal-border);
+  background-color: rgb(255 252 254 / 0.9);
+  box-shadow: var(--petal-card-shadow);
+}
+
+html[data-app-theme='evergreen'] .mode-hub-tab-rail {
+  background: linear-gradient(
+    to right,
+    rgb(244 114 182 / 0.14),
+    rgb(236 253 245 / 0.65),
+    rgb(253 230 138 / 0.2)
+  );
+}
+
+html[data-app-theme='evergreen'] .bucket-list-hub-tab-explore-active {
+  border-color: rgb(219 39 119 / 0.35);
+  background: rgb(244 114 182 / 0.16);
+  color: var(--petal-bloom-deep);
+  box-shadow: 0 0 16px rgb(244 114 182 / 0.22);
+}
+
+html[data-app-theme='evergreen'] .bucket-list-hub-tab-mine-active {
+  border-color: rgb(21 128 61 / 0.35);
+  background: rgb(74 222 128 / 0.18);
+  color: var(--petal-leaf-deep);
+  box-shadow: 0 0 16px rgb(74 222 128 / 0.2);
+}
+
+html[data-app-theme='evergreen'] .mode-hub-segment-active {
+  background-color: rgb(244 114 182 / 0.14);
+  color: var(--petal-bloom-deep);
+}
+
+html[data-app-theme='evergreen'] .mode-hub-quick-link {
+  background-color: rgb(255 252 254 / 0.94);
+  color: var(--petal-text);
+  border-color: var(--petal-border-subtle);
+}

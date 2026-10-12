@@ -86,6 +86,11 @@ export default function RoadTripMapHero({
   }, [mapH, mapW])
 
   useEffect(() => {
+    setMapFailed(false)
+    failedCount.current = 0
+  }, [mapViewKey, failedCount])
+
+  useEffect(() => {
     applyFit()
   }, [mapViewKey, applyFit])
 
@@ -111,7 +116,8 @@ export default function RoadTripMapHero({
 
   function handleTileError() {
     failedCount.current += 1
-    if (failedCount.current >= totalTiles) setMapFailed(true)
+    const threshold = Math.max(1, Math.ceil(totalTiles * 0.2))
+    if (failedCount.current >= threshold) setMapFailed(true)
   }
 
   function viewportPoint(clientX: number, clientY: number): { x: number; y: number } {
@@ -364,8 +370,14 @@ export default function RoadTripMapHero({
           </a>
         )}
 
+        {mapFailed && (
+          <p className="pointer-events-none absolute bottom-10 left-2 right-2 z-[2] text-center text-[11px] font-semibold text-white drop-shadow-md">
+            Map tiles couldn&apos;t load (network blocked). Route pins still show — use Get directions for
+            navigation.
+          </p>
+        )}
         <p className="pointer-events-none absolute bottom-1 right-2 z-[1] text-[9px] text-white/80 drop-shadow">
-          © OpenStreetMap
+          © OpenStreetMap · © CARTO
         </p>
       </div>
 

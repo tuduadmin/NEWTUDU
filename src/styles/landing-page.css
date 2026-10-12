@@ -1,0 +1,17 @@
+/**
+ * Public marketing landing (/) — fixed SOL dusk brand.
+ * Consumer appearance themes do not apply here.
+ */
+.landing-page {
+  --gradient-cta: linear-gradient(135deg, #c026a0 0%, #f4729a 45%, #f97316 100%);
+  --gradient-cta-fg: #ffffff;
+  --gradient-cta-shadow: 0 4px 18px rgba(249, 115, 22, 0.28);
+  --gradient-cta-shadow-hover: 0 0 24px rgba(249, 115, 22, 0.45);
+}
+
+.landing-page .text-gradient {
+  background: linear-gradient(135deg, #f68e5d, #c02e8d);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}

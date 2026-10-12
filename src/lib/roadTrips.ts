@@ -10,6 +10,7 @@ import {
   normalizePlannedCity,
   parseDestinationToPlannedCities,
 } from './roadTripRoute'
+import { getPreferences } from './preferences'
 import { getRoadTripPreferences } from './roadTripPreferences'
 
 export type RoadTrip = {
@@ -20,6 +21,8 @@ export type RoadTrip = {
   createdAt: string
   /** User email who created the trip (local demo). */
   ownerEmail?: string
+  /** Where you leave from — Google Maps origin and first map pin (not counted as a planned stop). */
+  homeBase?: string
   /** Ordered cities along the route (route spine for discover + map). */
   plannedCities?: string[]
   /** Human-readable destination summary (synced from planned cities). */
@@ -159,11 +162,16 @@ export function startRoadTripCreate(navigate: (path: string) => void, userEmail:
 
 export function createDraftRoadTrip(name: string, ownerEmail?: string): RoadTrip {
   const defaults = getRoadTripPreferences(ownerEmail)
+  const homeBase =
+    defaults.defaultHomeBase?.trim() ||
+    (ownerEmail ? getPreferences(ownerEmail).location : getPreferences().location)?.trim() ||
+    undefined
   const trip: RoadTrip = {
     id: generateId(),
     name: name.trim() || 'Untitled road trip',
     stopEventIds: [],
     plannedCities: [],
+    homeBase: homeBase ? normalizePlannedCity(homeBase) : undefined,
     taggedFollowerIds: [],
     visitedStopIds: [],
     createdAt: new Date().toISOString(),
@@ -347,6 +355,10 @@ export function updateRoadTrip(
   const idx = trips.findIndex((t) => t.id === id)
   if (idx === -1) return undefined
   trips[idx] = { ...trips[idx], ...partial }
+  if (partial.homeBase !== undefined) {
+    const trimmed = partial.homeBase.trim()
+    trips[idx].homeBase = trimmed ? normalizePlannedCity(trimmed) : undefined
+  }
   if (partial.plannedCities !== undefined) {
     trips[idx].plannedCities = partial.plannedCities.map(normalizePlannedCity).filter(Boolean)
     trips[idx].destination = formatPlannedCitiesDestination(trips[idx].plannedCities ?? [])

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { useLocation } from 'react-router-dom'
 import { MapPin, Sparkles } from 'lucide-react'
 import SettingsLayout from '../../components/settings/SettingsLayout'
@@ -7,6 +7,8 @@ import { FormField, IconInput, IconSelect } from '../../components/FormFields'
 import CategoryGrid from '../../components/CategoryGrid'
 import PreferenceChoiceGrid from '../../components/settings/PreferenceChoiceGrid'
 import ThemeGrid from '../../components/settings/ThemeGrid'
+import TravelDistanceSlider from '../../components/settings/TravelDistanceSlider'
+import { travelDistanceUnit } from '../../lib/travelDistanceUi'
 import { BUDGET_OPTIONS, TIMEFRAME_FILTER_OPTIONS } from '../../data/categories'
 import type { BudgetId, TimeframeId } from '../../data/categories'
 import {
@@ -190,20 +192,19 @@ export default function MyTuduProfileSettingsPage() {
           }}
         />
 
-        <p className="mb-2 mt-5 text-sm font-medium text-brown">
-          Travel Distance: <span className="text-gradient">{travelKm} km</span>
+        <p
+          className="mb-2 mt-5 text-sm font-medium text-brown"
+          style={{ '--travel-distance-pct': travelDistanceUnit(travelKm) } as CSSProperties}
+        >
+          Travel Distance:{' '}
+          <span className="travel-distance-value font-semibold tabular-nums">{travelKm} km</span>
         </p>
-        <input
-          type="range"
-          min={5}
-          max={200}
-          step={5}
+        <TravelDistanceSlider
           value={travelKm}
-          onChange={(e) => {
-            setTravelKm(Number(e.target.value))
+          onChange={(km) => {
+            setTravelKm(km)
             setSaved(false)
           }}
-          className="w-full accent-emerald-500"
         />
 
         <p className="mb-2 mt-5 text-sm font-medium text-brown">Event Timeframe</p>

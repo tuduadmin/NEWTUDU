@@ -3,6 +3,7 @@ import { ImagePlus, Plus, X } from 'lucide-react'
 import type { RoadTrip } from '../../lib/roadTrips'
 import {
   DEFAULT_ROAD_TRIP_DETOUR_KM,
+  getTripHomeBase,
   getTripPlannedCities,
   normalizePlannedCity,
 } from '../../lib/roadTripRoute'
@@ -19,6 +20,7 @@ type RoadTripBasicsStepProps = {
   trip: RoadTrip
   onUpdate: (partial: {
     name?: string
+    homeBase?: string
     plannedCities?: string[]
     taggedFollowerIds?: string[]
     coverImageUrl?: string
@@ -129,9 +131,23 @@ export default function RoadTripBasicsStep({ trip, onUpdate }: RoadTripBasicsSte
       </div>
 
       <div>
+        <FieldLabel>Home base</FieldLabel>
+        <FieldHelper>
+          Where you start driving from. Google Maps uses this as the origin — not your first event
+          stop.
+        </FieldHelper>
+        <TextInput
+          className="mt-2"
+          value={trip.homeBase?.trim() ? trip.homeBase : getTripHomeBase(trip)}
+          onChange={(homeBase) => onUpdate({ homeBase })}
+          placeholder="e.g. Kindersley, SK"
+        />
+      </div>
+
+      <div>
         <FieldLabel>Planned stops</FieldLabel>
         <FieldHelper>
-          Cities you&apos;ll drive through, in order. Events within{' '}
+          Cities you&apos;ll drive through, in order (after home base). Events within{' '}
           {trip.detourKm ?? DEFAULT_ROAD_TRIP_DETOUR_KM} km of this route show up when you find
           stops.
         </FieldHelper>

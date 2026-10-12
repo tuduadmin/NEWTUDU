@@ -83,55 +83,63 @@ html[data-app-theme='dawn'] {
   --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
 }
 
-/* Nova — deep midnight blues */
+/* Nova — winter night frost + moonlight */
 html[data-app-theme='midnight'] {
-  --pref-choice-active-border: rgba(129, 140, 248, 0.75);
-  --pref-choice-active-bg: rgba(67, 56, 202, 0.22);
-  --pref-choice-active-shadow: 0 0 24px rgba(99, 102, 241, 0.38), 0 0 10px rgba(129, 140, 248, 0.22);
-  --pref-choice-active-ring: rgba(129, 140, 248, 0.4);
-  --pref-choice-active-label: rgba(224, 231, 255, 0.96);
-  --pref-choice-active-icon-bg: rgba(99, 102, 241, 0.28);
-  --pref-choice-active-icon-color: #c7d2fe;
-  --theme-accent-fg: #818cf8;
-  --detail-amenity-border: rgba(129, 140, 248, 0.16);
-  --detail-amenity-bg: rgba(99, 102, 241, 0.07);
+  --pref-choice-active-border: rgba(186, 230, 253, 0.72);
+  --pref-choice-active-bg: rgba(99, 102, 241, 0.2);
+  --pref-choice-active-shadow: 0 0 26px rgba(186, 230, 253, 0.28), 0 0 12px rgba(129, 140, 248, 0.22);
+  --pref-choice-active-ring: rgba(186, 230, 253, 0.38);
+  --pref-choice-active-label: rgba(226, 232, 240, 0.96);
+  --pref-choice-active-icon-bg: rgba(186, 230, 253, 0.18);
+  --pref-choice-active-icon-color: #bae6fd;
+  --theme-accent-fg: #7dd3fc;
+  --detail-amenity-border: rgba(186, 230, 253, 0.14);
+  --detail-amenity-bg: rgba(99, 102, 241, 0.08);
   --detail-amenity-shadow: none;
-  --detail-amenity-label: rgba(199, 210, 254, 0.78);
+  --detail-amenity-label: rgba(186, 230, 253, 0.78);
   --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
-  --detail-amenity-icon-shadow: 0 0 10px rgba(99, 102, 241, 0.24);
+  --detail-amenity-icon-shadow: 0 0 10px rgba(186, 230, 253, 0.22);
 }
 
-/* Ember — summer day: greens + ocean blues */
+html[data-app-theme='midnight'] .pref-choice:not(.pref-choice--active) {
+  border-color: rgba(148, 163, 184, 0.14);
+}
+
+html[data-app-theme='midnight'] .pref-choice:not(.pref-choice--active):hover {
+  border-color: rgba(186, 230, 253, 0.28);
+}
+
+/* Petal — spring blossom + dew */
 html[data-app-theme='evergreen'] {
-  --pref-choice-active-border: rgba(20, 184, 166, 0.7);
-  --pref-choice-active-bg: rgba(52, 211, 153, 0.16);
-  --pref-choice-active-shadow: 0 0 22px rgba(45, 212, 191, 0.28), 0 0 10px rgba(56, 189, 248, 0.18);
-  --pref-choice-active-ring: rgba(20, 184, 166, 0.32);
-  --pref-choice-active-label: #064e3b;
-  --pref-choice-active-icon-bg: rgba(56, 189, 248, 0.2);
-  --pref-choice-active-icon-color: #0d9488;
-  --theme-accent-fg: #0d9488;
-  --detail-amenity-border: rgba(20, 184, 166, 0.14);
-  --detail-amenity-bg: rgba(52, 211, 153, 0.06);
+  --pref-choice-active-border: rgba(244, 114, 182, 0.65);
+  --pref-choice-active-bg: rgba(251, 207, 232, 0.35);
+  --pref-choice-active-shadow: 0 0 22px rgba(244, 114, 182, 0.26), 0 0 10px rgba(74, 222, 128, 0.18);
+  --pref-choice-active-ring: rgba(219, 39, 119, 0.28);
+  --pref-choice-active-label: #831843;
+  --pref-choice-active-icon-bg: rgba(74, 222, 128, 0.22);
+  --pref-choice-active-icon-color: #db2777;
+  --theme-accent-fg: #db2777;
+  --detail-amenity-border: rgba(244, 114, 182, 0.16);
+  --detail-amenity-bg: rgba(251, 207, 232, 0.35);
   --detail-amenity-shadow: none;
-  --detail-amenity-label: rgba(6, 78, 59, 0.72);
+  --detail-amenity-label: rgba(61, 42, 54, 0.72);
   --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
 }
 
-/* Marigold — autumn harvest leaves */
+/* Marigold — high summer sun + pool */
 html[data-app-theme='harvest'] {
-  --pref-choice-active-border: rgba(234, 88, 12, 0.78);
-  --pref-choice-active-bg: rgba(180, 83, 9, 0.16);
-  --pref-choice-active-shadow: 0 0 22px rgba(234, 88, 12, 0.3), 0 0 10px rgba(202, 138, 4, 0.2);
-  --pref-choice-active-ring: rgba(234, 88, 12, 0.34);
-  --pref-choice-active-label: #7c2d12;
-  --pref-choice-active-icon-bg: rgba(202, 138, 4, 0.24);
-  --pref-choice-active-icon-color: #b45309;
-  --theme-accent-fg: #ea580c;
-  --detail-amenity-border: rgb(61 44 41 / 0.15);
-  --detail-amenity-bg: rgba(180, 83, 9, 0.05);
+  --pref-choice-active-border: rgba(245, 158, 11, 0.75);
+  --pref-choice-active-bg: rgba(251, 191, 36, 0.22);
+  --pref-choice-active-shadow: 0 0 24px rgba(251, 191, 36, 0.32), 0 0 12px rgba(6, 182, 212, 0.2);
+  --pref-choice-active-ring: rgba(234, 88, 12, 0.32);
+  --pref-choice-active-label: #78350f;
+  --pref-choice-active-icon-bg: rgba(6, 182, 212, 0.18);
+  --pref-choice-active-icon-color: #0891b2;
+  --theme-accent-fg: #d97706;
+  --detail-amenity-border: rgba(245, 158, 11, 0.18);
+  --detail-amenity-bg: rgba(254, 243, 199, 0.5);
   --detail-amenity-shadow: none;
-  --detail-amenity-label: rgb(61 44 41 / 0.72);
+  --detail-amenity-label: rgba(66, 32, 6, 0.72);
   --detail-amenity-icon-color: var(--pref-choice-active-icon-color);
 }
 
@@ -177,4 +185,55 @@ html[data-app-theme='harvest'] {
 .theme-accent-hover:hover {
   border-color: color-mix(in srgb, var(--pref-choice-active-border) 40%, transparent);
   color: var(--theme-accent-fg, var(--pref-choice-active-label));
+}
+
+/* Travel distance slider — follows active theme; `--travel-distance-pct` is 0–1 set inline */
+:root {
+  --theme-accent-fg: #ea580c;
+}
+
+.travel-distance-control {
+  --travel-distance-pct: 0.5;
+}
+
+.travel-distance-track {
+  background: color-mix(in srgb, var(--pref-choice-active-border) 14%, transparent);
+}
+
+.travel-distance-fill {
+  width: calc(var(--travel-distance-pct) * 100%);
+  background: color-mix(
+    in srgb,
+    var(--theme-accent-fg) calc(20% + var(--travel-distance-pct) * 80%),
+    var(--color-brown-muted)
+  );
+  transition:
+    width 100ms ease-out,
+    background-color 180ms ease-out;
+}
+
+.travel-distance-thumb {
+  left: calc(var(--travel-distance-pct) * 100%);
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  border: 2px solid rgb(255 255 255 / 0.95);
+  background: color-mix(
+    in srgb,
+    var(--theme-accent-fg) calc(26% + var(--travel-distance-pct) * 74%),
+    var(--color-brown-muted)
+  );
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.22);
+  transition:
+    left 100ms ease-out,
+    background-color 180ms ease-out;
+}
+
+.travel-distance-value {
+  color: color-mix(
+    in srgb,
+    var(--theme-accent-fg) calc(26% + var(--travel-distance-pct, 0.5) * 74%),
+    var(--color-brown-muted)
+  );
+  transition: color 180ms ease-out;
 }

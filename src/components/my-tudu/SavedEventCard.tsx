@@ -63,7 +63,7 @@ export default function SavedEventCard({
       <div className="p-2.5">
         <p
           className={`text-[9px] font-bold uppercase tracking-[0.08em] ${
-            isPast ? 'text-brown-muted' : 'text-teal-600'
+            isPast ? 'text-brown-muted' : 'theme-accent-text'
           }`}
         >
           {statusLabelOverride ?? (isPast ? 'Past event' : statusLabel)}
@@ -79,7 +79,7 @@ export default function SavedEventCard({
           <button
             type="button"
             onClick={onViewEvent}
-            className="min-h-8 flex-1 rounded-[14px] border border-brown/25 bg-white px-2 py-1.5 text-[10px] font-bold text-brown transition hover:border-teal-600/40 hover:text-teal-700 active:scale-[0.98]"
+            className="theme-accent-hover min-h-8 flex-1 rounded-[14px] border border-brown/25 bg-white px-2 py-1.5 text-[10px] font-bold text-brown transition active:scale-[0.98]"
           >
             View Event
           </button>

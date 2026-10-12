@@ -1,19 +1,16 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Search } from 'lucide-react'
+import DiscoverEventDetailPanel from '../DiscoverEventDetailPanel'
 import GradientButton from '../GradientButton'
-import RoadTripMapHero from './RoadTripMapHero'
+import RoadTripMap from './RoadTripMap'
 import RoadTripStopList from './RoadTripStopList'
 import SavedEventPicker from './SavedEventPicker'
 import { appFieldClass } from '../../lib/formFieldClasses'
 import type { DiscoverEvent } from '../../data/discoverEvents'
 import { resolveEventFromAnySource } from '../../lib/bucketLists'
-import { projectTripRouteToMapPins, getRoadTripMapViewFromPoints } from '../../lib/roadTripGeo'
-import {
-  getTripGoogleMapsDirectionsUrl,
-  getTripPlannedCities,
-  getTripRoutePoints,
-} from '../../lib/roadTripRoute'
+import { buildRoadTripMapStops } from '../../lib/roadTripMapModel'
+import { getTripGoogleMapsDirectionsUrl } from '../../lib/roadTripRoute'
 import { getSavedEventIdsForUser } from '../../lib/savedEvents'
 import type { RoadTrip } from '../../lib/roadTrips'
 import {
@@ -31,18 +28,10 @@ type RoadTripStopsStepProps = {
 export default function RoadTripStopsStep({ trip, userEmail, onRefresh }: RoadTripStopsStepProps) {
   const navigate = useNavigate()
   const [savedSearch, setSavedSearch] = useState('')
+  const [detailEvent, setDetailEvent] = useState<DiscoverEvent | null>(null)
 
   const stops = getRoadTripStops(trip)
-  const plannedCities = getTripPlannedCities(trip)
-  const routePoints = getTripRoutePoints(trip, stops)
-  const mapPins = useMemo(
-    () => projectTripRouteToMapPins(plannedCities, stops),
-    [plannedCities, stops],
-  )
-  const mapView = useMemo(
-    () => getRoadTripMapViewFromPoints(routePoints),
-    [routePoints],
-  )
+  const mapStops = useMemo(() => buildRoadTripMapStops(trip, stops), [trip, stops])
   const directionsUrl = useMemo(
     () => getTripGoogleMapsDirectionsUrl(trip, stops),
     [trip, stops],
@@ -73,13 +62,10 @@ export default function RoadTripStopsStep({ trip, userEmail, onRefresh }: RoadTr
 
   return (
     <section className="space-y-5 pt-3">
-      <RoadTripMapHero
-        tripName={trip.name}
-        destination={trip.destination}
-        pins={mapPins}
-        stopCount={mapPins.length || stops.length}
-        mapView={mapView}
+      <RoadTripMap
+        stops={mapStops}
         directionsUrl={directionsUrl}
+        onEventSelect={(event) => setDetailEvent(event)}
       />
 
       <div>
@@ -102,27 +88,34 @@ export default function RoadTripStopsStep({ trip, userEmail, onRefresh }: RoadTr
             type="search"
             value={savedSearch}
             onChange={(e) => setSavedSearch(e.target.value)}
-            placeholder="Search saved events…"
-            className={`${appFieldClass} w-full py-2.5 pl-9 pr-3`}
+            placeholder="Search saved events..."
+            className={`${appFieldClass} py-2.5 pl-9`}
           />
         </div>
         <SavedEventPicker
           events={savedEvents}
+          searchQuery={savedSearch}
           selectedIds={selectedIds}
           onToggle={handleToggleSaved}
-          searchQuery={savedSearch}
         />
       </div>
 
       <GradientButton
         type="button"
         fullWidth
-        className="px-4 py-2.5 text-sm"
+        className="rounded-[14px] py-3 text-sm font-bold"
         onClick={() => navigate(`/road-trip/find-more/${trip.id}`)}
       >
-        <Search size={16} className="mr-1 inline" />
-        Find more stops
+        Find more stops near route
       </GradientButton>
+
+      {detailEvent && (
+        <DiscoverEventDetailPanel
+          event={detailEvent}
+          onClose={() => setDetailEvent(null)}
+          onSave={() => setDetailEvent(null)}
+        />
+      )}
     </section>
   )
 }

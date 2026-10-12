@@ -40,10 +40,10 @@ export default function RoadTripMoodChips() {
             type="button"
             onClick={() => openPlan(mood.id)}
             title={mood.label}
-            className={`flex min-w-0 flex-col items-center gap-1 rounded-[12px] border-2 bg-midnight-surface/90 px-1 py-2.5 text-center transition active:scale-[0.98] ${MOOD_GLOW[mood.id]}`}
+            className={`flex min-w-0 flex-col items-center gap-1 rounded-[12px] border-2 bg-app-elevated px-1 py-2.5 text-center transition active:scale-[0.98] ${MOOD_GLOW[mood.id]}`}
           >
             <Icon size={18} strokeWidth={2.25} className="shrink-0" />
-            <span className="w-full truncate font-display text-[9px] font-bold leading-tight text-white sm:text-[10px]">
+            <span className="w-full truncate font-display text-[9px] font-bold leading-tight text-brown sm:text-[10px]">
               {MOOD_SHORT[mood.id]}
             </span>
           </button>

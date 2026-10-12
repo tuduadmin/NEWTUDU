@@ -31,8 +31,7 @@ import {
 type HubTab = 'explore' | 'mine'
 type MineView = 'lists' | 'completed'
 
-const HUB_PANEL =
-  'rounded-[14px] border border-white/10 bg-midnight-elevated shadow-[0_0_24px_rgba(249,115,22,0.08)]'
+const HUB_PANEL = 'mode-hub-panel'
 
 export default function BucketListDiscoveryPage() {
   const navigate = useNavigate()
@@ -106,7 +105,7 @@ export default function BucketListDiscoveryPage() {
   }
 
   return (
-    <div className="relative app-page-shell bg-midnight pb-[calc(var(--app-bottom-nav-h)+env(safe-area-inset-bottom))] text-white">
+    <div className="relative app-page-shell pb-[calc(var(--app-bottom-nav-h)+max(0.5rem,env(safe-area-inset-bottom,0px))+2rem)]">
       <AppHeaderBar logoLinkTo="/bucket-list" />
 
       <BucketListLandingHero
@@ -117,7 +116,7 @@ export default function BucketListDiscoveryPage() {
 
       <div className="mt-3 px-4 pb-3">
         <div
-          className={`flex gap-2 bg-gradient-to-r from-sunset-orange/[0.07] via-transparent to-magenta/[0.08] p-1.5 ${HUB_PANEL}`}
+          className={`mode-hub-tab-rail flex gap-2 p-1.5 ${HUB_PANEL}`}
         >
           {(
             [
@@ -145,7 +144,7 @@ export default function BucketListDiscoveryPage() {
                 className={`flex flex-1 items-center justify-center gap-2 rounded-[12px] border-2 py-2.5 text-sm font-bold transition active:scale-[0.98] ${
                   active
                     ? t.activeClass
-                    : 'border-transparent text-white/45 hover:bg-white/[0.04] hover:text-white/75'
+                    : 'mode-hub-segment-inactive border-transparent hover:bg-brown/5'
                 }`}
               >
                 <Icon size={17} strokeWidth={2.25} aria-hidden />
@@ -263,10 +262,10 @@ function ExploreTab({
 
   return (
     <div className="pb-4">
-      <div className="relative mt-2">
+      <div className="mode-hub-search-wrap relative mt-2">
         <Search
           size={16}
-          className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-white/40"
+          className="mode-hub-search-icon pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
           aria-hidden
         />
         <input
@@ -274,7 +273,7 @@ function ExploreTab({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search lists, creators, vibes…"
-          className="w-full rounded-[14px] border border-white/12 bg-midnight-surface py-3 pl-10 pr-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-sunset-orange/50 focus:ring-2 focus:ring-sunset-orange/20"
+          className="app-field w-full py-3 pl-10 pr-4 text-sm"
         />
       </div>
 
@@ -292,8 +291,8 @@ function ExploreTab({
             onClick={() => setProgressFilter(t.id)}
             className={`flex-1 rounded-[12px] py-2 text-xs font-bold transition ${
               progressFilter === t.id
-                ? 'bg-sunset-orange/15 text-sunset-orange'
-                : 'text-white/45 hover:text-white/70'
+                ? 'mode-hub-segment-active'
+                : 'mode-hub-segment-inactive hover:text-brown'
             }`}
           >
             {t.label} ({progressCounts[t.id]})
@@ -304,12 +303,12 @@ function ExploreTab({
       {availableVibes.length > 0 && (
         <div className={`mt-3 ${HUB_PANEL} p-3`}>
           <div className="flex items-center justify-between gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-white/45">Vibe</p>
+            <p className="text-[10px] font-bold uppercase tracking-wider text-brown/45">Vibe</p>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={clearFilters}
-                className="text-[11px] font-semibold text-sunset-orange transition hover:text-sunset-orange/80"
+                className="theme-accent-text text-[11px] font-semibold transition hover:opacity-80"
               >
                 Clear all
               </button>
@@ -320,7 +319,7 @@ function ExploreTab({
               id="explore-vibe-filter"
               value={vibeFilter}
               onChange={(e) => setVibeFilter(e.target.value as VibeTag | 'all')}
-              className="w-full appearance-none rounded-[12px] border border-white/10 bg-midnight-surface py-2.5 pl-3 pr-10 text-sm font-semibold text-white outline-none focus:border-sunset-orange/45 focus:ring-2 focus:ring-sunset-orange/15"
+              className="app-field w-full appearance-none py-2.5 pl-3 pr-10 text-sm font-semibold"
             >
               <option value="all">All vibes</option>
               {availableVibes.map((vibe) => (
@@ -331,7 +330,7 @@ function ExploreTab({
             </select>
             <ChevronDown
               size={18}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-white/45"
+              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-brown/45"
               aria-hidden
             />
           </div>
@@ -390,9 +389,7 @@ function MineTab({
             type="button"
             onClick={() => onSelectView(t.id)}
             className={`flex-1 rounded-[14px] py-2.5 text-sm font-semibold transition ${
-              view === t.id
-                ? 'bg-sunset-orange/15 text-sunset-orange'
-                : 'text-white/45 hover:text-white/70'
+              view === t.id ? 'mode-hub-segment-active' : 'mode-hub-segment-inactive hover:text-brown'
             }`}
           >
             {t.label}
@@ -497,11 +494,11 @@ function PublicListCard({ list, onClick }: { list: PublicBucketList; onClick: ()
         />
       </div>
       <div className="min-w-0 flex-1">
-        <h2 className="truncate font-display text-sm font-bold text-white">{list.name}</h2>
-        <p className="mt-0.5 truncate text-xs text-white/60">by {list.ownerName}</p>
+        <h2 className="truncate font-display text-sm font-bold text-brown">{list.name}</h2>
+        <p className="mt-0.5 truncate text-xs text-brown/60">by {list.ownerName}</p>
         <div className="mt-1.5 flex flex-wrap items-center gap-2">
           <VibeBadge vibe={list.vibe ?? 'Adventurous'} />
-          <span className="text-[11px] text-white/50">
+          <span className="text-[11px] text-brown/50">
             {total} {total === 1 ? 'item' : 'items'}
           </span>
         </div>
@@ -517,14 +514,14 @@ function PublicListCard({ list, onClick }: { list: PublicBucketList; onClick: ()
           />
           <span
             className={`text-[9px] font-bold uppercase tracking-wide ${
-              isComplete ? 'text-success' : 'text-white/45'
+              isComplete ? 'text-success' : 'text-brown/45'
             }`}
           >
             {isComplete ? 'Complete' : 'Ongoing'}
           </span>
         </div>
       ) : (
-        <span className="shrink-0 self-center pr-1 text-white/35" aria-hidden>
+        <span className="shrink-0 self-center pr-1 text-brown/35" aria-hidden>
           ›
         </span>
       )}
@@ -564,14 +561,14 @@ function ListCard({
         )}
       </div>
       <div className="min-w-0 flex-1 p-3 py-2.5">
-        <h2 className="truncate font-display text-base font-bold text-white">{title}</h2>
-        <p className="mt-0.5 text-xs text-white/60">{subtitle}</p>
+        <h2 className="truncate font-display text-base font-bold text-brown">{title}</h2>
+        <p className="mt-0.5 text-xs text-brown/60">{subtitle}</p>
       </div>
       <div className="flex shrink-0 items-center gap-2 self-center pr-3">
         {showProgress && (
           <BucketListProgressRing done={progressDone} total={progressTotal} size={48} variant="light" />
         )}
-        <span className="text-white/35" aria-hidden>
+        <span className="text-brown/35" aria-hidden>
           ›
         </span>
       </div>
@@ -604,20 +601,20 @@ function CompletedStoryCard({
         </span>
       </div>
       <div className="min-w-0 flex-1 py-0.5">
-        <h2 className="truncate text-base font-bold text-white">{story.name}</h2>
-        <p className="mt-0.5 text-xs text-white/60">
+        <h2 className="truncate text-base font-bold text-brown">{story.name}</h2>
+        <p className="mt-0.5 text-xs text-brown/60">
           {story.isOwn ? 'Your recap' : `by ${story.ownerName}`} · {story.slides.length}{' '}
           {story.slides.length === 1 ? 'item' : 'items'}
         </p>
         {story.description && (
-          <p className="mt-1 line-clamp-2 text-xs text-white/55">{story.description}</p>
+          <p className="mt-1 line-clamp-2 text-xs text-brown/55">{story.description}</p>
         )}
-        <div className="mt-2 flex items-center gap-3 text-xs text-white/50">
+        <div className="mt-2 flex items-center gap-3 text-xs text-brown/50">
           {story.spotifyUrl && <span>🎵 Soundtrack</span>}
           {likeCount > 0 && <span>❤️ {likeCount}</span>}
         </div>
       </div>
-      <span className="self-center text-white/35">&gt;</span>
+      <span className="self-center text-brown/35">&gt;</span>
     </button>
   )
 }
@@ -637,11 +634,11 @@ function EmptyState({
 }) {
   return (
     <div className={`mt-4 px-6 py-10 text-center ${HUB_PANEL}`}>
-      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-midnight-surface text-2xl">
+      <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-app-surface text-2xl">
         {icon}
       </div>
-      <h2 className="text-lg font-bold text-white">{title}</h2>
-      <p className="mt-1 text-sm text-white/65">{message}</p>
+      <h2 className="text-lg font-bold text-brown">{title}</h2>
+      <p className="mt-1 text-sm text-brown/65">{message}</p>
       {actionLabel && onAction && (
         <GradientButton
           type="button"

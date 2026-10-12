@@ -26,17 +26,15 @@ export default function ThemeGrid({ locked = APP_THEMES_LOCKED }: ThemeGridProps
     saveAppThemeId(id)
   }
 
-  const gridThemes = APP_THEME_OPTIONS
-
   return (
     <div>
       {locked && (
         <p className="mb-3 text-xs leading-relaxed text-brown-muted">
-          More themes are on the way. SOL is active for everyone right now.
+          More themes are on the way. Dusk is active for everyone right now.
         </p>
       )}
       <div className="grid grid-cols-2 gap-2">
-        {gridThemes.map((theme) => {
+        {APP_THEME_OPTIONS.map((theme) => {
           const active = selected === theme.id
           return (
             <button
@@ -44,38 +42,29 @@ export default function ThemeGrid({ locked = APP_THEMES_LOCKED }: ThemeGridProps
               type="button"
               disabled={locked}
               aria-disabled={locked}
+              aria-pressed={active}
+              aria-label={`${theme.legacyName} theme`}
               onClick={() => select(theme.id)}
-              className={`relative flex flex-col items-center gap-1 px-3 py-3 ${prefChoiceClasses(active)} ${
+              className={`relative flex flex-col gap-2 px-2.5 py-2.5 ${prefChoiceClasses(active)} ${
                 locked ? 'cursor-not-allowed opacity-90' : ''
               } ${locked && !active ? 'hover:border-brown/25' : ''}`}
             >
               <span
-                className="mb-0.5 h-6 w-full rounded-md border border-brown/10"
+                className="h-8 w-full shrink-0 rounded-[10px] border border-brown/10 shadow-sm"
                 style={{
-                  background: `linear-gradient(135deg, ${theme.preview.bg} 55%, ${theme.preview.accent} 100%)`,
+                  background: `linear-gradient(135deg, ${theme.preview.bg} 40%, ${theme.preview.accent} 100%)`,
                 }}
                 aria-hidden
               />
-              <span className="text-xl" aria-hidden>
-                {theme.icon}
-              </span>
               <span
-                className={`pref-choice-label text-sm font-bold ${active ? PREF_CHOICE_ACTIVE_TEXT : 'text-brown'}`}
-              >
-                {theme.characterName}
-              </span>
-              <span
-                className={`pref-choice-label text-[10px] ${active ? 'opacity-75' : 'text-brown-muted'}`}
+                className={`pref-choice-label w-full text-center text-xs font-semibold leading-tight ${
+                  active ? PREF_CHOICE_ACTIVE_TEXT : 'text-brown'
+                }`}
               >
                 {theme.legacyName}
               </span>
-              {active && (
-                <span className="pref-choice-label mt-0.5 text-[10px] font-semibold uppercase tracking-wide opacity-80">
-                  Active
-                </span>
-              )}
               {locked && (
-                <span className="absolute right-2 top-2 flex h-5 w-5 items-center justify-center rounded-full bg-brown/10 text-brown-muted">
+                <span className="absolute right-1.5 top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brown/10 text-brown-muted">
                   <Lock size={10} aria-hidden />
                   <span className="sr-only">Locked</span>
                 </span>
@@ -88,16 +77,21 @@ export default function ThemeGrid({ locked = APP_THEMES_LOCKED }: ThemeGridProps
         type="button"
         disabled={locked}
         aria-disabled={locked}
+        aria-pressed={selected === 'auto'}
         onClick={() => select('auto')}
-        className={`relative mt-2 flex w-full items-center justify-center gap-2 px-3 py-3 ${prefChoiceClasses(selected === 'auto')} ${
+        className={`relative mt-2 flex w-full items-center justify-center gap-2 px-3 py-2.5 ${prefChoiceClasses(selected === 'auto')} ${
           locked ? 'cursor-not-allowed opacity-90' : ''
         } ${locked ? 'hover:border-brown/25' : ''}`}
       >
-        <Clock size={16} className={selected === 'auto' ? 'pref-choice-label opacity-90' : 'text-brown-muted'} />
+        <Clock
+          size={15}
+          className={selected === 'auto' ? 'pref-choice-label shrink-0 opacity-90' : 'shrink-0 text-brown-muted'}
+          aria-hidden
+        />
         <span
-          className={`pref-choice-label text-sm font-bold ${selected === 'auto' ? PREF_CHOICE_ACTIVE_TEXT : 'text-brown'}`}
+          className={`pref-choice-label text-xs font-semibold ${selected === 'auto' ? PREF_CHOICE_ACTIVE_TEXT : 'text-brown'}`}
         >
-          Auto
+          Auto — match time of day
         </span>
         {locked && (
           <span className="absolute right-3 flex h-5 w-5 items-center justify-center rounded-full bg-brown/10 text-brown-muted">

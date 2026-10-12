@@ -24,7 +24,7 @@ type GradientButtonProps = ButtonAsButton | ButtonAsLink
 
 const variantClasses: Record<ButtonVariant, string> = {
   default:
-    'bg-gradient-tudu text-white shadow-md hover:brightness-110 active:scale-[0.98] hover:shadow-[var(--shadow-glow-warm)]',
+    'bg-gradient-tudu text-[var(--gradient-cta-fg)] hover:brightness-110 active:scale-[0.98]',
   dark: 'bg-midnight-surface text-white border border-white/[0.12] shadow-md hover:brightness-110',
   outline:
     'border-2 border-white/30 bg-transparent text-white shadow-none hover:bg-white/10 active:scale-[0.98]',

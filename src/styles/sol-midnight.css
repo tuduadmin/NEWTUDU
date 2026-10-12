@@ -1,0 +1,633 @@
+/**
+ * NOVA consumer theme (persisted id: midnight).
+ * Winter night — moonlit snow, star frost, silver glass (distinct from SOL sunset & Axis aurora).
+ */
+
+html[data-app-theme='midnight'] {
+  --color-brown: rgba(226, 232, 240, 0.94);
+  --color-brown-muted: rgba(148, 163, 184, 0.78);
+  --color-page-bg: #06080f;
+  --color-cream: #06080f;
+  --color-cream-dark: #0c1220;
+  --color-midnight: #06080f;
+  --color-midnight-elevated: #0f1628;
+  --color-midnight-surface: #151e32;
+  --color-app-dark: #06080f;
+  --color-app-dark-elevated: #0f1628;
+
+  --nova-night: #06080f;
+  --nova-elevated: #0f1628;
+  --nova-surface: #151e32;
+  --nova-raised: #1c2844;
+  --nova-moon: #e2e8f0;
+  --nova-moon-glow: #94a3b8;
+  --nova-frost: #bae6fd;
+  --nova-ice: #7dd3fc;
+  --nova-star: #f8fafc;
+  --nova-violet: #a5b4fc;
+  --nova-border: rgba(186, 230, 253, 0.12);
+  --nova-border-subtle: rgba(148, 163, 184, 0.1);
+  --nova-field-bg: #0c1424;
+  --nova-text: rgba(226, 232, 240, 0.94);
+  --nova-text-muted: rgba(148, 163, 184, 0.82);
+  --nova-placeholder: rgba(148, 163, 184, 0.45);
+  --nova-focus-ring: rgba(186, 230, 253, 0.28);
+  --nova-focus-border: rgba(186, 230, 253, 0.5);
+  --nova-card-shadow:
+    0 0 0 1px rgba(186, 230, 253, 0.06), 0 8px 32px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(248, 250, 252, 0.06);
+
+  --nova-ambient-bg:
+    radial-gradient(ellipse 55% 35% at 78% 8%, rgba(226, 232, 240, 0.22), transparent 58%),
+    radial-gradient(circle at 12% 18%, rgba(248, 250, 252, 0.9) 0, rgba(248, 250, 252, 0.9) 1px, transparent 1px),
+    radial-gradient(circle at 28% 12%, rgba(248, 250, 252, 0.65) 0, rgba(248, 250, 252, 0.65) 1px, transparent 1px),
+    radial-gradient(circle at 44% 22%, rgba(248, 250, 252, 0.5) 0, rgba(248, 250, 252, 0.5) 1px, transparent 1px),
+    radial-gradient(circle at 62% 14%, rgba(248, 250, 252, 0.75) 0, rgba(248, 250, 252, 0.75) 1px, transparent 1px),
+    radial-gradient(circle at 88% 28%, rgba(248, 250, 252, 0.55) 0, rgba(248, 250, 252, 0.55) 1px, transparent 1px),
+    radial-gradient(circle at 8% 42%, rgba(248, 250, 252, 0.4) 0, rgba(248, 250, 252, 0.4) 1px, transparent 1px),
+    radial-gradient(ellipse 120% 45% at 50% 100%, rgba(203, 213, 225, 0.08), transparent 55%),
+    linear-gradient(180deg, #06080f 0%, #0a1020 38%, #0c1220 72%, #111827 100%);
+
+  --color-glass-bg: rgba(15, 22, 40, 0.82);
+  --color-glass-border: rgba(186, 230, 253, 0.12);
+  --shadow-glow-warm: 0 0 28px rgba(186, 230, 253, 0.28);
+  --shadow-glow-magenta: 0 0 32px rgba(165, 180, 252, 0.28);
+
+  color-scheme: dark;
+}
+
+html[data-app-theme='midnight'] body {
+  background-color: var(--nova-night);
+  background-image: var(--nova-ambient-bg);
+  background-attachment: fixed;
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] :is(
+    .bg-midnight,
+    .bg-midnight-elevated,
+    .bg-midnight-surface,
+    .app-page-shell,
+    .app-page-shell-flex
+  ):not([class*='bg-midnight/']) {
+  background-color: var(--nova-night);
+  background-image: var(--nova-ambient-bg);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .bg-midnight-elevated:not([class*='/']) {
+  background-color: var(--nova-elevated);
+  background-image:
+    radial-gradient(ellipse 70% 45% at 85% 0%, rgba(226, 232, 240, 0.1), transparent 55%),
+    linear-gradient(180deg, var(--nova-elevated), var(--nova-surface));
+}
+
+html[data-app-theme='midnight'] .bg-midnight-surface:not([class*='/']) {
+  background-color: var(--nova-surface);
+  background-image: linear-gradient(165deg, var(--nova-surface), var(--nova-raised));
+}
+
+html[data-app-theme='midnight'] :is(.app-page-shell, .app-page-shell-flex) {
+  background-color: var(--color-page-bg);
+  background-image: var(--nova-ambient-bg);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .glass-surface {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .sol-bottom-nav {
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .bg-app-elevated {
+  background-color: var(--nova-elevated);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .bg-app-surface {
+  background-color: var(--nova-surface);
+}
+
+html[data-app-theme='midnight'] .border-app-subtle {
+  border-color: var(--nova-border-subtle);
+}
+
+html[data-app-theme='midnight'] .divide-app-subtle > :not([hidden]) ~ :not([hidden]) {
+  border-color: var(--nova-border-subtle);
+}
+
+html[data-app-theme='midnight'] .border-app-subtle.bg-app-elevated {
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .text-gradient {
+  background: linear-gradient(135deg, var(--nova-moon), var(--nova-frost), var(--nova-violet));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+html[data-app-theme='midnight'] .app-field {
+  background-color: var(--nova-field-bg);
+  border-color: var(--nova-border-subtle);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .app-field::placeholder {
+  color: var(--nova-placeholder);
+}
+
+html[data-app-theme='midnight'] .app-field:focus {
+  border-color: var(--nova-focus-border);
+  box-shadow: 0 0 0 3px var(--nova-focus-ring);
+}
+
+html[data-app-theme='midnight'] :is(.text-magenta, .text-sunset-pink) {
+  color: var(--nova-frost) !important;
+}
+
+html[data-app-theme='midnight'] :is(.text-orange, .text-orange-500, .text-sunset-orange) {
+  color: var(--nova-violet) !important;
+}
+
+html[data-app-theme='midnight'] :is(.text-success, .text-success-deep) {
+  color: var(--nova-ice) !important;
+}
+
+html[data-app-theme='midnight'] .mode-hub-panel {
+  border-color: var(--nova-border);
+  background-color: rgb(15 22 40 / 0.92);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .mode-hub-tab-rail {
+  background: linear-gradient(
+    to right,
+    rgb(186 230 253 / 0.1),
+    transparent,
+    rgb(165 180 252 / 0.12)
+  );
+}
+
+html[data-app-theme='midnight'] .bucket-list-hub-tab-explore-active {
+  border-color: rgb(186 230 253 / 0.45);
+  background: rgb(125 211 252 / 0.14);
+  color: var(--nova-frost);
+  box-shadow: 0 0 18px rgb(186 230 253 / 0.22);
+}
+
+html[data-app-theme='midnight'] .bucket-list-hub-tab-mine-active {
+  border-color: rgb(165 180 252 / 0.45);
+  background: rgb(129 140 248 / 0.16);
+  color: var(--nova-violet);
+  box-shadow: 0 0 18px rgb(165 180 252 / 0.22);
+}
+
+html[data-app-theme='midnight'] .mode-hub-segment-active {
+  background-color: rgb(186 230 253 / 0.12);
+  color: var(--nova-ice);
+}
+
+html[data-app-theme='midnight'] .mode-hub-quick-link {
+  background-color: rgb(21 30 50 / 0.92);
+  color: var(--nova-text);
+  border-color: var(--nova-border-subtle);
+}
+
+html[data-app-theme='midnight'] .app-notice-pending {
+  background-color: rgb(186 230 253 / 0.1);
+  border-color: rgb(186 230 253 / 0.28);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .app-notice-success {
+  background-color: rgb(125 211 252 / 0.12);
+  border-color: rgb(125 211 252 / 0.3);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] :is(.bg-midnight\/90, .bg-midnight\/95, .bg-midnight-surface\/90, .bg-midnight-elevated\/95) {
+  background-color: color-mix(in srgb, var(--nova-elevated) 92%, transparent) !important;
+}
+
+html[data-app-theme='midnight'] :is(.border-magenta\/30, .border-magenta\/40, .border-magenta\/50, .hover\:border-magenta\/30, .hover\:border-magenta\/40) {
+  border-color: color-mix(in srgb, var(--nova-frost) 40%, transparent) !important;
+}
+
+html[data-app-theme='midnight'] :is(.focus\:border-magenta\/50:focus, .focus\:ring-magenta\/30:focus) {
+  border-color: color-mix(in srgb, var(--nova-ice) 55%, transparent) !important;
+  --tw-ring-color: rgb(186 230 253 / 0.28) !important;
+}
+
+html[data-app-theme='midnight'] :is(.ring-magenta, .ring-magenta\/40) {
+  --tw-ring-color: rgb(165 180 252 / 0.35) !important;
+}
+
+html[data-app-theme='midnight'] .my-tickets-wallet {
+  --ticket-wallet-bg: var(--nova-surface);
+  --ticket-notch-fill: var(--ticket-wallet-bg);
+  background:
+    radial-gradient(ellipse 90% 60% at 80% -10%, rgba(226, 232, 240, 0.12), transparent 55%),
+    radial-gradient(ellipse 70% 50% at 10% 0%, rgba(165, 180, 252, 0.14), transparent 50%),
+    linear-gradient(165deg, var(--nova-elevated) 0%, var(--nova-surface) 48%, var(--nova-elevated) 100%);
+  border-color: rgba(186, 230, 253, 0.24);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .my-tickets-wallet__title-my {
+  color: var(--nova-frost);
+}
+
+html[data-app-theme='midnight'] .my-tickets-wallet__title-tickets,
+html[data-app-theme='midnight'] .my-tickets-wallet__count {
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .my-tickets-wallet__count {
+  background-color: var(--nova-surface);
+  border-color: rgba(186, 230, 253, 0.28);
+  color: var(--nova-ice);
+}
+
+html[data-app-theme='midnight'] .my-tickets-wallet__empty {
+  border-color: rgba(186, 230, 253, 0.2);
+  background: rgb(255 255 255 / 0.04);
+}
+
+html[data-app-theme='midnight'] .my-tickets-wallet__perforation {
+  background-image: radial-gradient(
+    circle at 6px 50%,
+    transparent 2.5px,
+    rgba(186, 230, 253, 0.14) 2.5px
+  );
+}
+
+html[data-app-theme='midnight'] :is(.animate-slide-up-panel, .shadow-float).bg-cream {
+  background-color: var(--nova-surface);
+  border: 1px solid var(--nova-border);
+  box-shadow: var(--shadow-float), var(--shadow-inset-glass);
+}
+
+@layer components {
+  html[data-app-theme='midnight'] .app-surface-card {
+    background-color: var(--nova-surface);
+    border-color: var(--nova-border-subtle);
+    box-shadow: var(--nova-card-shadow);
+  }
+
+  html[data-app-theme='midnight'] .app-field {
+    background-color: var(--nova-field-bg);
+    border-color: var(--nova-border-subtle);
+    color: var(--nova-text);
+  }
+
+  html[data-app-theme='midnight'] .app-field::placeholder {
+    color: var(--nova-placeholder);
+  }
+
+  html[data-app-theme='midnight'] .app-field:focus {
+    border-color: var(--nova-focus-border);
+    box-shadow: 0 0 0 2px var(--nova-focus-ring);
+  }
+
+  html[data-app-theme='midnight'] select.app-field {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23bae6fd' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.75rem center;
+    padding-right: 2rem;
+  }
+
+  html[data-app-theme='midnight'] select.app-field option,
+  html[data-app-theme='midnight'] select.app-field optgroup {
+    background-color: var(--nova-surface);
+    color: var(--nova-text);
+  }
+}
+
+html[data-app-theme='midnight'] :is(section, article, li, details).bg-white:not([class*='bg-white/']) {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] :is(.shadow-sm, .shadow-float, .shadow-xl, .shadow-2xl).bg-white:not(
+    [class*='bg-white/']
+  ) {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight']
+  :is(.app-page-shell, .app-page-shell-flex, .auth-flow-page)
+  .bg-white:not([class*='bg-white/']) {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .auth-flow-page .auth-flow-gradient {
+  background: linear-gradient(
+    135deg,
+    rgba(186, 230, 253, 0.14),
+    rgba(99, 102, 241, 0.16),
+    rgba(6, 8, 15, 0.94)
+  );
+}
+
+html[data-app-theme='midnight'] .auth-flow-page .auth-flow-blur {
+  background: rgba(6, 8, 15, 0.58);
+}
+
+html[data-app-theme='midnight'] .auth-oauth-button {
+  background-color: var(--nova-raised);
+  border-color: var(--nova-border);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .auth-oauth-button:hover {
+  background-color: rgb(186 230 253 / 0.08);
+}
+
+html[data-app-theme='midnight'] .install-app-sheet {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+  border-top: 1px solid var(--nova-border);
+}
+
+html[data-app-theme='midnight'] .install-app-sheet .install-step-row {
+  background-color: var(--nova-raised);
+  border-color: var(--nova-border-subtle);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .event-photo-slot {
+  border-color: var(--nova-border-subtle);
+  background-color: var(--nova-field-bg);
+}
+
+html[data-app-theme='midnight'] .rounded-tudu-lg.bg-white,
+html[data-app-theme='midnight'] .rounded-tudu.bg-white {
+  background-color: var(--nova-surface);
+  border-color: var(--nova-border-subtle);
+}
+
+html[data-app-theme='midnight'] .ring-brown\/5 {
+  --tw-ring-color: rgba(186, 230, 253, 0.1);
+}
+
+html[data-app-theme='midnight'] .ticket-perforation {
+  background-image: radial-gradient(
+    circle at 6px 50%,
+    transparent 3px,
+    var(--ticket-perforation-dot, var(--nova-elevated)) 3px
+  );
+}
+
+html[data-app-theme='midnight']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not([type='range']):not([type='color']):not(
+        [type='hidden']
+      ):not([type='file']):not([type='submit']):not([type='button']):not([type='image']):not(
+        .admin-input
+      ),
+    input[type='search'],
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  ) {
+  background-color: var(--nova-field-bg) !important;
+  color: var(--nova-text) !important;
+  border-color: var(--nova-border-subtle) !important;
+}
+
+html[data-app-theme='midnight']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not(.admin-input),
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  )::placeholder {
+  color: var(--nova-placeholder) !important;
+}
+
+html[data-app-theme='midnight']
+  :is(
+    input:not([type='checkbox']):not([type='radio']):not(.admin-input),
+    select:not(.admin-select),
+    textarea:not(.admin-input)
+  ):focus {
+  border-color: var(--nova-focus-border) !important;
+  box-shadow: 0 0 0 2px var(--nova-focus-ring) !important;
+  outline: none;
+}
+
+html[data-app-theme='midnight'] .app-field[class*='bg-cream'] {
+  background-color: var(--nova-raised) !important;
+}
+
+html[data-app-theme='midnight'] select option,
+html[data-app-theme='midnight'] select optgroup {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill,
+html[data-app-theme='midnight']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill:hover,
+html[data-app-theme='midnight']
+  :is(
+    input:not(.admin-input),
+    textarea:not(.admin-input),
+    select:not(.admin-select)
+  ):-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--nova-field-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--nova-field-bg) inset !important;
+  -webkit-text-fill-color: var(--nova-text) !important;
+  caret-color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .admin-shell :is(.admin-input, .admin-select, textarea.admin-input) {
+  background-color: var(--admin-surface-raised) !important;
+  color: var(--admin-text) !important;
+  border-color: var(--admin-border) !important;
+  box-shadow: none !important;
+}
+
+html[data-app-theme='midnight'] .bg-cream\/30 {
+  background-color: rgb(21 30 50 / 0.55);
+}
+
+html[data-app-theme='midnight'] .bg-cream\/40 {
+  background-color: var(--nova-raised);
+}
+
+html[data-app-theme='midnight'] .hover\:bg-cream\/60:hover,
+html[data-app-theme='midnight'] .hover\:bg-cream\/80:hover {
+  background-color: rgb(186 230 253 / 0.06);
+}
+
+html[data-app-theme='midnight'] .bg-white\/80 {
+  background-color: var(--nova-raised);
+}
+
+html[data-app-theme='midnight'] .bg-white\/95 {
+  background-color: rgb(15 22 40 / 0.92);
+}
+
+html[data-app-theme='midnight'] button.bg-white:not([class*='bg-white/']),
+html[data-app-theme='midnight'] label.bg-white:not([class*='bg-white/']) {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .app-toast.bg-brown {
+  background-color: var(--nova-surface);
+  color: var(--nova-text);
+  border: 1px solid var(--nova-border);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] :is(.bg-amber-50, .bg-emerald-50, [class*='bg-emerald-50/']) {
+  background-color: var(--nova-raised) !important;
+}
+
+html[data-app-theme='midnight'] :is(.border-amber-200, .border-emerald-200) {
+  border-color: var(--nova-border-subtle) !important;
+}
+
+html[data-app-theme='midnight'] :is(.text-amber-800, .text-amber-900, .text-amber-950, .text-emerald-800) {
+  color: var(--nova-text) !important;
+}
+
+html[data-app-theme='midnight'] .discover-detail-panel {
+  background-color: var(--nova-raised);
+  background-image:
+    radial-gradient(ellipse 90% 50% at 75% -8%, rgba(226, 232, 240, 0.1), transparent 58%),
+    radial-gradient(ellipse 70% 45% at 0% 100%, rgba(99, 102, 241, 0.12), transparent 52%);
+  box-shadow: var(--shadow-float), var(--shadow-inset-glass);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .discover-detail-hero-frame {
+  background-color: var(--nova-surface);
+  border-color: var(--nova-border-subtle);
+}
+
+html[data-app-theme='midnight'] .discover-detail-footer {
+  background: var(--color-glass-bg);
+  border-color: var(--color-glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+html[data-app-theme='midnight'] .host-event-manager .pref-choice:not(.pref-choice--active) {
+  border-color: var(--nova-border-subtle);
+  background-color: var(--nova-raised);
+}
+
+html[data-app-theme='midnight'] .host-event-manager .pref-choice:not(.pref-choice--active):hover {
+  border-color: rgba(186, 230, 253, 0.28);
+  background-color: rgba(186, 230, 253, 0.06);
+}
+
+html[data-app-theme='midnight'] .host-analytics-panel,
+html[data-app-theme='midnight'] .host-event-manager-card {
+  background-color: var(--nova-surface);
+  border-color: var(--nova-border-subtle);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .host-events-zone {
+  background-color: rgb(255 255 255 / 0.04);
+  border-color: rgb(186 230 253 / 0.14);
+}
+
+html[data-app-theme='midnight'] .host-edit-profile .app-surface-card,
+html[data-app-theme='midnight'] .host-profile-preview .app-surface-card,
+html[data-app-theme='midnight'] .my-settings-shell .app-surface-card,
+html[data-app-theme='midnight'] .my-settings-shell .host-edit-profile-panel {
+  background-color: var(--nova-surface);
+  border-color: var(--nova-border-subtle);
+  box-shadow: var(--nova-card-shadow);
+}
+
+html[data-app-theme='midnight'] .host-profile-preview {
+  background-color: var(--color-page-bg);
+  background-image: var(--nova-ambient-bg);
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] .host-edit-profile-panel {
+  background-color: var(--nova-surface);
+  background-image:
+    radial-gradient(ellipse 90% 50% at 80% -8%, rgba(226, 232, 240, 0.08), transparent 58%),
+    radial-gradient(ellipse 70% 45% at 0% 100%, rgba(99, 102, 241, 0.1), transparent 52%);
+}
+
+html[data-app-theme='midnight'] .ticket-surface {
+  --ticket-bg: var(--nova-elevated);
+  --ticket-bg-muted: var(--nova-surface);
+  --ticket-border: rgba(186, 230, 253, 0.14);
+  --ticket-text: var(--nova-text);
+  --ticket-text-muted: var(--nova-text-muted);
+}
+
+html[data-app-theme='midnight'] :is(.text-orange, .text-orange-500) {
+  color: var(--nova-ice) !important;
+}
+
+html[data-app-theme='midnight'] :is(.border-orange, [class*='border-orange/']) {
+  border-color: color-mix(in srgb, var(--nova-ice) 55%, transparent) !important;
+}
+
+html[data-app-theme='midnight'] [class*='bg-orange/'] {
+  background-color: color-mix(in srgb, var(--nova-ice) 12%, transparent) !important;
+}
+
+html[data-app-theme='midnight'] .text-purple {
+  color: var(--nova-violet) !important;
+}
+
+html[data-app-theme='midnight'] .border-purple {
+  border-color: color-mix(in srgb, var(--nova-violet) 45%, transparent) !important;
+}
+
+html[data-app-theme='midnight'] .focus\:ring-purple\/20:focus {
+  --tw-ring-color: rgb(186 230 253 / 0.25) !important;
+}
+
+html[data-app-theme='midnight'] .focus\:border-purple:focus {
+  border-color: var(--nova-ice) !important;
+}
+
+html[data-app-theme='midnight'] .accent-orange {
+  accent-color: var(--nova-ice);
+}
+
+html[data-app-theme='midnight'] .text-brown-muted {
+  color: var(--nova-text-muted);
+}
+
+html[data-app-theme='midnight'] .text-brown {
+  color: var(--nova-text);
+}
+
+html[data-app-theme='midnight'] :is(.border-app-subtle.bg-app-elevated, .app-surface-card):is(
+    button,
+    a,
+    [role='button']
+  ):hover {
+  border-color: rgba(186, 230, 253, 0.28);
+}

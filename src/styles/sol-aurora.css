@@ -166,21 +166,6 @@ html[data-app-theme='aurora'] .text-gradient {
   color: transparent;
 }
 
-html[data-app-theme='aurora'] .bg-gradient-tudu {
-  background: var(--gradient-axis);
-  box-shadow:
-    0 4px 20px rgba(52, 211, 153, 0.22),
-    0 4px 24px rgba(244, 114, 182, 0.12),
-    var(--shadow-inset-glass);
-}
-
-html[data-app-theme='aurora'] .bg-gradient-tudu:hover {
-  box-shadow:
-    0 0 28px rgba(52, 211, 153, 0.38),
-    0 0 20px rgba(244, 114, 182, 0.22),
-    var(--shadow-inset-glass);
-}
-
 html[data-app-theme='aurora'] .my-tickets-wallet {
   --ticket-wallet-bg: var(--axis-night-surface);
   --ticket-notch-fill: var(--ticket-wallet-bg);

@@ -70,19 +70,6 @@ html[data-app-theme='dusk'] :is(.border-app-subtle.bg-app-elevated, .app-surface
   border-color: rgba(249, 115, 22, 0.22);
 }
 
-/* Primary CTA — subtle warm glow at rest (same on every screen) */
-html[data-app-theme='dusk'] .bg-gradient-tudu {
-  box-shadow:
-    0 4px 18px rgba(249, 115, 22, 0.28),
-    var(--shadow-inset-glass);
-}
-
-html[data-app-theme='dusk'] .bg-gradient-tudu:hover {
-  box-shadow:
-    var(--shadow-glow-warm),
-    var(--shadow-inset-glass);
-}
-
 /* Ticket wallet — SOL dusk treatment (not light cream) */
 html[data-app-theme='dusk'] .my-tickets-wallet {
   --ticket-wallet-bg: #1a2236;

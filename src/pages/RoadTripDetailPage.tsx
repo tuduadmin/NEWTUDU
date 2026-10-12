@@ -9,7 +9,7 @@ import GradientButton from '../components/GradientButton'
 import Toast from '../components/Toast'
 import RoadTripProgressBar from '../components/road-trip/RoadTripProgressBar'
 import RoadTripEventsCarousel from '../components/road-trip/RoadTripEventsCarousel'
-import RoadTripMapHero from '../components/road-trip/RoadTripMapHero'
+import RoadTripMap from '../components/road-trip/RoadTripMap'
 import {
   getTripCoverImage,
   getTripLocation,
@@ -18,12 +18,11 @@ import {
 import { BackIconButton } from '../components/NavActionButtons'
 import type { DiscoverEvent } from '../data/discoverEvents'
 import { getCurrentUser } from '../lib/auth'
-import { projectTripRouteToMapPins, getRoadTripMapViewFromPoints } from '../lib/roadTripGeo'
+import { buildRoadTripMapStops } from '../lib/roadTripMapModel'
 import {
   formatPlannedCitiesDestination,
   getTripGoogleMapsDirectionsUrl,
   getTripPlannedCities,
-  getTripRoutePoints,
 } from '../lib/roadTripRoute'
 import {
   completeRoadTrip,
@@ -56,15 +55,7 @@ export default function RoadTripDetailPage() {
 
   const stops = trip ? getRoadTripStops(trip) : []
   const plannedCities = trip ? getTripPlannedCities(trip) : []
-  const routePoints = trip ? getTripRoutePoints(trip, stops) : []
-  const mapPins = useMemo(
-    () => projectTripRouteToMapPins(plannedCities, stops),
-    [plannedCities, stops],
-  )
-  const mapView = useMemo(
-    () => getRoadTripMapViewFromPoints(routePoints),
-    [routePoints],
-  )
+  const mapStops = useMemo(() => (trip ? buildRoadTripMapStops(trip, stops) : []), [trip, stops])
   const directionsUrl = useMemo(
     () => (trip ? getTripGoogleMapsDirectionsUrl(trip, stops) : null),
     [trip, stops],
@@ -260,13 +251,10 @@ export default function RoadTripDetailPage() {
           </section>
         )}
 
-        <RoadTripMapHero
-          tripName={trip.name}
-          destination={trip.destination}
-          pins={mapPins}
-          stopCount={mapPins.length || stops.length}
-          mapView={mapView}
+        <RoadTripMap
+          stops={mapStops}
           directionsUrl={directionsUrl}
+          onEventSelect={(event) => setDetailEvent(event)}
         />
 
         {plannedCities.length > 0 && (

@@ -3,8 +3,13 @@
 @import './styles/admin.css';
 @import './styles/sol-dusk.css';
 @import './styles/sol-aurora.css';
+@import './styles/sol-midnight.css';
+@import './styles/sol-evergreen.css';
+@import './styles/sol-harvest.css';
 @import './styles/pref-choice-themes.css';
 @import './styles/detail-amenity-chips.css';
+@import './styles/mode-hub.css';
+@import './styles/landing-page.css';
 
 @theme {
   --color-cream: #faf6ef;
@@ -128,6 +133,35 @@
     border-color: rgb(52 211 153 / 0.3);
     box-shadow: var(--axis-card-shadow, var(--shadow-inset-glass));
   }
+
+  html[data-app-theme='midnight'] .bg-app-elevated {
+    background-color: var(--color-midnight-elevated);
+    box-shadow: var(--nova-card-shadow, var(--shadow-inset-glass));
+  }
+
+  html[data-app-theme='midnight'] .bg-app-surface {
+    background-color: var(--color-midnight-surface);
+  }
+
+  html[data-app-theme='midnight'] .border-app-subtle {
+    border-color: rgb(186 230 253 / 0.12);
+  }
+
+  html[data-app-theme='midnight'] .divide-app-subtle > :not([hidden]) ~ :not([hidden]) {
+    border-color: rgb(186 230 253 / 0.12);
+  }
+
+  html[data-app-theme='midnight'] .app-notice-pending {
+    background-color: rgb(186 230 253 / 0.1);
+    border-color: rgb(186 230 253 / 0.28);
+    color: rgba(226, 232, 240, 0.94);
+  }
+
+  html[data-app-theme='midnight'] .app-notice-success {
+    background-color: rgb(125 211 252 / 0.12);
+    border-color: rgb(125 211 252 / 0.3);
+    box-shadow: var(--nova-card-shadow, var(--shadow-inset-glass));
+  }
 }
 
 @layer base {
@@ -149,13 +183,15 @@
   }
 
   html[data-app-theme='midnight'] {
-    --color-cream: #eef0f6;
-    --color-cream-dark: #e2e6f0;
+    --color-cream: #06080f;
+    --color-cream-dark: #0c1220;
+    --color-page-bg: #06080f;
   }
 
   html[data-app-theme='evergreen'] {
-    --color-cream: #f0faf4;
-    --color-cream-dark: #e6f5ec;
+    --color-cream: #fdf4f8;
+    --color-cream-dark: #f5e8ef;
+    --color-page-bg: #fdf4f8;
   }
 
   html[data-app-theme='aurora'] {
@@ -165,8 +201,9 @@
   }
 
   html[data-app-theme='harvest'] {
-    --color-cream: #fff5eb;
-    --color-cream-dark: #f7ebe0;
+    --color-cream: #fffbeb;
+    --color-cream-dark: #fef3c7;
+    --color-page-bg: #fffbeb;
   }
 
   body {
@@ -187,7 +224,13 @@
   }
 
   .bg-gradient-tudu {
-    background: linear-gradient(135deg, #f68e5d 0%, #d94a7a 50%, #c02e8d 100%);
+    background: var(--gradient-cta);
+    color: var(--gradient-cta-fg);
+    box-shadow: var(--gradient-cta-shadow);
+  }
+
+  .bg-gradient-tudu:hover {
+    box-shadow: var(--gradient-cta-shadow-hover);
   }
 
   .road-trip-script-title {
