@@ -140,7 +140,7 @@ export default function EventPosterPreview({
         onLayoutChange={onLayoutChange}
       >
         <div className="rounded-[14px] bg-white p-1.5 shadow-md">
-          <QRCodeSVG value={shareUrl} size={64} level="M" />
+          <QRCodeSVG value={shareUrl} size={80} level="M" />
         </div>
       </DraggableBlock>
     </article>

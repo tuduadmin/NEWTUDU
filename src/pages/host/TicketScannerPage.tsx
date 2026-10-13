@@ -1,13 +1,17 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { CheckCircle2, MessageSquare, Package, Search, Ticket, X } from 'lucide-react'
+import QrCodeScanner, { resumeQrScanner } from '../../components/host/QrCodeScanner'
+import { useHostContext } from '../../hooks/useHostContext'
 import { getHostEventById } from '../../lib/account'
 import {
   findMerchOrders,
-  redeemMerchOrder,
+  redeemMerchFromScan,
   redeemMerchOrderById,
   type MerchOrder,
 } from '../../lib/eventMerch'
+import { parseMerchScanInput } from '../../lib/qrParse'
+import { verifyTicketScanForHost, type VerifyTicketScanResult } from '../../lib/ticketCheckIn'
 
 type ScanMode = 'ticket' | 'merch'
 
@@ -16,26 +20,20 @@ type MerchScanResult =
   | { kind: 'lookup'; orders: MerchOrder[] }
   | { kind: 'error'; message: string }
 
+type TicketScanUi =
+  | { kind: 'success'; holderName: string; tierName: string; eventTitle: string }
+  | { kind: 'warning'; message: string; holderName?: string; tierName?: string }
+  | { kind: 'error'; message: string }
+
 function isMerchPickupCode(code: string): boolean {
   return /^MP-/i.test(code) || /^MORD_/i.test(code)
 }
 
-function parseScanInput(raw: string): string {
-  const trimmed = raw.trim()
-  if (!trimmed) return ''
-  try {
-    const parsed = JSON.parse(trimmed) as { type?: string; pickupNumber?: string; orderId?: string }
-    if (parsed.type === 'merch_pickup') {
-      return parsed.pickupNumber ?? parsed.orderId ?? trimmed
-    }
-  } catch {
-    // plain pickup number or ticket ref
-  }
-  return trimmed
-}
-
 export default function TicketScannerPage() {
   const navigate = useNavigate()
+  const { user, context } = useHostContext()
+  const hostEmail = user?.email ?? ''
+
   const [searchParams, setSearchParams] = useSearchParams()
   const manual = searchParams.get('manual') === '1'
   const modeParam = searchParams.get('mode')
@@ -43,33 +41,78 @@ export default function TicketScannerPage() {
 
   const [manualCode, setManualCode] = useState('')
   const [merchResult, setMerchResult] = useState<MerchScanResult | null>(null)
+  const [ticketResult, setTicketResult] = useState<TicketScanUi | null>(null)
+  const [cameraPaused, setCameraPaused] = useState(false)
+  const processingRef = useRef(false)
 
   function openManual() {
     setSearchParams({ manual: '1', mode: scanMode })
+    setTicketResult(null)
+    setMerchResult(null)
+    setCameraPaused(false)
   }
 
   function closeManual() {
     setSearchParams(scanMode === 'merch' ? { mode: 'merch' } : {})
     setManualCode('')
     setMerchResult(null)
+    setTicketResult(null)
+    setCameraPaused(false)
+    processingRef.current = false
+    resumeQrScanner()
   }
 
   function setScanMode(next: ScanMode) {
     setMerchResult(null)
+    setTicketResult(null)
     setManualCode('')
+    setCameraPaused(false)
+    processingRef.current = false
     if (manual) {
       setSearchParams({ manual: '1', mode: next })
     } else {
       setSearchParams(next === 'merch' ? { mode: 'merch' } : {})
     }
+    resumeQrScanner()
   }
 
   function handleClose() {
     navigate('/host')
   }
 
+  function applyTicketVerifyResult(result: VerifyTicketScanResult) {
+    if (result.outcome === 'valid') {
+      setTicketResult({
+        kind: 'success',
+        holderName: result.holderName,
+        tierName: result.tierName,
+        eventTitle: result.eventTitle,
+      })
+      return
+    }
+    if (result.outcome === 'already') {
+      setTicketResult({
+        kind: 'warning',
+        message: `Already scanned · ${new Date(result.scannedAt).toLocaleString()}`,
+        holderName: result.holderName,
+        tierName: result.tierName,
+      })
+      return
+    }
+    if (result.outcome === 'event_link') {
+      setTicketResult({ kind: 'error', message: result.message })
+      return
+    }
+    setTicketResult({ kind: 'error', message: result.message })
+  }
+
+  function handleTicketVerify(code: string) {
+    const result = verifyTicketScanForHost(hostEmail, code, context)
+    applyTicketVerifyResult(result)
+  }
+
   function handleMerchVerify() {
-    const code = parseScanInput(manualCode)
+    const code = parseMerchScanInput(manualCode)
     if (!code) {
       setMerchResult({ kind: 'error', message: 'Enter pickup number, email, or name.' })
       return
@@ -88,7 +131,7 @@ export default function TicketScannerPage() {
       return
     }
 
-    const result = redeemMerchOrder(code)
+    const result = redeemMerchFromScan(code)
     if (!result.ok) {
       const matches = findMerchOrders(code)
       if (matches.length > 0) {
@@ -110,8 +153,52 @@ export default function TicketScannerPage() {
     setMerchResult({ kind: 'success', order: result.order })
   }
 
+  const processScan = useCallback(
+    (decodedText: string) => {
+      if (processingRef.current) return
+      processingRef.current = true
+      setCameraPaused(true)
+
+      if (scanMode === 'merch') {
+        const code = parseMerchScanInput(decodedText)
+        const result = redeemMerchFromScan(decodedText)
+        if (result.ok) {
+          setMerchResult({ kind: 'success', order: result.order })
+        } else {
+          const matches = findMerchOrders(code)
+          if (matches.length === 1 && matches[0].status === 'pending_pickup') {
+            const redeemed = redeemMerchOrderById(matches[0].id)
+            if (redeemed.ok) {
+              setMerchResult({ kind: 'success', order: redeemed.order })
+            } else {
+              setMerchResult({ kind: 'error', message: redeemed.error })
+            }
+          } else if (matches.length > 0) {
+            setMerchResult({ kind: 'lookup', orders: matches })
+          } else {
+            setMerchResult({ kind: 'error', message: result.error })
+          }
+        }
+        return
+      }
+
+      handleTicketVerify(decodedText)
+    },
+    [scanMode, hostEmail, context],
+  )
+
+  function scanNext() {
+    setTicketResult(null)
+    setMerchResult(null)
+    setCameraPaused(false)
+    processingRef.current = false
+    resumeQrScanner()
+  }
+
   const successOrder = merchResult?.kind === 'success' ? merchResult.order : null
   const eventTitle = successOrder ? getHostEventById(successOrder.eventId)?.title : null
+  const showCameraOverlay =
+    !manual && (ticketResult != null || merchResult?.kind === 'success' || merchResult?.kind === 'error')
 
   return (
     <div className="fixed inset-0 z-[var(--z-modal)] flex flex-col bg-black/40">
@@ -157,55 +244,59 @@ export default function TicketScannerPage() {
           </button>
         </div>
 
-        <div className={`relative flex-1 ${manual ? 'bg-black' : 'bg-[#1a1a1a]'}`}>
+        <div className={`relative min-h-[320px] flex-1 ${manual ? 'bg-black' : ''}`}>
           {!manual ? (
             <>
-              <div className="absolute inset-0 overflow-hidden">
-                <div
-                  className="absolute inset-0 bg-cover bg-center opacity-80"
-                  style={{
-                    backgroundImage:
-                      'url(https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=800&q=80&auto=format&fit=crop)',
-                  }}
-                />
-                <div className="absolute inset-0 bg-black/30" />
-              </div>
+              <QrCodeScanner
+                active
+                paused={cameraPaused}
+                onDecode={processScan}
+                className="absolute inset-0"
+              />
 
-              <p className="absolute left-0 right-0 top-6 text-center text-xs font-medium text-white/60">
-                TUDU Entertainment Inc
-              </p>
-
-              <div className="absolute inset-0 flex items-center justify-center p-8">
-                <div className="relative h-64 w-full max-w-xs">
-                  <span className="absolute left-0 top-0 h-8 w-8 border-l-[3px] border-t-[3px] border-white" />
-                  <span className="absolute right-0 top-0 h-8 w-8 border-r-[3px] border-t-[3px] border-white" />
-                  <span className="absolute bottom-0 left-0 h-8 w-8 border-b-[3px] border-l-[3px] border-white" />
-                  <span className="absolute bottom-0 right-0 h-8 w-8 border-b-[3px] border-r-[3px] border-white" />
-
-                  <div className="absolute left-2 right-2 top-1/2 h-0.5 -translate-y-1/2 bg-gradient-to-r from-orange via-purple to-orange opacity-90 shadow-[0_0_12px_rgba(249,115,22,0.6)]" />
-                </div>
-              </div>
-
-              <p className="absolute left-4 right-4 top-16 text-center text-xs text-white/70">
+              <p className="pointer-events-none absolute left-4 right-4 top-4 z-10 text-center text-xs text-white/70">
                 {scanMode === 'merch'
                   ? 'Scan attendee merch pickup QR — separate from entry tickets'
                   : 'Scan entry ticket QR at the door'}
               </p>
 
-              <div className="absolute bottom-6 left-4 right-4">
+              {showCameraOverlay && (
+                <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/55 p-6">
+                  {scanMode === 'ticket' && ticketResult && (
+                    <TicketResultCard result={ticketResult} onNext={scanNext} />
+                  )}
+                  {scanMode === 'merch' && merchResult?.kind === 'success' && successOrder && (
+                    <MerchSuccessCard order={successOrder} eventTitle={eventTitle} onNext={scanNext} />
+                  )}
+                  {scanMode === 'merch' && merchResult?.kind === 'error' && (
+                    <div className="w-full max-w-sm rounded-[14px] bg-[#2a2a2a] p-5 text-center">
+                      <p className="text-sm font-semibold text-rose-200">{merchResult.message}</p>
+                      <button
+                        type="button"
+                        onClick={scanNext}
+                        className="mt-4 w-full rounded-[14px] bg-white py-3 text-sm font-bold text-brown"
+                      >
+                        Scan next
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="absolute bottom-6 left-4 right-4 z-10">
                 <button
                   type="button"
                   onClick={openManual}
                   className="flex w-full items-center justify-center gap-2 rounded-[14px] border border-white/20 bg-white/15 py-4 font-display text-sm font-bold text-white backdrop-blur-md transition hover:bg-white/25"
                 >
                   <MessageSquare size={18} />
-                  Manual Entry
+                  Manual entry
                 </button>
               </div>
             </>
           ) : (
             <>
-              <p className="absolute left-0 right-0 top-6 text-center text-xs font-medium text-white/50">
+              <p className="absolute left-0 right-0 top-6 z-10 text-center text-xs font-medium text-white/50">
                 TUDU Entertainment Inc
               </p>
 
@@ -214,7 +305,7 @@ export default function TicketScannerPage() {
                   <p className="text-center text-xs text-white/50">
                     {scanMode === 'merch'
                       ? 'Enter pickup number (MP-…), email, name, or paste merch QR payload:'
-                      : 'Attendee has no QR code? Enter reference below:'}
+                      : 'Paste ticket QR JSON, ticket id (tkt_…), or ticket number:'}
                   </p>
                   <div className="mt-4 flex gap-2">
                     <input
@@ -223,28 +314,32 @@ export default function TicketScannerPage() {
                       onChange={(e) => {
                         setManualCode(e.target.value)
                         setMerchResult(null)
+                        setTicketResult(null)
                       }}
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && scanMode === 'merch') handleMerchVerify()
+                        if (e.key !== 'Enter') return
+                        if (scanMode === 'merch') handleMerchVerify()
+                        else handleTicketVerify(manualCode)
                       }}
-                      placeholder={scanMode === 'merch' ? 'e.g. MP-A1B2C3' : 'e.g. TDU-XXXX'}
+                      placeholder={scanMode === 'merch' ? 'e.g. MP-A1B2C3' : 'e.g. tkt_… or #A1B2C3D4'}
                       className="min-w-0 flex-1 rounded-[14px] border border-white/10 bg-[#1a1a1a] px-4 py-3 text-sm text-white outline-none placeholder:text-white/30 focus:border-orange/50"
                     />
                     <button
                       type="button"
-                      onClick={scanMode === 'merch' ? handleMerchVerify : undefined}
-                      disabled={scanMode === 'ticket'}
-                      className="flex shrink-0 items-center gap-1.5 rounded-[14px] bg-gradient-tudu px-4 py-3 font-display text-sm font-bold text-white disabled:opacity-50"
+                      onClick={() =>
+                        scanMode === 'merch' ? handleMerchVerify() : handleTicketVerify(manualCode)
+                      }
+                      className="flex shrink-0 items-center gap-1.5 rounded-[14px] bg-gradient-tudu px-4 py-3 font-display text-sm font-bold text-white"
                     >
                       <Search size={16} />
-                      {scanMode === 'merch' ? 'Look up' : 'Verify'}
+                      Verify
                     </button>
                   </div>
 
-                  {scanMode === 'ticket' && (
-                    <p className="mt-3 text-center text-[11px] text-white/40">
-                      Ticket verify coming soon — use camera scan for entry tickets.
-                    </p>
+                  {scanMode === 'ticket' && ticketResult && (
+                    <div className="mt-4">
+                      <TicketResultCard result={ticketResult} onNext={() => setTicketResult(null)} compact />
+                    </div>
                   )}
 
                   {merchResult?.kind === 'error' && (
@@ -266,55 +361,139 @@ export default function TicketScannerPage() {
                   )}
 
                   {successOrder && (
-                    <div className="mt-4 rounded-[12px] border border-emerald-500/30 bg-emerald-500/10 p-4">
-                      <div className="flex items-center justify-center gap-2 text-emerald-300">
-                        <CheckCircle2 size={18} aria-hidden />
-                        <p className="font-display text-sm font-bold">Ready for pickup</p>
-                      </div>
-                      <p className="mt-2 text-center font-mono text-lg font-bold tracking-widest text-white">
-                        {successOrder.pickupNumber}
-                      </p>
-                      <p className="mt-1 text-center text-sm font-semibold text-white/90">
-                        {successOrder.holderName}
-                      </p>
-                      {eventTitle && (
-                        <p className="mt-1 text-center text-xs text-white/60">{eventTitle}</p>
-                      )}
-                      <ul className="mt-3 space-y-1.5 border-t border-white/10 pt-3">
-                        {successOrder.lines.map((line) => (
-                          <li
-                            key={`${line.productId}-${line.size}`}
-                            className="flex justify-between gap-2 text-xs text-white/80"
-                          >
-                            <span>
-                              {line.productName} · {line.size}
-                            </span>
-                            <span className="font-semibold tabular-nums">×{line.quantity}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <p className="mt-3 text-center text-[11px] text-emerald-200/80">
-                        Hand items from the shelf and call out the pickup number.
-                      </p>
+                    <div className="mt-4">
+                      <MerchSuccessCard order={successOrder} eventTitle={eventTitle} compact />
                     </div>
                   )}
                 </div>
               </div>
 
-              <div className="absolute bottom-6 left-4 right-4">
+              <div className="absolute bottom-6 left-4 right-4 z-10">
                 <button
                   type="button"
                   onClick={closeManual}
                   className="flex w-full items-center justify-center gap-2 rounded-[14px] bg-white py-4 font-display text-sm font-bold text-brown transition hover:bg-cream"
                 >
                   <MessageSquare size={18} />
-                  Hide Manual Entry
+                  Back to camera
                 </button>
               </div>
             </>
           )}
         </div>
       </div>
+    </div>
+  )
+}
+
+function TicketResultCard({
+  result,
+  onNext,
+  compact = false,
+}: {
+  result: TicketScanUi
+  onNext: () => void
+  compact?: boolean
+}) {
+  if (result.kind === 'success') {
+    return (
+      <div
+        className={`w-full max-w-sm rounded-[14px] border border-emerald-500/35 bg-emerald-500/15 p-5 text-center ${compact ? 'p-4' : ''}`}
+      >
+        <div className="flex items-center justify-center gap-2 text-emerald-200">
+          <CheckCircle2 size={20} aria-hidden />
+          <p className="font-display text-sm font-bold">Admitted</p>
+        </div>
+        <p className="mt-3 text-lg font-bold text-white">{result.holderName}</p>
+        <p className="text-sm text-white/80">{result.tierName}</p>
+        <p className="mt-1 text-xs text-white/55">{result.eventTitle}</p>
+        {!compact && (
+          <button
+            type="button"
+            onClick={onNext}
+            className="mt-5 w-full rounded-[14px] bg-white py-3 font-display text-sm font-bold text-emerald-800"
+          >
+            Scan next
+          </button>
+        )}
+      </div>
+    )
+  }
+
+  const tone =
+    result.kind === 'warning'
+      ? 'border-amber-500/35 bg-amber-500/15 text-amber-100'
+      : 'border-rose-500/35 bg-rose-500/15 text-rose-100'
+
+  return (
+    <div className={`w-full max-w-sm rounded-[14px] border p-5 text-center ${tone} ${compact ? 'p-4' : ''}`}>
+      <p className="font-display text-sm font-bold">
+        {result.kind === 'warning' ? 'Already used' : 'Not valid'}
+      </p>
+      <p className="mt-2 text-sm">{result.message}</p>
+      {result.kind === 'warning' && result.holderName && (
+        <p className="mt-2 text-xs opacity-80">
+          {result.holderName}
+          {result.tierName ? ` · ${result.tierName}` : ''}
+        </p>
+      )}
+      {!compact && (
+        <button
+          type="button"
+          onClick={onNext}
+          className="mt-5 w-full rounded-[14px] bg-white/95 py-3 font-display text-sm font-bold text-brown"
+        >
+          Scan next
+        </button>
+      )}
+    </div>
+  )
+}
+
+function MerchSuccessCard({
+  order,
+  eventTitle,
+  onNext,
+  compact = false,
+}: {
+  order: MerchOrder
+  eventTitle: string | null | undefined
+  onNext?: () => void
+  compact?: boolean
+}) {
+  return (
+    <div className="w-full max-w-sm rounded-[14px] border border-emerald-500/30 bg-emerald-500/10 p-4">
+      <div className="flex items-center justify-center gap-2 text-emerald-300">
+        <CheckCircle2 size={18} aria-hidden />
+        <p className="font-display text-sm font-bold">Ready for pickup</p>
+      </div>
+      <p className="mt-2 text-center font-mono text-lg font-bold tracking-widest text-white">
+        {order.pickupNumber}
+      </p>
+      <p className="mt-1 text-center text-sm font-semibold text-white/90">{order.holderName}</p>
+      {eventTitle && <p className="mt-1 text-center text-xs text-white/60">{eventTitle}</p>}
+      <ul className="mt-3 space-y-1.5 border-t border-white/10 pt-3">
+        {order.lines.map((line) => (
+          <li
+            key={`${line.productId}-${line.size}`}
+            className="flex justify-between gap-2 text-xs text-white/80"
+          >
+            <span>
+              {line.productName} · {line.size}
+            </span>
+            <span className="font-semibold tabular-nums">×{line.quantity}</span>
+          </li>
+        ))}
+      </ul>
+      {!compact && onNext && (
+        <button
+          type="button"
+          onClick={onNext}
+          className="mt-4 w-full rounded-[14px] bg-white py-3 text-sm font-bold text-brown"
+        >
+          Scan next
+        </button>
+      )}
     </div>
   )
 }

@@ -5,6 +5,7 @@
 
 import { getHostEventById, getHostEvents, type HostEvent } from './account'
 import { notifyMerchOrderShipped } from './merchOrderNotifications'
+import { parseMerchScanInput } from './qrParse'
 import { resolveTicketHolderName } from './ticketHolderName'
 
 export const MERCH_PLATFORM_FEE_CENTS = 49
@@ -478,6 +479,14 @@ export function createMerchOrderWithValidation(
     return { ok: false, error: 'Could not place order.' }
   }
   return { ok: true, order }
+}
+
+export function redeemMerchFromScan(
+  rawQrOrCode: string,
+): { ok: true; order: MerchOrder } | { ok: false; error: string } {
+  const code = parseMerchScanInput(rawQrOrCode)
+  if (!code) return { ok: false, error: 'Empty or unreadable pickup code.' }
+  return redeemMerchOrder(code)
 }
 
 export function redeemMerchOrder(

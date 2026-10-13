@@ -1,5 +1,6 @@
 import type { HostEvent } from './account'
 import { getTicketTransactions } from './ticketTransactions'
+import { isTicketCheckedIn } from './ticketCheckIn'
 import { getEventUserTickets, getTicketHolderName } from './userTickets'
 
 export type EventGuest = {
@@ -22,7 +23,7 @@ export function getEventGuests(eventId: string): EventGuest[] {
     name: getTicketHolderName(ticket),
     email: ticket.userEmail,
     tier: ticket.tierName,
-    checkedIn: false,
+    checkedIn: isTicketCheckedIn(ticket.id),
     purchasedAt: ticket.purchasedAt,
   }))
 

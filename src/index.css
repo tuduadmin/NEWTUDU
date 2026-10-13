@@ -1024,12 +1024,15 @@
   #event-poster-print,
   #event-poster-print *,
   #ticket-paper-print,
-  #ticket-paper-print * {
+  #ticket-paper-print *,
+  #ticket-print,
+  #ticket-print * {
     visibility: visible;
   }
 
   #event-poster-print,
-  #ticket-paper-print {
+  #ticket-paper-print,
+  #ticket-print {
     position: absolute;
     left: 0;
     top: 0;
